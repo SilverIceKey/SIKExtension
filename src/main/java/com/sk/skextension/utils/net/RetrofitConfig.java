@@ -1,6 +1,8 @@
 package com.sk.skextension.utils.net;
 
 import java.net.Proxy;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * retrofit配置接口
@@ -82,17 +84,37 @@ public abstract class RetrofitConfig {
 
     /**
      * 代理用户名
+     *
      * @return
      */
-    public String proxyUserName(){
+    public String proxyUserName() {
         return "";
     }
 
     /**
      * 代理密码
+     *
      * @return
      */
-    public String proxyPassword(){
+    public String proxyPassword() {
         return "";
+    }
+
+    /**
+     * 默认头部
+     *
+     * @return
+     */
+    public Map<String, String> defaultHeaders() {
+        return Collections.emptyMap();
+    }
+
+    /**
+     * 默认参数
+     *
+     * @return
+     */
+    public Map<String, String> defaultParams() {
+        return Collections.emptyMap();
     }
 }

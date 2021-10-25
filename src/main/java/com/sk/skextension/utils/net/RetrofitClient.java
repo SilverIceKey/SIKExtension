@@ -5,6 +5,7 @@ import android.content.Context;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Cache;
@@ -55,6 +56,11 @@ public class RetrofitClient {
     private HttpLoggingInterceptor httpLoggingInterceptor;
 
     /**
+     * 头部和参数默认添加拦截器
+     */
+    private HeaderParamsPreloadInterceptor headerParamsPreloadInterceptor;
+
+    /**
      * RetrofitClient 懒汉模式
      */
     private static class RetrofitClientHolder {
@@ -81,6 +87,9 @@ public class RetrofitClient {
             //设置拦截等级
             httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         }
+        if (headerParamsPreloadInterceptor == null) {
+            headerParamsPreloadInterceptor = new HeaderParamsPreloadInterceptor();
+        }
     }
 
     /**
@@ -102,6 +111,8 @@ public class RetrofitClient {
         this.defaultConfig = retrofitConfig;
         this.retrofitConfig = retrofitConfig;
         useDefaultConfig = true;
+        headerParamsPreloadInterceptor.addHeader(retrofitConfig.defaultHeaders());
+        headerParamsPreloadInterceptor.addParams(retrofitConfig.defaultParams());
         return this;
     }
 
@@ -114,6 +125,8 @@ public class RetrofitClient {
     public RetrofitClient config(RetrofitConfig retrofitConfig) {
         this.retrofitConfig = retrofitConfig;
         useDefaultConfig = false;
+        headerParamsPreloadInterceptor.addHeader(retrofitConfig.defaultHeaders());
+        headerParamsPreloadInterceptor.addParams(retrofitConfig.defaultParams());
         return this;
     }
 
@@ -154,6 +167,7 @@ public class RetrofitClient {
                             .header("Proxy-Authorization", credential)
                             .build();
                 })
+                .addInterceptor(headerParamsPreloadInterceptor)
                 .addInterceptor(httpLoggingInterceptor)
                 .cache(cache)
                 .connectTimeout(retrofitConfig.connectTimeout(), TimeUnit.MILLISECONDS)
@@ -213,5 +227,51 @@ public class RetrofitClient {
             useDefaultConfig = true;
             return retrofit.create(service);
         }
+    }
+
+    /**
+     * 添加默认请求头
+     *
+     * @param key
+     * @param value
+     * @return
+     */
+    public RetrofitClient addDefaultHeader(String key, String value) {
+        headerParamsPreloadInterceptor.addHeader(key, value);
+        return this;
+    }
+
+    /**
+     * 批量添加默认请求头
+     *
+     * @param headers
+     * @return
+     */
+    public RetrofitClient addDefaultHeader(Map<String, String> headers) {
+        headerParamsPreloadInterceptor.addHeader(headers);
+        return this;
+    }
+
+    /**
+     * 添加默认参数
+     *
+     * @param key
+     * @param value
+     * @return
+     */
+    public RetrofitClient addDefaultParams(String key, String value) {
+        headerParamsPreloadInterceptor.addHeader(key, value);
+        return this;
+    }
+
+    /**
+     * 批量添加默认参数
+     *
+     * @param params
+     * @return
+     */
+    public RetrofitClient addDefaultParams(Map<String, String> params) {
+        headerParamsPreloadInterceptor.addParams(params);
+        return this;
     }
 }

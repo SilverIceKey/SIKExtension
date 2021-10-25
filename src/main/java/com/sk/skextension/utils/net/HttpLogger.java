@@ -17,7 +17,7 @@ public class HttpLogger implements HttpLoggingInterceptor.Logger {
     @Override
     public void log(@NotNull String message) {
         // 请求或者响应开始
-        if (message.startsWith("--> POST")) {
+        if (message.startsWith("--> POST")||message.startsWith("--> GET")) {
             mMessage.setLength(0);
         }
         // 以{}或者[]形式的说明是响应结果的json数据，需要进行格式化
