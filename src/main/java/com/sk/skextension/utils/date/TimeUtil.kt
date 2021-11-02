@@ -14,10 +14,12 @@ class TimeUtil {
      * 默认日期格式
      */
     val DEFAULT_DATE_FORMAT = "yyyy-MM-dd"
+
     /**
      * 默认日期格式带小时
      */
     val DEFAULT_DATE_HOUR_FORMAT = "yyyy-MM-dd HH"
+
     /**
      * 默认日期格式带分钟
      */
@@ -42,45 +44,40 @@ class TimeUtil {
      * 日期转换器
      */
     val simpleDateDayFormat = SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA)
+
     /**
      * 日期转换器小时
      */
     val simpleDateHourFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_FORMAT, Locale.CHINA)
+
     /**
      * 日期转换器小时分钟
      */
     val simpleDateHourMinFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_FORMAT, Locale.CHINA)
 
     companion object {
-        @JvmStatic
-        private var timeUtils: TimeUtil? = null
-
-        @JvmStatic
-        fun getInstance(): TimeUtil {
-            if (timeUtils == null) {
-                synchronized(TimeUtil::class.java, {
-                    if (timeUtils == null) {
-                        timeUtils = TimeUtil()
-                    }
-                })
-            }
-            return timeUtils!!
+        val instance: TimeUtil by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+            TimeUtil()
         }
     }
 
     /**
      * 计算到目前的时间
      */
-    @SuppressLint("SimpleDateFormat")
     fun getTimeIntervalofCur(time: String): String {
-        return getTimeIntervalofCur(time, SimpleDateFormat("yyyy-MM-dd HH:mm"))
+        return getTimeIntervalofCur(
+            time, SimpleDateFormat(
+                "yyyy-MM-dd HH:mm",
+                Locale.getDefault(Locale.Category.FORMAT)
+            )
+        )
     }
 
     /**
      * 计算到目前的时间
      */
     fun getTimeIntervalofCur(time: String, timeFormatter: DateFormat): String {
-        val timeSecond: Long = timeFormatter.parse(time, ParsePosition(0)).getTime() / 1000
+        val timeSecond: Long = timeFormatter.parse(time, ParsePosition(0))!!.getTime() / 1000
         return getTimeIntervalofCur(timeSecond)
     }
 
@@ -109,10 +106,10 @@ class TimeUtil {
      */
     @SuppressLint("SimpleDateFormat")
     fun isToday(date: String, dateFormat: String = DEFAULT_DATE_FORMAT): Boolean {
-        var simpleDateFormat:SimpleDateFormat
-        if (dateFormat==DEFAULT_DATE_FORMAT){
+        val simpleDateFormat: SimpleDateFormat
+        if (dateFormat == DEFAULT_DATE_FORMAT) {
             simpleDateFormat = simpleDateDayFormat
-        }else{
+        } else {
             simpleDateFormat = SimpleDateFormat(dateFormat, Locale.CHINA)
         }
         val formatNowDate = simpleDateFormat.format(Date())
@@ -125,7 +122,7 @@ class TimeUtil {
     fun offsetDay(offsetValue: Int, date: Date = Date()): Date {
         val formatDate = simpleDateDayFormat.format(date)
         val parseDate = simpleDateDayFormat.parse(formatDate)
-        return Date(parseDate.time + offsetValue * DAY_TIME)
+        return Date(parseDate!!.time + offsetValue * DAY_TIME)
     }
 
     /**
@@ -134,7 +131,7 @@ class TimeUtil {
     fun offsetHour(offsetValue: Int, date: Date = Date()): Date {
         val formatDate = simpleDateHourFormat.format(date)
         val parseDate = simpleDateHourFormat.parse(formatDate)
-        return Date(parseDate.time + offsetValue * HOUR_TIME)
+        return Date(parseDate!!.time + offsetValue * HOUR_TIME)
     }
 
     /**
@@ -143,7 +140,7 @@ class TimeUtil {
     fun offsetMin(offsetValue: Int, date: Date = Date()): Date {
         val formatDate = simpleDateHourMinFormat.format(date)
         val parseDate = simpleDateHourMinFormat.parse(formatDate)
-        return Date(parseDate.time + offsetValue * MIN_TIME)
+        return Date(parseDate!!.time + offsetValue * MIN_TIME)
     }
 
     /**
@@ -164,7 +161,7 @@ class TimeUtil {
      * 获取今天日期
      */
     fun today(): Date {
-        return SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA).parse(nowString())
+        return SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA).parse(nowString())!!
     }
 
     /**
@@ -173,11 +170,13 @@ class TimeUtil {
     fun isTimeBefore(realDate: Date, referenceDate: Date): Boolean {
         return realDate.before(referenceDate)
     }
+
     /**
      * 判断日期是否在某日期之前
      */
     fun isTimeBefore(realDate: String, referenceDate: String): Boolean {
-        return simpleDateDayFormat.parse(realDate).before(simpleDateDayFormat.parse(referenceDate))
+        return simpleDateDayFormat.parse(realDate)!!
+            .before(simpleDateDayFormat.parse(referenceDate))
     }
 
     /**
@@ -186,18 +185,24 @@ class TimeUtil {
     fun isTimeBeforeToday(realDate: Date): Boolean {
         return realDate.before(today())
     }
+
     /**
      * 判断日期是否在今天之前
      */
     fun isTimeBeforeToday(realDate: String): Boolean {
-        return simpleDateDayFormat.parse(realDate).before(today())
+        return simpleDateDayFormat.parse(realDate)!!.before(today())
     }
 
     /**
      * 时间仅保留日期返回Date
      */
     fun getDateOnly(date: Date): Date {
-        return SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA).parse(SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA).format(date))
+        return SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA).parse(
+            SimpleDateFormat(
+                DEFAULT_DATE_FORMAT,
+                Locale.CHINA
+            ).format(date)
+        )!!
     }
 
     /**
@@ -206,11 +211,12 @@ class TimeUtil {
     fun calcDayNum(beforeDate: Date, afterDate: Date): Long {
         return (afterDate.time - beforeDate.time) / DAY_TIME
     }
+
     /**
      * 计算时间天数
      */
     fun calcDayNum(beforeDate: String, afterDate: String): Long {
-        return (simpleDateDayFormat.parse(beforeDate).time - simpleDateDayFormat.parse(afterDate).time) / DAY_TIME
+        return (simpleDateDayFormat.parse(beforeDate)!!.time - simpleDateDayFormat.parse(afterDate)!!.time) / DAY_TIME
     }
 
 }

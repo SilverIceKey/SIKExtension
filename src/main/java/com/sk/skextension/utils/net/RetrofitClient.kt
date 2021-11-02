@@ -166,8 +166,8 @@ class RetrofitClient private constructor() {
             .addInterceptor(httpLoggingInterceptor)
             .cache(cache)
             .connectTimeout(retrofitConfig!!.connectTimeout(), TimeUnit.MILLISECONDS)
-            .readTimeout(retrofitConfig!!.ReadTimeout(), TimeUnit.MILLISECONDS)
-            .writeTimeout(retrofitConfig!!.WriteTimeout(), TimeUnit.MILLISECONDS)
+            .readTimeout(retrofitConfig!!.readTimeout(), TimeUnit.MILLISECONDS)
+            .writeTimeout(retrofitConfig!!.writeTimeout(), TimeUnit.MILLISECONDS)
         okHttpClient = builder.build()
         return okHttpClient!!
     }

@@ -29,7 +29,7 @@ abstract class RetrofitConfig(
      *
      * @return
      */
-    fun ReadTimeout(): Long {
+    fun readTimeout(): Long {
         return DEFAULT_READ_TIMEOUT
     }
 
@@ -38,7 +38,7 @@ abstract class RetrofitConfig(
      *
      * @return
      */
-    fun WriteTimeout(): Long {
+    fun writeTimeout(): Long {
         return DEFAULT_WRITE_TIMEOUT
     }
 
