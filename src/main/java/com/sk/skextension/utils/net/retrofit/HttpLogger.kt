@@ -1,9 +1,7 @@
-package com.sk.skextension.utils.net
+package com.sk.skextension.utils.net.retrofit
 
-import com.sk.skextension.utils.net.JsonUtil.formatJson
-import com.sk.skextension.utils.net.JsonUtil.decodeUnicode
-import com.sk.skextension.utils.net.JsonUtil
-import com.sk.skextension.utils.net.HttpLogger
+import com.sk.skextension.utils.net.retrofit.JsonUtil.formatJson
+import com.sk.skextension.utils.net.retrofit.JsonUtil.decodeUnicode
 import okhttp3.logging.HttpLoggingInterceptor
 import org.slf4j.LoggerFactory
 

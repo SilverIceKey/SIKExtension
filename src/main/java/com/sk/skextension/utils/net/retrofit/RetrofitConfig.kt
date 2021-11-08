@@ -1,6 +1,5 @@
-package com.sk.skextension.utils.net
+package com.sk.skextension.utils.net.retrofit
 
-import com.sk.skextension.utils.net.RetrofitConfig
 import java.net.Proxy
 
 /**

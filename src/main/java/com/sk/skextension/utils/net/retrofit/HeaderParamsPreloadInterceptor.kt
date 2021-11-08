@@ -1,4 +1,4 @@
-package com.sk.skextension.utils.net
+package com.sk.skextension.utils.net.retrofit
 import okhttp3.*
 import kotlin.Throws
 import java.io.IOException

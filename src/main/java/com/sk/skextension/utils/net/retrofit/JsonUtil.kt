@@ -1,6 +1,5 @@
-package com.sk.skextension.utils.net
+package com.sk.skextension.utils.net.retrofit
 
-import com.sk.skextension.utils.net.JsonUtil
 import java.lang.IllegalArgumentException
 import java.lang.StringBuilder
 
