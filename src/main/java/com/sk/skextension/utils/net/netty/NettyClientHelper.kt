@@ -9,7 +9,7 @@ class NettyClientHelper {
     /**
      * 根据配置存储netty请求
      */
-    private val nettyClients: ConcurrentHashMap<NettyConfig, String> = ConcurrentHashMap()
+    private val nettyClients: ConcurrentHashMap<Class<NettyConfig>, String> = ConcurrentHashMap()
 
     companion object {
         val instance: NettyClientHelper by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
