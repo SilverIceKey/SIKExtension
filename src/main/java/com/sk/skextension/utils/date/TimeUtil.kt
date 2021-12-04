@@ -10,52 +10,55 @@ import java.util.*
  * 时间相关
  */
 class TimeUtil {
-    /**
-     * 默认日期格式
-     */
-    val DEFAULT_DATE_FORMAT = "yyyy-MM-dd"
-
-    /**
-     * 默认日期格式带小时
-     */
-    val DEFAULT_DATE_HOUR_FORMAT = "yyyy-MM-dd HH"
-
-    /**
-     * 默认日期格式带分钟
-     */
-    val DEFAULT_DATE_HOUR_MIN_FORMAT = "yyyy-MM-dd HH:mm"
-
-    /**
-     * 一分钟
-     */
-    val MIN_TIME = 60 * 1000L
-
-    /**
-     * 一小时
-     */
-    val HOUR_TIME = MIN_TIME * 60
-
-    /**
-     * 一天
-     */
-    val DAY_TIME = HOUR_TIME * 24
-
-    /**
-     * 日期转换器
-     */
-    val simpleDateDayFormat = SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA)
-
-    /**
-     * 日期转换器小时
-     */
-    val simpleDateHourFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_FORMAT, Locale.CHINA)
-
-    /**
-     * 日期转换器小时分钟
-     */
-    val simpleDateHourMinFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_FORMAT, Locale.CHINA)
-
     companion object {
+        /**
+         * 默认日期格式
+         */
+        val DEFAULT_DATE_FORMAT = "yyyy-MM-dd"
+
+        /**
+         * 默认日期格式带小时
+         */
+        val DEFAULT_DATE_HOUR_FORMAT = "yyyy-MM-dd HH"
+
+        /**
+         * 默认日期格式带分钟
+         */
+        val DEFAULT_DATE_HOUR_MIN_FORMAT = "yyyy-MM-dd HH:mm"
+
+        /**
+         * 一分钟
+         */
+        val MIN_TIME = 60 * 1000L
+
+        /**
+         * 一小时
+         */
+        val HOUR_TIME = MIN_TIME * 60
+
+        /**
+         * 一天
+         */
+        val DAY_TIME = HOUR_TIME * 24
+
+        /**
+         * 日期转换器
+         */
+        val simpleDateDayFormat = SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA)
+
+        /**
+         * 日期转换器小时
+         */
+        val simpleDateHourFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_FORMAT, Locale.CHINA)
+
+        /**
+         * 日期转换器小时分钟
+         */
+        val simpleDateHourMinFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_FORMAT, Locale.CHINA)
+
+        /**
+         * timeutil单例
+         */
         val instance: TimeUtil by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             TimeUtil()
         }
