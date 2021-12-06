@@ -161,7 +161,7 @@ class RetrofitClient private constructor() {
             headerParamsPreloadInterceptor
         )
         builder
-            .proxyAuthenticator { route: Route?, response: Response ->
+            .proxyAuthenticator { _: Route?, response: Response ->
                 val credential = basic(
                     retrofitConfig.proxyUserName(), retrofitConfig.proxyPassword()
                 )
