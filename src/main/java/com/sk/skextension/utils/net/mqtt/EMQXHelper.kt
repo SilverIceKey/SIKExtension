@@ -2,7 +2,10 @@ package com.sk.skextension.utils.net.mqtt
 
 import android.util.Log
 import com.sk.skextension.utils.device.DeviceUtil
+import com.sk.skextension.utils.eventbus.BusModel
 import org.eclipse.paho.client.mqttv3.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -35,7 +38,21 @@ class EMQXHelper {
      */
     var log: Logger
 
+    /**
+     * mqtt连接状态
+     */
+    var isMqttConnect: Boolean = false
+
     companion object {
+        /**
+         * 事件总线类型
+         */
+        val EVENTBUS_TYPE: String = "ScreenStatusChange"
+
+        /**
+         * 屏幕打开
+         */
+        val SCREEN_ON: Int = 1
         val instance: EMQXHelper by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             EMQXHelper()
         }
@@ -61,9 +78,23 @@ class EMQXHelper {
                 emqxCallback?.deliveryComplete(token)
             }
         }
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this)
+        }
     }
 
-    fun init(mqttConfig: EMQXConfig) {
+    @Subscribe
+    fun onScreenStatusChange(bus: BusModel) {
+        if (bus.type == EVENTBUS_TYPE) {
+            if (bus.code == SCREEN_ON) {
+                if (!mqttClient.isConnected) {
+                    init()
+                }
+            }
+        }
+    }
+
+    fun init(mqttConfig: EMQXConfig = emqxConfig) {
         this.emqxConfig = mqttConfig
         this.emqxCallback = mqttConfig.getMqttCallback()
         try {
@@ -89,6 +120,9 @@ class EMQXHelper {
      * 释放mqtt客户端
      */
     fun release() {
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this)
+        }
         mqttClient.disconnect()
         mqttClient.close()
     }

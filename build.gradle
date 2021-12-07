@@ -17,7 +17,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -52,10 +52,20 @@ dependencies {
     api('com.squareup.okhttp3:logging-interceptor:4.9.2')
     api('io.netty:netty-all:4.1.70.Final')
     //工具类相关
-    api('com.blankj:utilcode:1.30.6')
+    api('com.blankj:utilcode:1.30.7')
     //mqtt相关
     api('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.2')
+    //持久化存储相关
+    api('com.tencent:mmkv-static:1.2.11')
     //日志相关
     api('org.slf4j:slf4j-api:1.7.25')
     api('com.github.tony19:logback-android:2.0.0')
+    api('com.plumelog:plumelog-logback:3.4.2'){
+        exclude group:"ch.qos.logback",module:"logback-classic"
+        exclude group:"ch.qos.logback",module:"logback-core"
+    }
+    //时间总线
+    api('org.greenrobot:eventbus:3.3.0')
+    //json相关
+    api('com.google.code.gson:gson:2.8.9')
 }
