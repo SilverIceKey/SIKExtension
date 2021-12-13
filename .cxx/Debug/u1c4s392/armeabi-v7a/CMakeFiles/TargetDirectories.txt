@@ -1,3 +1,0 @@
-F:/Project/Android/Cashier_Android/skextension/.cxx/Debug/u1c4s392/armeabi-v7a/CMakeFiles/skextension.dir
-F:/Project/Android/Cashier_Android/skextension/.cxx/Debug/u1c4s392/armeabi-v7a/CMakeFiles/edit_cache.dir
-F:/Project/Android/Cashier_Android/skextension/.cxx/Debug/u1c4s392/armeabi-v7a/CMakeFiles/rebuild_cache.dir
