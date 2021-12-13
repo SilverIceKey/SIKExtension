@@ -16,7 +16,10 @@ class HttpLogger : HttpLoggingInterceptor.Logger {
     override fun log(message: String) {
         // 请求或者响应开始
         var mresultMessage = message
-        if (mresultMessage.startsWith("--> POST") || mresultMessage.startsWith("--> GET")) {
+        if (mresultMessage.startsWith("--> POST") || mresultMessage.startsWith("--> GET") || mresultMessage.startsWith(
+                "--> PUT"
+            )
+        ) {
             mMessage.setLength(0)
         }
         // 以{}或者[]形式的说明是响应结果的json数据，需要进行格式化

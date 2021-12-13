@@ -1,0 +1,7 @@
+[
+{
+  "directory": "E:/project/cashier/skextension/.cxx/Debug/j3c1e301/x86",
+  "command": "D:\\Android\\ndk\\21.4.7075529\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android24 --gcc-toolchain=D:/Android/ndk/21.4.7075529/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=D:/Android/ndk/21.4.7075529/toolchains/llvm/prebuilt/windows-x86_64/sysroot  -Dskextension_EXPORTS  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O0 -fno-limit-debug-info  -fPIC   -o CMakeFiles\\skextension.dir\\skextension.cpp.o -c E:\\project\\cashier\\skextension\\src\\main\\cpp\\skextension.cpp",
+  "file": "E:\\project\\cashier\\skextension\\src\\main\\cpp\\skextension.cpp"
+}
+]

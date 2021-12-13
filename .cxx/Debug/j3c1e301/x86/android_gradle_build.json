@@ -1,0 +1,40 @@
+{
+  "stringTable": {},
+  "buildFiles": [
+    "E:\\project\\cashier\\skextension\\src\\main\\cpp\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "D:\\Android\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+      "-C",
+      "E:\\project\\cashier\\skextension\\.cxx\\Debug\\j3c1e301\\x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "D:\\Android\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+    "-C",
+    "E:\\project\\cashier\\skextension\\.cxx\\Debug\\j3c1e301\\x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "skextension-Debug-x86": {
+      "buildCommandComponents": [
+        "D:\\Android\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+        "-C",
+        "E:\\project\\cashier\\skextension\\.cxx\\Debug\\j3c1e301\\x86",
+        "skextension"
+      ],
+      "buildType": "debug",
+      "abi": "x86",
+      "artifactName": "skextension",
+      "output": "E:\\project\\cashier\\skextension\\build\\intermediates\\cxx\\Debug\\j3c1e301\\obj\\x86\\libskextension.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {},
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

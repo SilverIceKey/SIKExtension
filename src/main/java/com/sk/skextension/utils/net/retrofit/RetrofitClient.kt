@@ -115,6 +115,9 @@ class RetrofitClient private constructor() {
      * @return
      */
     fun config(retrofitConfig: RetrofitConfig): RetrofitClient {
+        if (okHttpClients[retrofitConfig.javaClass] != null && retrofits[retrofitConfig.javaClass] != null) {
+            return this
+        }
         registerRetrofitConfig(retrofitConfig)
         return this
     }

@@ -25,6 +25,10 @@ class TimeUtil {
          * 默认日期格式带分钟
          */
         val DEFAULT_DATE_HOUR_MIN_FORMAT = "yyyy-MM-dd HH:mm"
+        /**
+         * 默认日期格式带分钟秒毫秒
+         */
+        val DEFAULT_DATE_HOUR_MIN_SEC_MILL_FORMAT = "yyyy-MM-dd HH:mm:ss:SSS"
 
         /**
          * 一分钟
