@@ -21,9 +21,13 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        skextension.cpp)
-
-aux_source_directory(extlibrary ALL_SRCS)
+        skextension.cpp
+        extlibrary/aes.c
+        extlibrary/aes.h
+        extlibrary/base64.c
+        extlibrary/base64.h
+        extlibrary/md5.cpp
+        extlibrary/md5.h)
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library

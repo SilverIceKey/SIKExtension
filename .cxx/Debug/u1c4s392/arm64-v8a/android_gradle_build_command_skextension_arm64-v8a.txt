@@ -1,0 +1,7 @@
+Executable : F:\Project\Android\AndroidSDK\cmake\3.10.2.4988404\bin\ninja.exe
+arguments : 
+-C
+F:\Project\Android\Cashier_Android\skextension\.cxx\Debug\u1c4s392\arm64-v8a
+skextension
+jvmArgs : 
+

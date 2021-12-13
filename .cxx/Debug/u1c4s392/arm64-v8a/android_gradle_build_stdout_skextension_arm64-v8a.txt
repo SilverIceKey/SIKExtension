@@ -1,0 +1,3 @@
+ninja: Entering directory `F:\Project\Android\Cashier_Android\skextension\.cxx\Debug\u1c4s392\arm64-v8a'
+[1/2] Building CXX object CMakeFiles/skextension.dir/skextension.cpp.o
+[2/2] Linking CXX shared library F:\Project\Android\Cashier_Android\skextension\build\intermediates\cxx\Debug\u1c4s392\obj\arm64-v8a\libskextension.so

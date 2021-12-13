@@ -13,7 +13,7 @@ object EncryptUtil {
     /**
      * AES加密(AES_ECB_PKCS7)
      */
-    external fun AESEncode(key:String,content:ByteArray):String
+    external fun AESEncode(key:String,content:String):String
 
     /**
      * AES解密(AES_ECB_PKCS7)
@@ -23,5 +23,5 @@ object EncryptUtil {
     /**
      * MD5加密
      */
-    external fun MD5Encode(key:String,content: String):String
+    external fun MD5Encode(content: String):String
 }
