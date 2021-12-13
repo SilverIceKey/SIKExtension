@@ -1,13 +1,13 @@
 package com.sk.skextension.utils.net.mqtt
 
-import android.util.Log
-import com.sk.skextension.utils.device.DeviceUtil
+import com.blankj.utilcode.util.DeviceUtils
 import com.sk.skextension.utils.eventbus.BusModel
 import org.eclipse.paho.client.mqttv3.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.concurrent.thread
 
 /**
  * Mqtt帮助类
@@ -16,7 +16,7 @@ class EMQXHelper {
     /**
      * mqtt客户端
      */
-    lateinit var mqttClient: MqttClient
+    lateinit var mqttClient: MqttAsyncClient
 
     /**
      * emqx配置
@@ -64,17 +64,23 @@ class EMQXHelper {
             override fun connectionLost(cause: Throwable?) {
                 log.info("mqtt连接丢失开始重连")
                 emqxCallback?.connectionLost(cause)
-                mqttClient.connect(emqxConfig.getMqttConnectOptions())
-                mqttClient.subscribe(emqxConfig.topic)
+                thread {
+                    mqttClient.reconnect()
+                    while (!mqttClient.isConnected){
+                        continue
+                    }
+                    mqttClient.subscribe(emqxConfig.topic, emqxConfig.qos())
+                }.start()
             }
 
             override fun messageArrived(topic: String?, message: MqttMessage?) {
-                log.info("收到消息:主题:${topic},Qos:${message?.qos},内容:${String(message?.payload!!)}")
+                log.info("收到消息:主题:${topic},Qos:${message?.qos},内容:${message?.toString()}")
+                mqttClient.messageArrivedComplete(message?.id!!, message.qos)
                 emqxCallback?.messageArrived(topic, message)
             }
 
             override fun deliveryComplete(token: IMqttDeliveryToken?) {
-                log.info("消息处理完成")
+                log.info("收到确认消息")
                 emqxCallback?.deliveryComplete(token)
             }
         }
@@ -98,20 +104,31 @@ class EMQXHelper {
         this.emqxConfig = mqttConfig
         this.emqxCallback = mqttConfig.getMqttCallback()
         try {
-            mqttClient = MqttClient(
+            mqttClient = MqttAsyncClient(
                 mqttConfig.brokenUrl,
-                DeviceUtil.getSN(),
+                DeviceUtils.getUniqueDeviceId(),
                 mqttConfig.getMemoryPersistence()
             )
             mqttClient.setCallback(mqttCallback)
-            mqttClient.connect(mqttConfig.getMqttConnectOptions())
-            mqttClient.subscribe(mqttConfig.topic)
+            mqttClient.connect(
+                mqttConfig.getMqttConnectOptions(),
+                this,
+                object : IMqttActionListener {
+                    override fun onSuccess(asyncActionToken: IMqttToken?) {
+                        mqttClient.subscribe(mqttConfig.topic, mqttConfig.qos())
+                    }
+
+                    override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+
+                    }
+
+                })
         } catch (me: MqttException) {
-            log.error("reason ", me.getReasonCode().toString())
-            log.error("msg ", me.message.toString())
-            log.error("loc ", me.getLocalizedMessage())
-            log.error("cause ", me.cause.toString())
-            log.error("excep ", me.toString())
+            log.error("reason:${me.getReasonCode()}")
+            log.error("msg:${me.message}")
+            log.error("loc:${me.getLocalizedMessage()}")
+            log.error("cause:${me.cause}")
+            log.error("excep:${me}")
             me.printStackTrace()
         }
     }
@@ -142,7 +159,7 @@ class EMQXHelper {
         fun messageArrived(topic: String?, message: MqttMessage?)
 
         /**
-         * 消息处理完时回调
+         * 收到确认消息回调
          */
         fun deliveryComplete(token: IMqttDeliveryToken?)
     }

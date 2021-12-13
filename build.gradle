@@ -60,12 +60,14 @@ dependencies {
     //日志相关
     api('org.slf4j:slf4j-api:1.7.25')
     api('com.github.tony19:logback-android:2.0.0')
-    api('com.plumelog:plumelog-logback:3.4.2'){
-        exclude group:"ch.qos.logback",module:"logback-classic"
-        exclude group:"ch.qos.logback",module:"logback-core"
-    }
     //时间总线
     api('org.greenrobot:eventbus:3.3.0')
     //json相关
     api('com.google.code.gson:gson:2.8.9')
+    //图片相关
+    api('io.coil-kt:coil:1.4.0')
+    api('io.coil-kt:coil-compose:1.4.0')
+    api('io.coil-kt:coil-gif:1.4.0')
+    api('io.coil-kt:coil-svg:1.4.0')
+    api('io.coil-kt:coil-video:1.4.0')
 }
