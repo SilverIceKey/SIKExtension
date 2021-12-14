@@ -32,7 +32,7 @@ Java_com_sk_skextension_utils_encrypt_EncryptUtil_AESEncode(JNIEnv *env, jobject
                                                             jstring content) {
     uint8_t *keyData = jstringTostring(env,key);
     const char *str = env->GetStringUTFChars(content,JNI_FALSE);
-    char *result = AES_ECB_PKCS7_Encrypt(str, keyData);//AES ECB PKCS7Padding加密
+    char *result = AES_ECB_PKCS5_Encrypt(str, keyData);//AES ECB PKCS7Padding加密
 //    char *result = AES_CBC_PKCS7_Encrypt(str, AES_KEY, AES_IV);//AES CBC PKCS7Padding加密
     return env->NewStringUTF(result);
 }
@@ -42,7 +42,7 @@ Java_com_sk_skextension_utils_encrypt_EncryptUtil_AESDecode(JNIEnv *env, jobject
                                                             jstring content) {
     uint8_t *keyData = jstringTostring(env,key);
     const char *str = env->GetStringUTFChars(content, 0);
-    char *result = AES_ECB_PKCS7_Decrypt(str, keyData);//AES ECB PKCS7Padding解密
+    char *result = AES_ECB_PKCS5_Decrypt(str, keyData);//AES ECB PKCS7Padding解密
 //    char *result = AES_CBC_PKCS7_Decrypt(str, AES_KEY, AES_IV);//AES CBC PKCS7Padding解密
     env->ReleaseStringUTFChars(content, str);
     jsize len = (jsize) strlen(result);

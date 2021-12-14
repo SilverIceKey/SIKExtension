@@ -11,6 +11,7 @@
 #define Nb 4
 // aes BLOCK SIZE. Value=16
 #define BLOCK_SIZE 16
+#define PKCS5PADDING_BLOCK_SIZE 8
 
 // jcallan@github points out that declaring Multiply as a function 
 // reduces code size considerably with the Keil ARM compiler.
@@ -428,7 +429,57 @@ static inline uint8_t *getPKCS7PaddingInput(const char *in) {
     return paddingInput;
 }
 
+
+static inline uint8_t *getPKCS5PaddingInput(const char *in) {
+    int inLength = (int) strlen(in);//输入的长度
+    int remainder = inLength % PKCS5PADDING_BLOCK_SIZE;
+    uint8_t *paddingInput;
+    int group = inLength / PKCS5PADDING_BLOCK_SIZE;
+    int size = PKCS5PADDING_BLOCK_SIZE * (group + 2);
+    paddingInput = (uint8_t *) malloc(size + 1);
+
+    int dif = size - inLength;
+    for (int i = 0; i < size; i++) {
+        if (i < inLength) {
+            paddingInput[i] = in[i];
+        } else {
+            if (remainder == 0) {
+                //刚好是8倍数,就填充8个8
+                paddingInput[i] = HEX[0];
+            } else {    //如果不足8位 少多少位就补几个几  如：少4为就补4个4 以此类推
+                paddingInput[i] = HEX[dif];
+            }
+        }
+    }
+    paddingInput[size] = '\0';
+    return paddingInput;
+}
+
 static inline void removePKCS7Padding(uint8_t *out, const size_t inputLength) {
+    int *result = findPaddingIndex(out, inputLength - 1);
+    int offSetIndex = result[0];
+    int lastChar = result[1];
+    //检查是不是padding的字符,然后去掉
+    const size_t noZeroIndex = inputLength - offSetIndex;
+    if (lastChar >= 0 && offSetIndex >= 0) {
+        int success = 1;
+        for (int i = 0; i < lastChar; ++i) {
+            size_t index = noZeroIndex - lastChar + i;
+            if (!HEX[lastChar] == out[index]) {
+                success = 0;
+            }
+        }
+        if (1 == success) {
+            out[noZeroIndex - lastChar] = '\0';
+            memset(out + noZeroIndex - lastChar + 1, 0, lastChar - 1);
+        }
+    } else {
+        out[noZeroIndex] = '\0';
+    }
+}
+
+
+static inline void removePKCS5Padding(uint8_t *out, const size_t inputLength) {
     int *result = findPaddingIndex(out, inputLength - 1);
     int offSetIndex = result[0];
     int lastChar = result[1];
@@ -501,6 +552,25 @@ char *AES_ECB_PKCS7_Encrypt(const char *in, const uint8_t *key) {
 }
 
 /**
+ * 不定长加密,pkcs5padding，根据密钥长度自动选择128、192、256算法
+ */
+char *AES_ECB_PKCS5_Encrypt(const char *in, const uint8_t *key) {
+    KEYLEN = strlen(key);
+    uint8_t *paddingInput = getPKCS5PaddingInput(in);
+    int paddingInputLengt = strlen(paddingInput);
+    int count = paddingInputLengt / BLOCK_SIZE;
+    //开始分段加密
+    char *out = (char *) malloc(paddingInputLengt);
+    for (int i = 0; i < count; ++i) {
+        AES_ECB_encrypt(paddingInput + i * BLOCK_SIZE, key, out + i * BLOCK_SIZE);
+    }
+    char *base64En = b64_encode(out, paddingInputLengt);
+    free(paddingInput);
+    free(out);
+    return base64En;
+}
+
+/**
  * 不定长解密,pkcs7padding，根据密钥长度自动选择128、192、256算法
  */
 char *AES_ECB_PKCS7_Decrypt(const char *in, const uint8_t *key) {
@@ -519,6 +589,29 @@ char *AES_ECB_PKCS7_Decrypt(const char *in, const uint8_t *key) {
     }
 
     removePKCS7Padding(out, inputLength);
+    free(inputDesBase64);
+    return (char *) out;
+}
+
+/**
+ * 不定长解密,pkcs5padding，根据密钥长度自动选择128、192、256算法
+ */
+char *AES_ECB_PKCS5_Decrypt(const char *in, const uint8_t *key) {
+    KEYLEN = strlen(key);
+    size_t len = strlen(in);
+    uint8_t *inputDesBase64 = b64_decode(in, len);
+    const size_t inputLength = (len / 4) * 3;
+    uint8_t *out = malloc(inputLength);
+    memset(out, 0, inputLength);
+    size_t count = inputLength / BLOCK_SIZE;
+    if (count <= 0) {
+        count = 1;
+    }
+    for (size_t i = 0; i < count; ++i) {
+        AES_ECB_decrypt(inputDesBase64 + i * BLOCK_SIZE, key, out + i * BLOCK_SIZE);
+    }
+
+    removePKCS5Padding(out, inputLength);
     free(inputDesBase64);
     return (char *) out;
 }

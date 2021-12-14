@@ -4,24 +4,35 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import com.sk.skextension.utils.eventbus.BusModel
-import com.sk.skextension.utils.net.mqtt.EMQXHelper
+import com.sk.skextension.utils.eventbus.DefaultBusModel
 import org.greenrobot.eventbus.EventBus
 
 /**
  * 显示器状态监听
  */
-class ScreenStatusReceiver:BroadcastReceiver() {
+class ScreenStatusReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         val action = intent!!.action
         if (action == Intent.ACTION_SCREEN_ON) {
-            EventBus.getDefault().post(BusModel(EMQXHelper.EVENTBUS_TYPE,EMQXHelper.SCREEN_ON))
+            EventBus.getDefault()
+                .post(DefaultBusModel(EVENTBUS_TYPE, SCREEN_ON))
         } else if (action == Intent.ACTION_SCREEN_OFF) {
 
         }
     }
-    companion object{
-        fun registerReceiver(context: Context?){
+
+    companion object {
+        /**
+         * 事件总线类型
+         */
+        val EVENTBUS_TYPE: String = "ScreenStatusChange"
+
+        /**
+         * 屏幕打开
+         */
+        val SCREEN_ON: Int = 1
+
+        fun registerReceiver(context: Context?) {
             val filter = IntentFilter()
             filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(Intent.ACTION_SCREEN_OFF)

@@ -11,7 +11,7 @@ object EncryptUtil {
         System.loadLibrary("skextension")
     }
     /**
-     * AES加密(AES_ECB_PKCS7)
+     * AES加密(AES_ECB_PKCS5)
      */
     external fun AESEncode(key:String,content:String):String
 

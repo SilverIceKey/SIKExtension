@@ -31,7 +31,9 @@ extern "C" {
 #if defined(ECB) && ECB
 
 char* AES_ECB_PKCS7_Encrypt(const char *in, const uint8_t *key);
+char* AES_ECB_PKCS5_Encrypt(const char *in, const uint8_t *key);
 char* AES_ECB_PKCS7_Decrypt(const char *in, const uint8_t *key);
+char* AES_ECB_PKCS5_Decrypt(const char *in, const uint8_t *key);
 
 #endif // #if defined(ECB) && ECB
 

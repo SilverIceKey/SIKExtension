@@ -1,7 +1,8 @@
 package com.sk.skextension.utils.net.mqtt
 
 import com.blankj.utilcode.util.DeviceUtils
-import com.sk.skextension.utils.eventbus.BusModel
+import com.sk.skextension.utils.eventbus.DefaultBusModel
+import com.sk.skextension.utils.receivers.ScreenStatusReceiver
 import org.eclipse.paho.client.mqttv3.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -44,15 +45,6 @@ class EMQXHelper {
     var isMqttConnect: Boolean = false
 
     companion object {
-        /**
-         * 事件总线类型
-         */
-        val EVENTBUS_TYPE: String = "ScreenStatusChange"
-
-        /**
-         * 屏幕打开
-         */
-        val SCREEN_ON: Int = 1
         val instance: EMQXHelper by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             EMQXHelper()
         }
@@ -64,13 +56,15 @@ class EMQXHelper {
             override fun connectionLost(cause: Throwable?) {
                 log.info("mqtt连接丢失开始重连")
                 emqxCallback?.connectionLost(cause)
-                thread {
+                try {
                     mqttClient.reconnect()
-                    while (!mqttClient.isConnected){
+                    while (!mqttClient.isConnected) {
                         continue
                     }
                     mqttClient.subscribe(emqxConfig.topic, emqxConfig.qos())
-                }.start()
+                } catch (e: MqttException) {
+
+                }
             }
 
             override fun messageArrived(topic: String?, message: MqttMessage?) {
@@ -90,9 +84,9 @@ class EMQXHelper {
     }
 
     @Subscribe
-    fun onScreenStatusChange(bus: BusModel) {
-        if (bus.type == EVENTBUS_TYPE) {
-            if (bus.code == SCREEN_ON) {
+    fun onScreenStatusChange(bus: DefaultBusModel) {
+        if (bus.type == ScreenStatusReceiver.EVENTBUS_TYPE) {
+            if (bus.code == ScreenStatusReceiver.SCREEN_ON) {
                 if (!mqttClient.isConnected) {
                     init()
                 }
@@ -131,6 +125,20 @@ class EMQXHelper {
             log.error("excep:${me}")
             me.printStackTrace()
         }
+    }
+
+    /**
+     * 订阅
+     */
+    fun subscribe(topic: String?, qos: Int = 2) {
+        mqttClient.subscribe(topic, qos)
+    }
+
+    /**
+     * 取消订阅
+     */
+    fun unSubscribe(topic: String?) {
+        mqttClient.unsubscribe(topic)
     }
 
     /**
