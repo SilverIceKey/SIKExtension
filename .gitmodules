@@ -1,0 +1,3 @@
+[submodule "src/main/cpp/libyuv"]
+	path = src/main/cpp/libyuv
+	url = https://github.com/lemenkov/libyuv.git
