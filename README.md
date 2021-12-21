@@ -7,4 +7,7 @@
 git submodule add https://github.com/SilverIceKey/SKExtension
 git submodule init 
 git submodule update
+
+项目gradle中添加
+implementation project(':skextension')
 ```
