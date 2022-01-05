@@ -81,4 +81,6 @@ dependencies {
     api('io.coil-kt:coil-gif:1.4.0')
     api('io.coil-kt:coil-svg:1.4.0')
     api('io.coil-kt:coil-video:1.4.0')
+    //自定义键盘
+    api('com.github.jenly1314:kingkeyboard:1.0.4')
 }
