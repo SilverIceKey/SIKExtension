@@ -41,12 +41,22 @@ class RetrofitClient private constructor() {
     /**
      * retrofit默认配置
      */
-    private var defaultConfig: Class<RetrofitConfig>? = null
+    private var defaultConfigClazz: Class<RetrofitConfig>? = null
 
     /**
      * 日志拦截器
      */
     private var httpLoggingInterceptor: HttpLoggingInterceptor
+
+    /**
+     * 默认配置
+     */
+    private var defaultConfig: RetrofitConfig? = null
+
+    /**
+     * 临时配置
+     */
+    private var tempConfig: RetrofitConfig? = null
 
     /**
      * 根据不同配置创建HeaderParamsPreloadInterceptor
@@ -55,6 +65,11 @@ class RetrofitClient private constructor() {
      */
     private val headerParamsPreloadInterceptors: ConcurrentHashMap<Class<RetrofitConfig>, HeaderParamsPreloadInterceptor> =
         ConcurrentHashMap()
+
+    /**
+     * 更新token操作
+     */
+    var updateToken: () -> Unit = {}
 
     companion object {
         val instance: RetrofitClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -103,7 +118,8 @@ class RetrofitClient private constructor() {
      * @return
      */
     fun defaultConfig(retrofitConfig: RetrofitConfig): RetrofitClient {
-        defaultConfig = retrofitConfig.javaClass
+        defaultConfig = retrofitConfig
+        defaultConfigClazz = retrofitConfig.javaClass
         registerRetrofitConfig(retrofitConfig)
         return this
     }
@@ -118,6 +134,7 @@ class RetrofitClient private constructor() {
         if (okHttpClients[retrofitConfig.javaClass] != null && retrofits[retrofitConfig.javaClass] != null) {
             return this
         }
+        tempConfig = retrofitConfig
         registerRetrofitConfig(retrofitConfig)
         return this
     }
@@ -158,7 +175,9 @@ class RetrofitClient private constructor() {
         }
         val headerParamsPreloadInterceptor = HeaderParamsPreloadInterceptor()
         headerParamsPreloadInterceptor.addHeader(retrofitConfig.defaultHeaders())
-        headerParamsPreloadInterceptor.addParams(retrofitConfig.defaultParams())
+        if (!retrofitConfig.defaultParams().isEmpty()) {
+            headerParamsPreloadInterceptor.addParams(retrofitConfig.defaultParams())
+        }
         headerParamsPreloadInterceptors.put(
             retrofitConfig.javaClass,
             headerParamsPreloadInterceptor
@@ -182,6 +201,13 @@ class RetrofitClient private constructor() {
     }
 
     /**
+     * 添加更新token方法
+     */
+    fun addUpdateToken(updateToken: () -> Unit) {
+        this.updateToken = updateToken
+    }
+
+    /**
      * 添加拦截器
      *
      * @param interceptor
@@ -189,7 +215,7 @@ class RetrofitClient private constructor() {
      */
     fun addInterceptor(
         interceptor: Interceptor?,
-        clazz: Class<RetrofitConfig> = defaultConfig!!
+        clazz: Class<RetrofitConfig> = defaultConfigClazz!!
     ): RetrofitClient {
         val okHttpClient =
             okHttpClients[clazz]?.newBuilder()?.addInterceptor(interceptor!!)?.build()
@@ -205,7 +231,7 @@ class RetrofitClient private constructor() {
      */
     fun addNetworkInterceptor(
         interceptor: Interceptor?,
-        clazz: Class<RetrofitConfig> = defaultConfig!!
+        clazz: Class<RetrofitConfig> = defaultConfigClazz!!
     ): RetrofitClient {
         val okHttpClient =
             okHttpClients[clazz]?.newBuilder()?.addNetworkInterceptor(interceptor!!)?.build()
@@ -222,10 +248,13 @@ class RetrofitClient private constructor() {
     </T> */
     fun <T> createService(
         service: Class<T>,
-        clazz: Class<RetrofitConfig>? = defaultConfig
+        clazz: Class<RetrofitConfig>? = defaultConfigClazz
     ): T {
         if (clazz == null) {
             throw NullPointerException("请先设置默认配置或临时配置")
+        }
+        if (defaultConfig?.isTokenShouldUpdate()!!) {
+            updateToken()
         }
         return retrofits[clazz]!!.create(service)
     }
@@ -239,7 +268,7 @@ class RetrofitClient private constructor() {
      */
     fun addDefaultHeader(
         key: String?, value: String?,
-        clazz: Class<RetrofitConfig> = defaultConfig!!
+        clazz: Class<RetrofitConfig> = defaultConfigClazz!!
     ): RetrofitClient {
         headerParamsPreloadInterceptors[clazz]?.addHeader(key!!, value!!)
         return this
@@ -253,7 +282,7 @@ class RetrofitClient private constructor() {
      */
     fun addDefaultHeader(
         headers: Map<String, String>?,
-        clazz: Class<RetrofitConfig> = defaultConfig!!
+        clazz: Class<RetrofitConfig> = defaultConfigClazz!!
     ): RetrofitClient {
         headerParamsPreloadInterceptors[clazz]?.addHeader(headers)
         return this
@@ -268,7 +297,7 @@ class RetrofitClient private constructor() {
      */
     fun addDefaultParams(
         key: String, value: String,
-        clazz: Class<RetrofitConfig> = defaultConfig!!
+        clazz: Class<RetrofitConfig> = defaultConfigClazz!!
     ): RetrofitClient {
         headerParamsPreloadInterceptors[clazz]?.addHeader(key, value)
         return this
@@ -282,7 +311,7 @@ class RetrofitClient private constructor() {
      */
     fun addDefaultParams(
         params: Map<String, String>?,
-        clazz: Class<RetrofitConfig> = defaultConfig!!
+        clazz: Class<RetrofitConfig> = defaultConfigClazz!!
     ): RetrofitClient {
         headerParamsPreloadInterceptors[clazz]?.addParams(params)
         return this

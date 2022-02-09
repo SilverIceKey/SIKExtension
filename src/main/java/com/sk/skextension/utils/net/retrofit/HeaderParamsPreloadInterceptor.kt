@@ -20,26 +20,29 @@ class HeaderParamsPreloadInterceptor : Interceptor {
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val requestBuilder: Request.Builder = chain.request().newBuilder()
-        var requestBody: RequestBody? = chain.request().body
         for (key in mHeader.keys) {
             requestBuilder.header(key, mHeader[key]!!)
         }
-        if (requestBody == null || requestBody is FormBody) {
-            val formBodyBuilder:FormBody.Builder = FormBody.Builder()
-            if (requestBody != null) {
-                for (i in 0 until (requestBody as FormBody).size) {
-                    formBodyBuilder.addEncoded(
-                        requestBody.encodedName(i),
-                        requestBody.encodedValue(i)
-                    )
+        if ("POST"==chain.request().method){
+            var requestBody: RequestBody? = chain.request().body
+            if (requestBody == null || requestBody is FormBody) {
+                val formBodyBuilder:FormBody.Builder = FormBody.Builder()
+                if (requestBody != null) {
+                    for (i in 0 until (requestBody as FormBody).size) {
+                        formBodyBuilder.addEncoded(
+                            requestBody.encodedName(i),
+                            requestBody.encodedValue(i)
+                        )
+                    }
                 }
+                for (key in mParams.keys) {
+                    formBodyBuilder.addEncoded(key, mParams[key]!!)
+                }
+                requestBody = formBodyBuilder.build()
             }
-            for (key in mParams.keys) {
-                formBodyBuilder.addEncoded(key, mParams[key]!!)
-            }
-            requestBody = formBodyBuilder.build()
+            requestBuilder.post(requestBody)
+            return chain.proceed(requestBuilder.build())
         }
-        requestBuilder.post(requestBody)
         return chain.proceed(requestBuilder.build())
     }
 

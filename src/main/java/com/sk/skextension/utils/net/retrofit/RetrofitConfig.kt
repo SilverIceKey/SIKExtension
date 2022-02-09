@@ -104,6 +104,11 @@ abstract class RetrofitConfig(
         return emptyMap()
     }
 
+    /**
+     * token是否需要更新
+     */
+    abstract fun isTokenShouldUpdate():Boolean
+
     companion object {
         /**
          * 默认连接超时
