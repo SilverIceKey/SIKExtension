@@ -160,3 +160,7 @@
 -dontwarn com.tuya.smart.mqttclient.mqttv3.**
 -keep class com.tuya.**{*;}
 -dontwarn com.tuya.**
+
+#百度
+-keep class com.baidu.**{*;}
+-dontwarn com.baidu.**
