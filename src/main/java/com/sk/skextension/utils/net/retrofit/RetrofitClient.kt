@@ -256,6 +256,13 @@ class RetrofitClient private constructor() {
         if (defaultConfig?.isTokenShouldUpdate()!!) {
             updateToken()
         }
+        if (clazz == defaultConfigClazz) {
+            addDefaultHeader(defaultConfig?.defaultHeaders(), defaultConfigClazz!!)
+            addDefaultParams(defaultConfig?.defaultParams(),defaultConfigClazz!!)
+        } else {
+            addDefaultHeader(tempConfig?.defaultHeaders(), clazz)
+            addDefaultParams(tempConfig?.defaultParams(),clazz)
+        }
         return retrofits[clazz]!!.create(service)
     }
 
