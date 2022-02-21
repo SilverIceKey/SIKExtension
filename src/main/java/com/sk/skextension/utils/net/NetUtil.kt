@@ -28,7 +28,7 @@ object NetUtil {
         val wifiManager = SKExtension.getApplication().getSystemService(Context.WIFI_SERVICE) as WifiManager
         val wifiInfo = wifiManager.connectionInfo
         if (wifiInfo!=null){
-            return wifiInfo.ssid
+            return wifiInfo.ssid.replace("\"","")
         }
         return null
     }

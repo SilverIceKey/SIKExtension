@@ -226,4 +226,18 @@ class TimeUtil {
         return (simpleDateDayFormat.parse(beforeDate)!!.time - simpleDateDayFormat.parse(afterDate)!!.time) / DAY_TIME
     }
 
+    /**
+     * 倒计时输出分钟和秒 例:01:30
+     */
+    fun getTimeStr(timeMillis: Long): String {
+        val min = "0${timeMillis / 1000 / 60}"
+        val secL = timeMillis / 1000 % 60
+        var secS = ""
+        if (secL < 10) {
+            secS = "0${secL}"
+        } else {
+            secS = "${secL}"
+        }
+        return "${min}:${secS}"
+    }
 }

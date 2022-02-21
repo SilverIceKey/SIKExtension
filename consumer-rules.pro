@@ -154,3 +154,13 @@
 -dontwarn sun.misc.SignalHandler
 -dontwarn java.lang.instrument.Instrumentation
 -dontwarn sun.misc.Signal
+
+#tuya
+-keep class com.tuya.smart.mqttclient.mqttv3.** { *; }
+-dontwarn com.tuya.smart.mqttclient.mqttv3.**
+-keep class com.tuya.**{*;}
+-dontwarn com.tuya.**
+
+#百度
+-keep class com.baidu.**{*;}
+-dontwarn com.baidu.**
