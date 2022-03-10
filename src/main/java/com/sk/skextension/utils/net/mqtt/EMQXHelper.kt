@@ -61,6 +61,7 @@ class EMQXHelper {
                     while (!mqttClient.isConnected) {
                         continue
                     }
+                    log.info("qos:${emqxConfig.qos()}")
                     mqttClient.subscribe(emqxConfig.topic, emqxConfig.qos())
                 } catch (e: MqttException) {
 
@@ -69,7 +70,7 @@ class EMQXHelper {
 
             override fun messageArrived(topic: String?, message: MqttMessage?) {
                 log.info("收到消息:主题:${topic},Qos:${message?.qos},内容:${message?.toString()}")
-                mqttClient.messageArrivedComplete(message?.id!!, message.qos)
+                mqttClient.messageArrivedComplete(message?.id!!, emqxConfig.qos())
                 emqxCallback?.messageArrived(topic, message)
             }
 
@@ -109,6 +110,7 @@ class EMQXHelper {
                 this,
                 object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
+                        log.info("topic:${mqttConfig.topic},qos:${emqxConfig.qos()}")
                         mqttClient.subscribe(mqttConfig.topic, mqttConfig.qos())
                     }
 

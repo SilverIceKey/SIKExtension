@@ -1,7 +1,12 @@
 package com.sk.skextension.utils.net.retrofit
+
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import okhttp3.*
+import okio.BufferedSink
 import kotlin.Throws
 import java.io.IOException
+import java.nio.Buffer
 import java.util.HashMap
 
 /**
@@ -17,16 +22,17 @@ class HeaderParamsPreloadInterceptor : Interceptor {
      * 默认参数
      */
     private val mParams = HashMap<String, String>()
+
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val requestBuilder: Request.Builder = chain.request().newBuilder()
         for (key in mHeader.keys) {
             requestBuilder.header(key, mHeader[key]!!)
         }
-        if ("POST"==chain.request().method){
+        if ("POST" == chain.request().method) {
             var requestBody: RequestBody? = chain.request().body
             if (requestBody == null || requestBody is FormBody) {
-                val formBodyBuilder:FormBody.Builder = FormBody.Builder()
+                val formBodyBuilder: FormBody.Builder = FormBody.Builder()
                 if (requestBody != null) {
                     for (i in 0 until (requestBody as FormBody).size) {
                         formBodyBuilder.addEncoded(
@@ -39,6 +45,16 @@ class HeaderParamsPreloadInterceptor : Interceptor {
                     formBodyBuilder.addEncoded(key, mParams[key]!!)
                 }
                 requestBody = formBodyBuilder.build()
+            } else if (requestBody.contentType().toString()==JsonBody.JSON.toString()) {
+                val buffer:BufferedSink = okio.Buffer()
+                requestBody.writeTo(buffer)
+                val content: String = buffer.buffer.readUtf8()
+                val hashMap: HashMap<String, String>? =
+                    Gson().fromJson(content, object : TypeToken<HashMap<String, String>>() {}.type)
+                for (key in mParams.keys) {
+                    hashMap?.put(key, mParams[key]!!)
+                }
+                requestBody = JsonBody.create(Gson().toJson(hashMap))
             }
             requestBuilder.post(requestBody)
             return chain.proceed(requestBuilder.build())
