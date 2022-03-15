@@ -83,4 +83,6 @@ dependencies {
     api('io.coil-kt:coil-video:1.4.0')
     //自定义键盘
     api('com.github.jenly1314:kingkeyboard:1.0.4')
+    //二维码相关
+    api('com.google.zxing:core:3.4.0')
 }
