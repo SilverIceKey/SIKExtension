@@ -49,8 +49,8 @@ class HeaderParamsPreloadInterceptor : Interceptor {
                 val buffer:BufferedSink = okio.Buffer()
                 requestBody.writeTo(buffer)
                 val content: String = buffer.buffer.readUtf8()
-                val hashMap: HashMap<String, String>? =
-                    Gson().fromJson(content, object : TypeToken<HashMap<String, String>>() {}.type)
+                val hashMap: HashMap<String, Any>? =
+                    Gson().fromJson(content, object : TypeToken<HashMap<String, Any>>() {}.type)
                 for (key in mParams.keys) {
                     hashMap?.put(key, mParams[key]!!)
                 }

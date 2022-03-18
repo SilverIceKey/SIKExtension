@@ -25,6 +25,7 @@ class TimeUtil {
          * 默认日期格式带分钟
          */
         val DEFAULT_DATE_HOUR_MIN_FORMAT = "yyyy-MM-dd HH:mm"
+
         /**
          * 默认日期格式带分钟秒毫秒
          */
@@ -224,6 +225,20 @@ class TimeUtil {
      */
     fun calcDayNum(beforeDate: String, afterDate: String): Long {
         return (simpleDateDayFormat.parse(beforeDate)!!.time - simpleDateDayFormat.parse(afterDate)!!.time) / DAY_TIME
+    }
+
+    /**
+     * 通过时间格式转化时间
+     */
+    fun dateFormatToDateFormat(
+        sourceDateFormat: String,
+        targetDateFormat: String,
+        date: String
+    ): String {
+        val sourceSimpleDateFormat = SimpleDateFormat(sourceDateFormat, Locale.CHINA)
+        val targetSimpleDateFormat = SimpleDateFormat(targetDateFormat, Locale.CHINA)
+        val parseDate = sourceSimpleDateFormat.parse(date)
+        return targetSimpleDateFormat.format(parseDate!!)
     }
 
     /**
