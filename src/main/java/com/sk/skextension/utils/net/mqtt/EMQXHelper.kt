@@ -1,5 +1,6 @@
 package com.sk.skextension.utils.net.mqtt
 
+import android.text.TextUtils
 import com.blankj.utilcode.util.DeviceUtils
 import com.sk.skextension.utils.eventbus.DefaultBusModel
 import com.sk.skextension.utils.receivers.ScreenStatusReceiver
@@ -101,7 +102,7 @@ class EMQXHelper {
         try {
             mqttClient = MqttAsyncClient(
                 mqttConfig.brokenUrl,
-                DeviceUtils.getUniqueDeviceId(),
+                emqxConfig.clientId,
                 mqttConfig.getMemoryPersistence()
             )
             mqttClient.setCallback(mqttCallback)
