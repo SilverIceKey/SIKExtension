@@ -8,11 +8,15 @@ import org.slf4j.LoggerFactory
 /**
  * 日志拦截器
  */
-class HttpLogger : HttpLoggingInterceptor.Logger {
+open class HttpLogger : HttpLoggingInterceptor.Logger {
     /**
      * 请求信息全部日志
      */
     private val mMessage = StringBuffer()
+
+    /**
+     * 记录日志
+     */
     override fun log(message: String) {
         // 请求或者响应开始
         var mresultMessage = message
@@ -28,16 +32,19 @@ class HttpLogger : HttpLoggingInterceptor.Logger {
         ) {
             mresultMessage = formatJson(decodeUnicode(mresultMessage))
         }
-        mMessage.append(
-            """
-    $mresultMessage
-    
-    """.trimIndent()
-        )
+        mMessage.appendLine(mresultMessage)
         // 响应结束，打印整条日志
         if (mresultMessage.startsWith("<-- END HTTP")) {
+            endLog(mMessage.toString())
             LoggerFactory.getLogger(HttpLogger::class.java.simpleName).info(mMessage.toString())
             mMessage.delete(0, mMessage.length)
         }
+    }
+
+    /**
+     * 输出结束
+     */
+    open fun endLog(message: String) {
+
     }
 }
