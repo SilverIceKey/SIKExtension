@@ -36,7 +36,6 @@ open class HttpLogger : HttpLoggingInterceptor.Logger {
         // 响应结束，打印整条日志
         if (mresultMessage.startsWith("<-- END HTTP")) {
             endLog(mMessage.toString())
-            LoggerFactory.getLogger(HttpLogger::class.java.simpleName).info(mMessage.toString())
             mMessage.delete(0, mMessage.length)
         }
     }
@@ -44,7 +43,7 @@ open class HttpLogger : HttpLoggingInterceptor.Logger {
     /**
      * 输出结束
      */
-    open fun endLog(message: String) {
+    protected open fun endLog(message: String) {
 
     }
 }

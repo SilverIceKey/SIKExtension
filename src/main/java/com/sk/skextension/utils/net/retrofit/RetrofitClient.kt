@@ -69,7 +69,7 @@ class RetrofitClient private constructor() {
     /**
      * 更新token操作
      */
-    var updateToken: () -> Unit = {}
+    private var updateToken: () -> Unit = {}
 
     companion object {
         val instance: RetrofitClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -218,8 +218,9 @@ class RetrofitClient private constructor() {
         clazz: Class<RetrofitConfig> = defaultConfigClazz!!
     ): RetrofitClient {
         val okHttpClient =
-            okHttpClients[clazz]?.newBuilder()?.addInterceptor(interceptor!!)?.build()
-        retrofits[clazz]?.newBuilder()?.client(okHttpClient!!)?.build()
+            okHttpClients[clazz]?.newBuilder()?.addInterceptor(interceptor!!)?.build()!!
+        okHttpClients[clazz] = okHttpClient
+        retrofits[clazz] = retrofits[clazz]?.newBuilder()?.client(okHttpClients[clazz]!!)?.build()!!
         return this
     }
 
@@ -234,8 +235,9 @@ class RetrofitClient private constructor() {
         clazz: Class<RetrofitConfig> = defaultConfigClazz!!
     ): RetrofitClient {
         val okHttpClient =
-            okHttpClients[clazz]?.newBuilder()?.addNetworkInterceptor(interceptor!!)?.build()
-        retrofits[clazz]?.newBuilder()?.client(okHttpClient!!)?.build()
+            okHttpClients[clazz]?.newBuilder()?.addNetworkInterceptor(interceptor!!)?.build()!!
+        okHttpClients[clazz] = okHttpClient
+        retrofits[clazz] = retrofits[clazz]?.newBuilder()?.client(okHttpClients[clazz]!!)?.build()!!
         return this
     }
 
@@ -258,10 +260,10 @@ class RetrofitClient private constructor() {
         }
         if (clazz == defaultConfigClazz) {
             addDefaultHeader(defaultConfig?.defaultHeaders(), defaultConfigClazz!!)
-            addDefaultParams(defaultConfig?.defaultParams(),defaultConfigClazz!!)
+            addDefaultParams(defaultConfig?.defaultParams(), defaultConfigClazz!!)
         } else {
             addDefaultHeader(tempConfig?.defaultHeaders(), clazz)
-            addDefaultParams(tempConfig?.defaultParams(),clazz)
+            addDefaultParams(tempConfig?.defaultParams(), clazz)
         }
         return retrofits[clazz]!!.create(service)
     }
