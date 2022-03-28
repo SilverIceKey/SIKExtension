@@ -69,7 +69,7 @@ class RetrofitClient private constructor() {
     /**
      * 更新token操作
      */
-    private var updateToken: () -> Unit = {}
+    private var updateToken: HashMap<String,() -> Unit> = hashMapOf()
 
     companion object {
         val instance: RetrofitClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -200,8 +200,8 @@ class RetrofitClient private constructor() {
     /**
      * 添加更新token方法
      */
-    fun addUpdateToken(updateToken: () -> Unit) {
-        this.updateToken = updateToken
+    fun addUpdateToken(updateToken: () -> Unit,tag:String? = defaultConfigTAG) {
+        this.updateToken[defaultConfigTAG!!] = updateToken
     }
 
     /**
@@ -253,7 +253,7 @@ class RetrofitClient private constructor() {
             throw NullPointerException("请先设置默认配置或临时配置")
         }
         if (defaultConfig?.isTokenShouldUpdate()!!) {
-            updateToken()
+            updateToken[tag]?.let { it() }
         }
         if (tag == defaultConfigTAG) {
             addDefaultHeader(defaultConfig?.defaultHeaders(), defaultConfigTAG!!)
