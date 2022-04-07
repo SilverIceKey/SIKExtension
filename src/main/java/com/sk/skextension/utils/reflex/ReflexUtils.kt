@@ -24,13 +24,14 @@ class ReflexUtils {
      * 反射执行方法
      */
     fun invoke(
+        classInstance:Any = clazz.newInstance(),
         methodName: String,
         vararg params: Any,
         onInvokeCallback: (Any?) -> Unit
     ): ReflexUtils {
         val declaredMethod = clazz.getDeclaredMethod(methodName)
         declaredMethod.isAccessible = true
-        onInvokeCallback(declaredMethod.invoke(clazz.newInstance(), params))
+        onInvokeCallback(declaredMethod.invoke(classInstance, params))
         return this
     }
 
