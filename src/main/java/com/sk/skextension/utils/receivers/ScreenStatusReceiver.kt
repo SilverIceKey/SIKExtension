@@ -17,7 +17,8 @@ class ScreenStatusReceiver : BroadcastReceiver() {
             EventBus.getDefault()
                 .post(DefaultBusModel(EVENTBUS_TYPE, SCREEN_ON))
         } else if (action == Intent.ACTION_SCREEN_OFF) {
-
+            EventBus.getDefault()
+                .post(DefaultBusModel(EVENTBUS_TYPE, SCREEN_OFF))
         }
     }
 
@@ -32,6 +33,14 @@ class ScreenStatusReceiver : BroadcastReceiver() {
          */
         val SCREEN_ON: Int = 1
 
+        /**
+         * 屏幕关闭
+         */
+        val SCREEN_OFF: Int = 2
+
+        /**
+         * 注册屏幕开关接收器
+         */
         fun registerReceiver(context: Context?) {
             val filter = IntentFilter()
             filter.addAction(Intent.ACTION_SCREEN_ON)
