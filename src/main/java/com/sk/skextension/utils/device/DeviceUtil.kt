@@ -1,14 +1,10 @@
 package com.sk.skextension.utils.device
 
 import android.content.Context
-import com.blankj.utilcode.util.ShellUtils
 import android.os.Build
 import android.provider.Settings
-
-import android.telephony.TelephonyManager
+import com.blankj.utilcode.util.ShellUtils
 import okhttp3.internal.and
-import java.lang.Exception
-import java.lang.StringBuilder
 import java.security.MessageDigest
 import java.util.*
 
