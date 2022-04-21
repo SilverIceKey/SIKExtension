@@ -69,7 +69,7 @@ class RetrofitClient private constructor() {
     /**
      * 更新token操作
      */
-    private var updateToken: HashMap<String,() -> Unit> = hashMapOf()
+    private var updateToken: HashMap<String, () -> Unit> = hashMapOf()
 
     companion object {
         val instance: RetrofitClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -159,7 +159,12 @@ class RetrofitClient private constructor() {
      */
     private fun initOkhttp(retrofitConfig: RetrofitConfig): OkHttpClient {
         val cacheSize = (10 * 1024 * 1024).toLong()
-        val cacheFile = File(context!!.externalCacheDir, "retrofit")
+        val cacheFile:File
+        if (context != null) {
+            cacheFile = File(context!!.externalCacheDir, "retrofit")
+        }else{
+            cacheFile = File("./", "retrofit")
+        }
         if (!cacheFile.exists()) {
             cacheFile.mkdirs()
         }
@@ -200,7 +205,7 @@ class RetrofitClient private constructor() {
     /**
      * 添加更新token方法
      */
-    fun addUpdateToken(updateToken: () -> Unit,tag:String? = defaultConfigTAG) {
+    fun addUpdateToken(updateToken: () -> Unit, tag: String? = defaultConfigTAG) {
         this.updateToken[defaultConfigTAG!!] = updateToken
     }
 
