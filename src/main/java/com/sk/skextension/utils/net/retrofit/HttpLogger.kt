@@ -26,12 +26,17 @@ open class HttpLogger : HttpLoggingInterceptor.Logger {
         ) {
             mMessage.setLength(0)
         }
-        // 以{}或者[]形式的说明是响应结果的json数据，需要进行格式化
-        if (mresultMessage.startsWith("{") && mresultMessage.endsWith("}")
-            || mresultMessage.startsWith("[") && mresultMessage.endsWith("]")
-        ) {
-            mresultMessage = formatJson(decodeUnicode(mresultMessage))
-        }
+        /**
+         * 以{}或者[]形式的说明是响应结果的json数据，需要进行格式化
+         * 如果需要json格式输出，取消注释，将下一行注释
+         *
+         */
+//        if (mresultMessage.startsWith("{") && mresultMessage.endsWith("}")
+//            || mresultMessage.startsWith("[") && mresultMessage.endsWith("]")
+//        ) {
+//            mresultMessage = formatJson(decodeUnicode(mresultMessage))
+//        }
+        mresultMessage = decodeUnicode(mresultMessage)
         mMessage.appendLine(mresultMessage)
         // 响应结束，打印整条日志
         if (mresultMessage.startsWith("<-- END HTTP")) {
