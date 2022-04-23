@@ -85,6 +85,9 @@ class EMQXHelper {
         }
     }
 
+    /**
+     * 屏幕状态变化时接收到消息
+     */
     @Subscribe
     fun onScreenStatusChange(bus: DefaultBusModel) {
         if (bus.type == ScreenStatusReceiver.EVENTBUS_TYPE) {
@@ -96,6 +99,9 @@ class EMQXHelper {
         }
     }
 
+    /**
+     * 初始化
+     */
     fun init(mqttConfig: EMQXConfig = emqxConfig) {
         this.emqxConfig = mqttConfig
         this.emqxCallback = mqttConfig.getMqttCallback()

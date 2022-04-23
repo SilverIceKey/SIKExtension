@@ -4,9 +4,9 @@ import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import com.blankj.utilcode.util.ShellUtils
-import okhttp3.internal.and
 import java.security.MessageDigest
 import java.util.*
+import kotlin.experimental.and
 
 
 /**
@@ -148,7 +148,7 @@ object DeviceUtil {
         val sb = StringBuilder()
         var stmp: String
         for (n in data.indices) {
-            stmp = Integer.toHexString(data[n].and(0xFF) )
+            stmp = Integer.toHexString(data[n].and(0xFF.toByte()).toInt())
             if (stmp.length == 1) sb.append("0")
             sb.append(stmp)
         }

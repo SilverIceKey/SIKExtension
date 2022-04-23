@@ -39,6 +39,13 @@ class ScreenStatusReceiver : BroadcastReceiver() {
         val SCREEN_OFF: Int = 2
 
         /**
+         * 通知单例
+         */
+        val screenStatusReceiver:ScreenStatusReceiver by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED){
+            ScreenStatusReceiver()
+        }
+
+        /**
          * 注册屏幕开关接收器
          */
         fun registerReceiver(context: Context?) {
@@ -46,7 +53,14 @@ class ScreenStatusReceiver : BroadcastReceiver() {
             filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(Intent.ACTION_SCREEN_OFF)
             filter.addAction(Intent.ACTION_USER_PRESENT)
-            context?.registerReceiver(ScreenStatusReceiver(), filter)
+            context?.registerReceiver(screenStatusReceiver, filter)
+        }
+
+        /**
+         * 取消监听
+         */
+        fun unRegisterReceiver(context: Context?){
+            context?.unregisterReceiver(screenStatusReceiver)
         }
     }
 }

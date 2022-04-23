@@ -189,7 +189,7 @@ class RetrofitClient private constructor() {
                 val credential = basic(
                     retrofitConfig.proxyUserName(), retrofitConfig.proxyPassword()
                 )
-                response.request.newBuilder()
+                response.request().newBuilder()
                     .header("Proxy-Authorization", credential)
                     .build()
             }

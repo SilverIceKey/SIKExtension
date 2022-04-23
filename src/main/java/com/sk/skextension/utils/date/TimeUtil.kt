@@ -72,19 +72,12 @@ class TimeUtil {
     /**
      * 计算到目前的时间
      */
-    fun getTimeIntervalofCur(time: String): String {
-        return getTimeIntervalofCur(
-            time, SimpleDateFormat(
-                "yyyy-MM-dd HH:mm",
-                Locale.getDefault(Locale.Category.FORMAT)
-            )
+    fun getTimeIntervalofCur(
+        time: String, timeFormatter: DateFormat = SimpleDateFormat(
+            DEFAULT_DATE_HOUR_MIN_FORMAT,
+            Locale.getDefault(Locale.Category.FORMAT)
         )
-    }
-
-    /**
-     * 计算到目前的时间
-     */
-    fun getTimeIntervalofCur(time: String, timeFormatter: DateFormat): String {
+    ): String {
         val timeSecond: Long = timeFormatter.parse(time, ParsePosition(0))!!.getTime() / 1000
         return getTimeIntervalofCur(timeSecond)
     }
