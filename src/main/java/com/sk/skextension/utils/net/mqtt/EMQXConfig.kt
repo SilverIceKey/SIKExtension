@@ -1,5 +1,6 @@
 package com.sk.skextension.utils.net.mqtt
 
+import com.blankj.utilcode.util.DeviceUtils
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 
@@ -16,6 +17,11 @@ abstract class EMQXConfig(val brokenUrl: String, val topic: String) {
      * 登录密码
      */
     open var password:String = ""
+
+    /**
+     * 设备id
+     */
+    open var clientId:String = DeviceUtils.getUniqueDeviceId()
     /**
      * 设置qos
      */

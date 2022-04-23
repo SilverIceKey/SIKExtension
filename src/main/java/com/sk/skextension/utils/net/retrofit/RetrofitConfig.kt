@@ -13,6 +13,10 @@ abstract class RetrofitConfig(
      */
     val baseUrl: String
 ) {
+    /**
+     * 标签
+     */
+    val TAG: String = this.javaClass.simpleName
 
     /**
      * 获取连接超时时间
@@ -107,7 +111,7 @@ abstract class RetrofitConfig(
     /**
      * token是否需要更新
      */
-    abstract fun isTokenShouldUpdate():Boolean
+    abstract fun isTokenShouldUpdate(): Boolean
 
     companion object {
         /**

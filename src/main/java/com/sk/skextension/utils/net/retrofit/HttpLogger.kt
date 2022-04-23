@@ -8,11 +8,15 @@ import org.slf4j.LoggerFactory
 /**
  * 日志拦截器
  */
-class HttpLogger : HttpLoggingInterceptor.Logger {
+open class HttpLogger : HttpLoggingInterceptor.Logger {
     /**
      * 请求信息全部日志
      */
     private val mMessage = StringBuffer()
+
+    /**
+     * 记录日志
+     */
     override fun log(message: String) {
         // 请求或者响应开始
         var mresultMessage = message
@@ -22,22 +26,29 @@ class HttpLogger : HttpLoggingInterceptor.Logger {
         ) {
             mMessage.setLength(0)
         }
-        // 以{}或者[]形式的说明是响应结果的json数据，需要进行格式化
-        if (mresultMessage.startsWith("{") && mresultMessage.endsWith("}")
-            || mresultMessage.startsWith("[") && mresultMessage.endsWith("]")
-        ) {
-            mresultMessage = formatJson(decodeUnicode(mresultMessage))
-        }
-        mMessage.append(
-            """
-    $mresultMessage
-    
-    """.trimIndent()
-        )
+        /**
+         * 以{}或者[]形式的说明是响应结果的json数据，需要进行格式化
+         * 如果需要json格式输出，取消注释，将下一行注释
+         *
+         */
+//        if (mresultMessage.startsWith("{") && mresultMessage.endsWith("}")
+//            || mresultMessage.startsWith("[") && mresultMessage.endsWith("]")
+//        ) {
+//            mresultMessage = formatJson(decodeUnicode(mresultMessage))
+//        }
+        mresultMessage = decodeUnicode(mresultMessage)
+        mMessage.appendLine(mresultMessage)
         // 响应结束，打印整条日志
         if (mresultMessage.startsWith("<-- END HTTP")) {
-            LoggerFactory.getLogger(HttpLogger::class.java.simpleName).info(mMessage.toString())
+            endLog(mMessage.toString())
             mMessage.delete(0, mMessage.length)
         }
+    }
+
+    /**
+     * 输出结束
+     */
+    protected open fun endLog(message: String) {
+
     }
 }
