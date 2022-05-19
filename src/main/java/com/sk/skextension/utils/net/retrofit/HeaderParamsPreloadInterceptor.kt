@@ -29,12 +29,12 @@ class HeaderParamsPreloadInterceptor : Interceptor {
         for (key in mHeader.keys) {
             requestBuilder.header(key, mHeader[key]!!)
         }
-        if ("POST" == chain.request().method) {
-            var requestBody: RequestBody? = chain.request().body
+        if ("POST" == chain.request().method()) {
+            var requestBody: RequestBody? = chain.request().body()
             if (requestBody == null || requestBody is FormBody) {
                 val formBodyBuilder: FormBody.Builder = FormBody.Builder()
                 if (requestBody != null) {
-                    for (i in 0 until (requestBody as FormBody).size) {
+                    for (i in 0 until (requestBody as FormBody).size()) {
                         formBodyBuilder.addEncoded(
                             requestBody.encodedName(i),
                             requestBody.encodedValue(i)
