@@ -38,11 +38,9 @@ class GlobalCrashCatch : Thread.UncaughtExceptionHandler {
      * 全局异常处理捕捉
      */
     override fun uncaughtException(t: Thread, e: Throwable) {
-        if (!handleCrash(e)) {//判断异常是否已经处理
+        if (!handleCrash(e)) {
+            //异常未处理的情况下交由系统处理
             defaultHandler.uncaughtException(t, e)
-        } else {
-            Process.killProcess(Process.myPid())
-            System.exit(1)
         }
     }
 
