@@ -27,6 +27,11 @@ class TimeUtil {
         val DEFAULT_DATE_HOUR_MIN_FORMAT = "yyyy-MM-dd HH:mm"
 
         /**
+         * 默认日期格式带分钟秒
+         */
+        val DEFAULT_DATE_HOUR_MIN_SEC_FORMAT = "yyyy-MM-dd HH:mm:ss"
+
+        /**
          * 默认日期格式带分钟秒毫秒
          */
         val DEFAULT_DATE_HOUR_MIN_SEC_MILL_FORMAT = "yyyy-MM-dd HH:mm:ss:SSS"
@@ -60,6 +65,12 @@ class TimeUtil {
          * 日期转换器小时分钟
          */
         val simpleDateHourMinFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_FORMAT, Locale.CHINA)
+
+        /**
+         * 日期转换器小时分钟秒
+         */
+        val simpleDateHourMinSecFormat =
+            SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_SEC_FORMAT, Locale.CHINA)
 
         /**
          * timeutil单例
@@ -142,6 +153,15 @@ class TimeUtil {
         val formatDate = simpleDateHourMinFormat.format(date)
         val parseDate = simpleDateHourMinFormat.parse(formatDate)
         return Date(parseDate!!.time + offsetValue * MIN_TIME)
+    }
+
+    /**
+     * 时间偏移秒
+     */
+    fun offsetSec(offsetValue: Int, date: Date = Date()): Date {
+        val formatDate = simpleDateHourMinSecFormat.format(date)
+        val parseDate = simpleDateHourMinSecFormat.parse(formatDate)
+        return Date(parseDate!!.time + offsetValue)
     }
 
     /**
@@ -247,5 +267,14 @@ class TimeUtil {
             secS = "${secL}"
         }
         return "${min}:${secS}"
+    }
+
+    /**
+     * 计算时间差
+     */
+    @SuppressLint("SimpleDateFormat")
+    fun calcOffsetTime(sourceTime: String, timeDateFormat: String): Int {
+        val deviceTime = now().time
+        return ((SimpleDateFormat(timeDateFormat).parse(sourceTime)!!.time-deviceTime)/1000L).toInt()
     }
 }

@@ -1,7 +1,5 @@
 package com.sk.skextension.utils.explain
 
-import java.lang.reflect.Field
-
 object ExplainUtils {
     /**
      * 根据属性获取类里的介绍说明
