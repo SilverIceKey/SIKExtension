@@ -21,11 +21,18 @@ import kotlin.concurrent.thread
  * 音频帮助文件
  */
 class AudioHelper {
-
+    /**
+     * 保存路径
+     */
+    var savePath = ""
     companion object {
         val INSTANCE: AudioHelper by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             AudioHelper()
         }
+    }
+
+    init {
+        savePath = SKExtension.getApplication().externalCacheDir?.absolutePath?:"/sdcard/Audio/"
     }
 
     ////////////////////////////////使用MediaRecord//////////////////////////////////////////////
@@ -39,7 +46,7 @@ class AudioHelper {
         if (isRecording) {
             return
         }
-        var filePath = SKExtension.getApplication().externalCacheDir?.absolutePath
+        var filePath = savePath
         if (!filePath?.endsWith(File.separator)!!) {
             filePath += File.separator
         }
@@ -165,7 +172,7 @@ class AudioHelper {
             return
         }
         initHandler()
-        var filePath = SKExtension.getApplication().externalCacheDir?.absolutePath
+        var filePath = savePath
         if (!filePath?.endsWith(File.separator)!!) {
             filePath += File.separator
         }
