@@ -40,4 +40,57 @@ object YuvUtil {
         }
         return cameraLight
     }
+
+
+    /**
+     * nv21旋转角度
+     * @param data
+     * @param imageWidth
+     * @param imageHeight
+     * @return
+     */
+    fun rotateNV21(input: ByteArray, width: Int, height: Int, rotation: Int): ByteArray? {
+        val output = ByteArray(input.size)
+        val swap = rotation == 90 || rotation == 270
+        val yflip = rotation == 90 || rotation == 180
+        val xflip = rotation == 270 || rotation == 180
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                var xo = x
+                var yo = y
+                var w = width
+                var h = height
+                var xi = xo
+                var yi = yo
+                if (swap) {
+                    xi = w * yo / h
+                    yi = h * xo / w
+                }
+                if (yflip) {
+                    yi = h - yi - 1
+                }
+                if (xflip) {
+                    xi = w - xi - 1
+                }
+                output[w * yo + xo] = input[w * yi + xi]
+                val fs = w * h
+                val qs = fs shr 2
+                xi = xi shr 1
+                yi = yi shr 1
+                xo = xo shr 1
+                yo = yo shr 1
+                w = w shr 1
+                h = h shr 1
+                // adjust for interleave here
+                val ui = fs + (w * yi + xi) * 2
+                val uo = fs + (w * yo + xo) * 2
+                // and here
+                val vi = ui + 1
+                val vo = uo + 1
+                output[uo] = input[ui]
+                output[vo] = input[vi]
+            }
+        }
+        return output
+    }
 }
