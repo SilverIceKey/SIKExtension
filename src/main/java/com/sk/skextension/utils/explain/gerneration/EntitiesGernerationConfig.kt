@@ -1,4 +1,4 @@
-package com.sik.edg.utils.gerneration
+package com.sk.skextension.utils.explain.gerneration
 
 /**
  * 注解配置类

@@ -1,9 +1,9 @@
-package com.sik.edg.utils.gerneration
+package com.sk.skextension.utils.explain.gerneration
 
-import com.alibaba.fastjson.JSONObject
-import com.sik.edg.entities.MaterialFavoritesDo
-import com.sik.edg.utils.explain.Entities
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.sik.edg.utils.explain.ExplainUtils
+import com.sk.skextension.utils.explain.Entities
 import java.io.File
 
 /**
@@ -28,17 +28,17 @@ object GernerationHelper {
      */
     @JvmStatic
     private fun gernerateDescription(clazz: Class<*>) {
-        if (!File(JsonFile).exists()){
+        if (!File(JsonFile).exists()) {
             File(JsonFile).mkdirs()
         }
         val os = File(JsonFile + clazz.simpleName + ".txt").outputStream()
-        val descriptionJson = JSONObject()
-        descriptionJson["title"] = ExplainUtils.getClassTitle(clazz)
-        descriptionJson["description"] = ExplainUtils.getClassDescription(clazz)
-        descriptionJson["type"] = "object"
-        descriptionJson["properties"] = ExplainUtils.getExplainValuesToJson(clazz)
-        descriptionJson["required"] = ExplainUtils.getRequiredField(clazz)
-        os.write(descriptionJson.toJSONString().toByteArray())
+        val descriptionJson = JsonObject()
+        descriptionJson.addProperty("title", ExplainUtils.getClassTitle(clazz))
+        descriptionJson.addProperty("description", ExplainUtils.getClassDescription(clazz))
+        descriptionJson.addProperty("type", "object")
+        descriptionJson.add("properties", ExplainUtils.getExplainValuesToJson(clazz))
+        descriptionJson.addProperty("required", ExplainUtils.getRequiredField(clazz))
+        os.write(Gson().toJson(descriptionJson).toByteArray())
         os.flush()
         os.close()
     }

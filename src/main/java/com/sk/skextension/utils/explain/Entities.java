@@ -1,4 +1,4 @@
-package com.sik.edg.utils.explain;
+package com.sk.skextension.utils.explain;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
