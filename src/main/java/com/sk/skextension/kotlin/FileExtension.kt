@@ -66,3 +66,26 @@ fun String.createNewFile(): Boolean {
         return false
     }
 }
+
+/**
+ * 文件路径写入数据
+ */
+fun String.write(data: ByteArray) {
+    if (this.createNewFile()) {
+        this.fileOutputStream()?.let {
+            it.write(data)
+            it.close()
+        }
+    }
+}
+
+/**
+ * 文件路径获取文本数据
+ */
+fun String.getData(): String {
+    val fis = this.fileInputStream()
+    var data = ""
+    fis?.let { data = String(it.readBytes()) }
+    fis?.close()
+    return data
+}
