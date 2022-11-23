@@ -1,6 +1,6 @@
 package com.sk.skextension.utils.net.retrofit
 
-import android.content.Context
+import com.sk.skextension.utils.SKExtension
 import okhttp3.*
 import okhttp3.Credentials.basic
 import okhttp3.logging.HttpLoggingInterceptor
@@ -18,10 +18,6 @@ import java.util.concurrent.TimeUnit
  * retrofit客户端
  */
 class RetrofitClient private constructor() {
-    /**
-     * 全局Context
-     */
-    private var context: Context? = null
 
     /**
      * 根据不同配置创建okhttpclient
@@ -88,15 +84,6 @@ class RetrofitClient private constructor() {
     }
 
     /**
-     * 设置全局Context
-     *
-     * @param context
-     */
-    fun setApplicationContext(context: Context?) {
-        this.context = context
-    }
-
-    /**
      * 注册Retrofit
      */
     private fun registerRetrofitConfig(retrofitConfig: RetrofitConfig) {
@@ -159,12 +146,8 @@ class RetrofitClient private constructor() {
      */
     private fun initOkhttp(retrofitConfig: RetrofitConfig): OkHttpClient {
         val cacheSize = (10 * 1024 * 1024).toLong()
-        val cacheFile:File
-        if (context != null) {
-            cacheFile = File(context!!.externalCacheDir, "retrofit")
-        }else{
-            cacheFile = File("./", "retrofit")
-        }
+        val cacheFile: File
+        cacheFile = File(SKExtension.getApplication().externalCacheDir, "retrofit")
         if (!cacheFile.exists()) {
             cacheFile.mkdirs()
         }
