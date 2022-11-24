@@ -20,8 +20,8 @@ abstract class ResponseCallback<T : BaseResponse<*>> : Callback<T> {
     override fun onResponse(call: Call<T>, response: Response<T>) {
         log.info("网络请求成功")
         val responseData = response.body()
-        if (responseData?.code != 0) {
-            onResponseError(responseData?.code, responseData?.msg)
+        if (responseData?.returnNo != 0) {
+            onResponseError(responseData?.returnNo, responseData?.returnMsg)
         } else {
             onResponseSuccess(call, responseData)
         }

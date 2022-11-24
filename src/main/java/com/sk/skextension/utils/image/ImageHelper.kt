@@ -1,10 +1,13 @@
 package com.sk.skextension.utils.image
 
+import android.content.res.Resources
 import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Environment
 import android.util.Base64
+import com.sk.skextension.utils.SKExtension
 import java.io.*
-import java.nio.ByteBuffer
 
 
 /**

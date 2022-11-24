@@ -4,7 +4,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-
 /**
  * Constructs a new FileOutputStream of this file and returns it as a result.
  */
@@ -19,11 +18,24 @@ fun String.fileOutputStream(): FileOutputStream? {
     if (this.isEmpty()) {
         return null
     }
-    if (File(this).exists()) {
+    if (!File(this).exists()) {
         File(this.substring(0, this.lastIndexOf(File.separator))).mkdirs()
         File(this).createNewFile()
     }
     return File(this).outputStream()
+}
+/**
+ * 文件路径直接返回文件
+ */
+fun String.file(): File? {
+    if (this.isEmpty()) {
+        return null
+    }
+    if (!File(this).exists()) {
+        File(this.substring(0, this.lastIndexOf(File.separator))).mkdirs()
+        File(this).createNewFile()
+    }
+    return File(this)
 }
 
 /**
@@ -33,7 +45,7 @@ fun String.fileInputStream(): FileInputStream? {
     if (this.isEmpty()) {
         return null
     }
-    if (File(this).exists()) {
+    if (!File(this).exists()) {
         File(this.substring(0, this.lastIndexOf(File.separator))).mkdirs()
         File(this).createNewFile()
     }
@@ -51,6 +63,28 @@ fun String.exists(): Boolean {
 }
 
 /**
+ * 删除文件
+ */
+fun String.existsDelete(): Boolean {
+    if (this.isEmpty()||!File(this).exists()) {
+        return false
+    }
+    return File(this).delete()
+}
+
+/**
+ * 判断文件夹是否存在，不存在则创建
+ */
+fun String.existsAndCreateFoler() {
+    if (this.isEmpty()) {
+        return
+    }
+    if (!File(this).exists()) {
+        File(this).mkdirs()
+    }
+}
+
+/**
  * 文件不存的情况下创建文件,存在的情况下直接返回true
  */
 fun String.createNewFile(): Boolean {
@@ -60,11 +94,7 @@ fun String.createNewFile(): Boolean {
     if (this.exists()) {
         return true
     }
-    if (File(this).mkdirs()) {
-        return File(this).createNewFile()
-    } else {
-        return false
-    }
+    return File(this).createNewFile()
 }
 
 /**
