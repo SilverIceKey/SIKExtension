@@ -23,7 +23,7 @@ abstract class RetrofitConfig(
      *
      * @return
      */
-    fun connectTimeout(): Long {
+    open fun connectTimeout(): Long {
         return DEFAULT_CONNECT_TIMEOUT
     }
 
@@ -32,7 +32,7 @@ abstract class RetrofitConfig(
      *
      * @return
      */
-    fun readTimeout(): Long {
+    open fun readTimeout(): Long {
         return DEFAULT_READ_TIMEOUT
     }
 
@@ -41,7 +41,7 @@ abstract class RetrofitConfig(
      *
      * @return
      */
-    fun writeTimeout(): Long {
+    open fun writeTimeout(): Long {
         return DEFAULT_WRITE_TIMEOUT
     }
 
@@ -50,7 +50,7 @@ abstract class RetrofitConfig(
      *
      * @return
      */
-    fun proxyIPAddr(): String {
+    open fun proxyIPAddr(): String {
         return ""
     }
 
@@ -59,7 +59,7 @@ abstract class RetrofitConfig(
      *
      * @return
      */
-    fun proxyPort(): Int {
+    open fun proxyPort(): Int {
         return 0
     }
 
@@ -68,7 +68,7 @@ abstract class RetrofitConfig(
      *
      * @return
      */
-    fun proxyType(): Proxy.Type {
+    open fun proxyType(): Proxy.Type {
         return Proxy.Type.DIRECT
     }
 
@@ -77,7 +77,7 @@ abstract class RetrofitConfig(
      *
      * @return
      */
-    fun proxyUserName(): String {
+    open fun proxyUserName(): String {
         return ""
     }
 
@@ -86,7 +86,7 @@ abstract class RetrofitConfig(
      *
      * @return
      */
-    fun proxyPassword(): String {
+    open fun proxyPassword(): String {
         return ""
     }
 
