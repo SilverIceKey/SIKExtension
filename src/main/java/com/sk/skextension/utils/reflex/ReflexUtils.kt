@@ -4,12 +4,6 @@ package com.sk.skextension.utils.reflex
  * 反射工具类
  */
 class ReflexUtils {
-    companion object {
-        val instance: ReflexUtils by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-            ReflexUtils()
-        }
-    }
-
     lateinit var clazz: Class<*>
 
     /**

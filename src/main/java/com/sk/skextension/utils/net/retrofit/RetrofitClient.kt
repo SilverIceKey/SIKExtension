@@ -35,6 +35,11 @@ class RetrofitClient private constructor() {
     private val retrofits: ConcurrentHashMap<String, Retrofit> = ConcurrentHashMap()
 
     /**
+     * 已经添加的配置文件
+     */
+    private val retrofitConfigs: ConcurrentHashMap<String, RetrofitConfig> = ConcurrentHashMap()
+
+    /**
      * retrofit默认配置
      */
     private var defaultConfigTAG: String? = null
@@ -42,17 +47,8 @@ class RetrofitClient private constructor() {
     /**
      * 日志拦截器
      */
-    private var httpLoggingInterceptor: HttpLoggingInterceptor
-
-    /**
-     * 默认配置
-     */
-    private var defaultConfig: RetrofitConfig? = null
-
-    /**
-     * 临时配置
-     */
-    private var tempConfig: RetrofitConfig? = null
+    private var httpLoggingInterceptor: HttpLoggingInterceptor =
+        HttpLoggingInterceptor(HttpLogger())
 
     /**
      * 根据不同配置创建HeaderParamsPreloadInterceptor
@@ -78,7 +74,6 @@ class RetrofitClient private constructor() {
      */
     init {
         //初始化日志拦截器
-        httpLoggingInterceptor = HttpLoggingInterceptor(HttpLogger())
         //设置拦截等级
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
     }
@@ -105,7 +100,7 @@ class RetrofitClient private constructor() {
      * @return
      */
     fun defaultConfig(retrofitConfig: RetrofitConfig): RetrofitClient {
-        defaultConfig = retrofitConfig
+        retrofitConfigs[retrofitConfig.TAG] = retrofitConfig
         defaultConfigTAG = retrofitConfig.TAG
         registerRetrofitConfig(retrofitConfig)
         return this
@@ -121,7 +116,7 @@ class RetrofitClient private constructor() {
         if (okHttpClients[retrofitConfig.TAG] != null && retrofits[retrofitConfig.TAG] != null) {
             return this
         }
-        tempConfig = retrofitConfig
+        retrofitConfigs[retrofitConfig.TAG] = retrofitConfig
         registerRetrofitConfig(retrofitConfig)
         return this
     }
@@ -240,16 +235,11 @@ class RetrofitClient private constructor() {
         if (tag == null) {
             throw NullPointerException("请先设置默认配置或临时配置")
         }
-        if (defaultConfig?.isTokenShouldUpdate()!!) {
+        if (retrofitConfigs[tag]?.isTokenShouldUpdate()!!) {
             updateToken[tag]?.let { it() }
         }
-        if (tag == defaultConfigTAG) {
-            addDefaultHeader(defaultConfig?.defaultHeaders(), defaultConfigTAG!!)
-            addDefaultParams(defaultConfig?.defaultParams(), defaultConfigTAG!!)
-        } else {
-            addDefaultHeader(tempConfig?.defaultHeaders(), tag)
-            addDefaultParams(tempConfig?.defaultParams(), tag)
-        }
+        addDefaultHeader(retrofitConfigs[tag]?.defaultHeaders(), tag)
+        addDefaultParams(retrofitConfigs[tag]?.defaultParams(), tag)
         return retrofits[tag]!!.create(service)
     }
 

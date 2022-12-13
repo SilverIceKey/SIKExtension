@@ -10,7 +10,7 @@ import retrofit2.Response
 /**
  * 通用返回处理
  */
-abstract class ResponseCallback<T : BaseResponse<*>> : Callback<T> {
+abstract class ResponseCallback<T> : Callback<T> {
     //初始化日志工具
     var log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -20,9 +20,7 @@ abstract class ResponseCallback<T : BaseResponse<*>> : Callback<T> {
     override fun onResponse(call: Call<T>, response: Response<T>) {
         log.info("网络请求成功")
         val responseData = response.body()
-        if (responseData?.returnNo != 0) {
-            onResponseError(responseData?.returnNo, responseData?.returnMsg)
-        } else {
+        if (errorCheck(responseData as Any)) {
             onResponseSuccess(call, responseData)
         }
     }
@@ -55,5 +53,11 @@ abstract class ResponseCallback<T : BaseResponse<*>> : Callback<T> {
          */
         @JvmStatic
         var checkErrorCode: (errorCode: Int?) -> Unit = {}
+
+        /**
+         * 错误检测
+         */
+        @JvmStatic
+        var errorCheck: (response: Any) -> Boolean = { true }
     }
 }
