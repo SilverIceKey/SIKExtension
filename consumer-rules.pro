@@ -164,3 +164,7 @@
 #百度
 -keep class com.baidu.**{*;}
 -dontwarn com.baidu.**
+
+#ComposeRouteManager
+-keep class com.sik.library.**{*;}
+-dontwarn com.sik.library.**
