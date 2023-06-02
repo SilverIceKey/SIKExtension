@@ -7,11 +7,11 @@ plugins {
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 31
+    compileSdk 33
 
     defaultConfig {
         minSdk 24
-        targetSdk 31
+        targetSdk 33
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -34,7 +34,13 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '11'
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.4.4'
     }
     externalNativeBuild {
         cmake {
@@ -48,10 +54,22 @@ dependencies {
     /**
      * 本地包以及Android相关依赖引用
      */
+    def compose_ui_version = '1.4.1'
     implementation fileTree(dir: 'libs', includes: ['*.jar'])
     implementation 'androidx.core:core-ktx:1.10.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    //kotlin反射库
+    api "org.jetbrains.kotlin:kotlin-stdlib:1.8.10"
+    api "org.jetbrains.kotlin:kotlin-reflect:1.8.10"
+    //compose
+    api "androidx.compose.runtime:runtime-livedata:$compose_ui_version"
+    api "androidx.compose.runtime:runtime-saveable:$compose_ui_version"
+    api "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1"
+    api "androidx.navigation:navigation-compose:2.5.3"
     /**
      * 第三方库引用
      */
@@ -65,11 +83,11 @@ dependencies {
     //工具类相关
     api('com.blankj:utilcode:1.30.7')
     //mqtt相关
-    api('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.2')
+    api('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5')
     //持久化存储相关
     api('com.tencent:mmkv-static:1.2.11')
     //日志相关
-    api('org.slf4j:slf4j-api:1.7.30')
+    api('org.slf4j:slf4j-api:2.0.7')
     api('com.github.tony19:logback-android:2.0.0')
     //事件总线
     api('org.greenrobot:eventbus:3.3.0')
