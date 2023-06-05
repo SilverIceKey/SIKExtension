@@ -3,7 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 apply plugin: 'maven-publish'
-group = 'com.sik.siknet'
+group = 'com.sik.sikextension'
 version = '1.0.0'
 
 android {
@@ -57,3 +57,29 @@ dependencies {
 
     compileOnly project(path: ':SIKCore')
 }
+
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            release(MavenPublication){
+//                from components.release
+//                groupId = 'com.sik.sikextension' //your git id
+//                artifactId = 'SIKNet' //your-repository
+//                version = '1.0.0' // As same as the Tag
+//
+//                artifact("$buildDir/outputs/aar/${artifactId}-release.aar") // here is difference, I used `from components...` before
+//
+//                // use this if you're using third party in your lib
+//                pom.withXml {
+//                    def dependenciesNode = asNode().appendNode('dependencies')
+//                    configurations.implementation.allDependencies.each {
+//                        def dependencyNode = dependenciesNode.appendNode('dependency')
+//                        dependencyNode.appendNode('groupId', it.group)
+//                        dependencyNode.appendNode('artifactId', it.name)
+//                        dependencyNode.appendNode('version', it.version)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
