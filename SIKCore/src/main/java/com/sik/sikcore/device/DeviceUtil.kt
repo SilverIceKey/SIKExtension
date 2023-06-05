@@ -1,9 +1,9 @@
-package com.sk.skextension.utils.device
+package com.sik.sikcore.device
 
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
-import com.blankj.utilcode.util.ShellUtils
+import com.sik.sikcore.shell.ShellUtils
 import java.security.MessageDigest
 import java.util.*
 import kotlin.experimental.and

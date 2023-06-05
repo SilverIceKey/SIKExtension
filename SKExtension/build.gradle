@@ -77,8 +77,6 @@ dependencies {
     /**
      * 第三方库引用
      */
-    //工具类相关
-    api('com.blankj:utilcode:1.30.7')
     //mqtt相关
     api('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5')
     //持久化存储相关
