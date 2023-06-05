@@ -1,4 +1,4 @@
-package com.sk.skextension.utils.net.retrofit
+package com.sik.siknet.retrofit
 
 /**
  * 创建Api接口

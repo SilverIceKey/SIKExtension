@@ -1,6 +1,6 @@
-package com.sk.skextension.utils.net.mqtt
+package com.sik.siknet.mqtt
 
-import com.blankj.utilcode.util.DeviceUtils
+import com.sik.sikcore.device.DeviceUtils
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 
@@ -21,7 +21,7 @@ abstract class EMQXConfig(val brokenUrl: String, val topic: String) {
     /**
      * 设备id
      */
-    open var clientId:String = DeviceUtils.getUniqueDeviceId()
+    open var clientId:String = DeviceUtils.getDeviceId()
     /**
      * 设置qos
      */

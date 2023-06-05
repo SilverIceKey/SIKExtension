@@ -54,7 +54,7 @@ class GlobalCrashCatch : Thread.UncaughtExceptionHandler {
     /**
      * 默认全局异常捕捉处理
      */
-    fun handleCrash(e: Throwable): Boolean {
+    private fun handleCrash(e: Throwable): Boolean {
         return globalCrashHandleCallback?.crashHandler(e) ?: true
     }
 }

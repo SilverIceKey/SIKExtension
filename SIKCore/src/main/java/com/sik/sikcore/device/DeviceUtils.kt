@@ -1,8 +1,10 @@
 package com.sik.sikcore.device
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
+import com.sik.sikcore.SIKCore
 import com.sik.sikcore.shell.ShellUtils
 import java.security.MessageDigest
 import java.util.*
@@ -27,37 +29,38 @@ object DeviceUtils {
      * @param context 上下文
      * @return 设备硬件标识
      */
-    fun getDeviceId(context: Context): String? {
+    @JvmOverloads
+    fun getDeviceId(context: Context = SIKCore.getApplication()): String {
         val sbDeviceId = StringBuilder()
 
         //获得AndroidId（无需权限）
-        val androidid = getAndroidId(context)
+        val androidId = getAndroidId(context)
         //获得设备序列号（无需权限）
         val serial = getSERIAL()
         //获得硬件uuid（根据硬件相关属性，生成uuid）（无需权限）
         val uuid = getDeviceUUID().replace("-", "")
 
-        //追加androidid
-        if (androidid != null && androidid.length > 0) {
-            sbDeviceId.append(androidid)
+        //追加androidId
+        if (!androidId.isNullOrEmpty()) {
+            sbDeviceId.append(androidId)
             sbDeviceId.append("|")
         }
         //追加serial
-        if (serial != null && serial.length > 0) {
+        if (!serial.isNullOrEmpty()) {
             sbDeviceId.append(serial)
             sbDeviceId.append("|")
         }
         //追加硬件uuid
-        if (uuid != null && uuid.length > 0) {
+        if (uuid.isNotEmpty()) {
             sbDeviceId.append(uuid)
         }
 
         //生成SHA1，统一DeviceId长度
-        if (sbDeviceId.length > 0) {
+        if (sbDeviceId.isNotEmpty()) {
             try {
                 val hash = getHashByString(sbDeviceId.toString())
                 val sha1 = bytesToHex(hash)
-                if (sha1 != null && sha1.length > 0) {
+                if (!sha1.isNullOrEmpty()) {
                     //返回最终的DeviceId
                     return sha1
                 }
@@ -77,10 +80,11 @@ object DeviceUtils {
      * @param context 上下文
      * @return 设备的AndroidId
      */
+    @SuppressLint("HardwareIds")
     private fun getAndroidId(context: Context): String? {
         try {
             return Settings.Secure.getString(
-                context.getContentResolver(),
+                context.contentResolver,
                 Settings.Secure.ANDROID_ID
             )
         } catch (ex: Exception) {

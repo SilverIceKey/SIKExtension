@@ -1,7 +1,7 @@
 package com.sik.sikcore.string
 
 /**
- * 字符串操作
+ * 字符串工具类
  */
 object StringUtils {
     /**

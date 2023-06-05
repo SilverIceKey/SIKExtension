@@ -14,67 +14,79 @@ class TimeUtils {
         /**
          * 默认日期格式
          */
-        val DEFAULT_DATE_FORMAT = "yyyy-MM-dd"
+        const val DEFAULT_DATE_FORMAT = "yyyy-MM-dd"
 
         /**
          * 默认日期格式带小时
          */
-        val DEFAULT_DATE_HOUR_FORMAT = "yyyy-MM-dd HH"
+        const val DEFAULT_DATE_HOUR_FORMAT = "yyyy-MM-dd HH"
 
         /**
          * 默认日期格式带分钟
          */
-        val DEFAULT_DATE_HOUR_MIN_FORMAT = "yyyy-MM-dd HH:mm"
+        const val DEFAULT_DATE_HOUR_MIN_FORMAT = "yyyy-MM-dd HH:mm"
 
         /**
          * 默认日期格式带分钟秒
          */
-        val DEFAULT_DATE_HOUR_MIN_SEC_FORMAT = "yyyy-MM-dd HH:mm:ss"
+        const val DEFAULT_DATE_HOUR_MIN_SEC_FORMAT = "yyyy-MM-dd HH:mm:ss"
 
         /**
          * 默认日期格式带分钟秒毫秒
          */
-        val DEFAULT_DATE_HOUR_MIN_SEC_MILL_FORMAT = "yyyy-MM-dd HH:mm:ss:SSS"
+        const val DEFAULT_DATE_HOUR_MIN_SEC_MILL_FORMAT = "yyyy-MM-dd HH:mm:ss:SSS"
 
         /**
          * 一分钟
          */
-        val MIN_TIME = 60 * 1000L
+        const val MIN_TIME = 60 * 1000L
 
         /**
          * 一小时
          */
-        val HOUR_TIME = MIN_TIME * 60
+        const val HOUR_TIME = MIN_TIME * 60
 
         /**
          * 一天
          */
-        val DAY_TIME = HOUR_TIME * 24
+        const val DAY_TIME = HOUR_TIME * 24
+
+        /**
+         * 获取时间间隔返回刚刚的最低时间
+         * 单位：秒
+         */
+        @JvmStatic
+        var timeForCurrent: Long = 300
 
         /**
          * 日期转换器
          */
+        @JvmStatic
         val simpleDateDayFormat = SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA)
 
         /**
          * 日期转换器小时
          */
+        @JvmStatic
         val simpleDateHourFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_FORMAT, Locale.CHINA)
 
         /**
          * 日期转换器小时分钟
          */
+        @JvmStatic
         val simpleDateHourMinFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_FORMAT, Locale.CHINA)
 
         /**
          * 日期转换器小时分钟秒
          */
+        @JvmStatic
         val simpleDateHourMinSecFormat =
             SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_SEC_FORMAT, Locale.CHINA)
 
         /**
          * timeutil单例
          */
+        @JvmStatic
         val instance: TimeUtils by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             TimeUtils()
         }
@@ -83,23 +95,24 @@ class TimeUtils {
     /**
      * 计算到目前的时间
      */
-    fun getTimeIntervalofCur(
+    @JvmOverloads
+    fun getTimeIntervalOfCur(
         time: String, timeFormatter: DateFormat = SimpleDateFormat(
             DEFAULT_DATE_HOUR_MIN_FORMAT,
             Locale.getDefault(Locale.Category.FORMAT)
         )
     ): String {
         val timeSecond: Long = timeFormatter.parse(time, ParsePosition(0))!!.getTime() / 1000
-        return getTimeIntervalofCur(timeSecond)
+        return getTimeIntervalOfCur(timeSecond)
     }
 
     /**
      * 计算到目前的时间
      */
-    fun getTimeIntervalofCur(time: Long): String {
+    fun getTimeIntervalOfCur(time: Long): String {
         val curTime = System.currentTimeMillis() / 1000
         val timeInterval = curTime - time
-        if (timeInterval < 300) {
+        if (timeInterval < timeForCurrent) {
             return "刚刚"
         } else if (timeInterval < 60 * 60) {
             return "${timeInterval / 60}分钟前"
@@ -116,6 +129,7 @@ class TimeUtils {
     /**
      * 判断是否是今天
      */
+    @JvmOverloads
     @SuppressLint("SimpleDateFormat")
     fun isToday(date: String, dateFormat: String = DEFAULT_DATE_FORMAT): Boolean {
         val simpleDateFormat: SimpleDateFormat
@@ -131,6 +145,7 @@ class TimeUtils {
     /**
      * 时间偏移天数
      */
+    @JvmOverloads
     fun offsetDay(offsetValue: Int, date: Date = Date()): Date {
         val formatDate = simpleDateDayFormat.format(date)
         val parseDate = simpleDateDayFormat.parse(formatDate)
@@ -140,6 +155,7 @@ class TimeUtils {
     /**
      * 时间偏移小时
      */
+    @JvmOverloads
     fun offsetHour(offsetValue: Int, date: Date = Date()): Date {
         val formatDate = simpleDateHourFormat.format(date)
         val parseDate = simpleDateHourFormat.parse(formatDate)
@@ -149,6 +165,7 @@ class TimeUtils {
     /**
      * 时间偏移分钟
      */
+    @JvmOverloads
     fun offsetMin(offsetValue: Int, date: Date = Date()): Date {
         val formatDate = simpleDateHourMinFormat.format(date)
         val parseDate = simpleDateHourMinFormat.parse(formatDate)
@@ -158,6 +175,7 @@ class TimeUtils {
     /**
      * 时间偏移秒
      */
+    @JvmOverloads
     fun offsetSec(offsetValue: Int, date: Date = Date()): Date {
         val formatDate = simpleDateHourMinSecFormat.format(date)
         val parseDate = simpleDateHourMinSecFormat.parse(formatDate)
@@ -264,13 +282,13 @@ class TimeUtils {
         if (secL < 10) {
             secS = "0${secL}"
         } else {
-            secS = "${secL}"
+            secS = "$secL"
         }
         return "${min}:${secS}"
     }
 
     /**
-     * 计算时间差
+     * 计算指定时间到现在的时间差
      */
     @SuppressLint("SimpleDateFormat")
     fun calcOffsetTime(sourceTime: String, timeDateFormat: String): Int {

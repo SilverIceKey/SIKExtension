@@ -1,4 +1,4 @@
-package com.sk.skextension.utils.net.netty
+package com.sik.siknet.netty
 
 import java.util.concurrent.ConcurrentHashMap
 

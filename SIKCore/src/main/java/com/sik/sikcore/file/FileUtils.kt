@@ -30,7 +30,7 @@ object FileUtils {
      * 文件是否存在
      */
     fun isFileExists(filePath: String): Boolean {
-        if (filePath.isNullOrEmpty()) {
+        if (filePath.isEmpty()) {
             return false
         }
         return File(filePath).exists()
@@ -40,7 +40,7 @@ object FileUtils {
      * 创建的文件如果存在则不创建
      */
     fun createOrExistsFile(file: String) {
-        if (file.isNullOrEmpty()) {
+        if (file.isEmpty()) {
             return
         }
         val tempFile = File(file)

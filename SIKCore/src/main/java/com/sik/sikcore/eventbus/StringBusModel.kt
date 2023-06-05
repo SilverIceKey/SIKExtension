@@ -1,7 +1,5 @@
 package com.sik.sikcore.eventbus
 
-import com.sik.sikcore.eventbus.BusModel
-
 /**
  * BusModel data类型为String
  */

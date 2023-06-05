@@ -11,6 +11,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        gradlePluginPortal()
+        maven { url 'https://www.jitpack.io' }
     }
 }
 rootProject.name = "SKExtensionSample"

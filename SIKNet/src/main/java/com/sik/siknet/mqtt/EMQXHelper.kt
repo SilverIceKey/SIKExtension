@@ -1,4 +1,4 @@
-package com.sk.skextension.utils.net.mqtt
+package com.sik.siknet.mqtt
 
 import com.sik.sikcore.eventbus.DefaultBusModel
 import com.sik.sikcore.receivers.ScreenStatusReceiver

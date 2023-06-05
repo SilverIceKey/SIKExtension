@@ -1,6 +1,6 @@
-package com.sk.skextension.utils.net.retrofit
+package com.sik.siknet.retrofit
 
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import java.io.File
@@ -21,7 +21,7 @@ class RetrofitTransUtil {
         /**
          * 文件转part
          */
-        fun file2Part(name: String?, file: File): MultipartBody.Part? {
+        fun file2Part(name: String, file: File): MultipartBody.Part? {
             val bodySingle: RequestBody = RequestBody.create(MultipartBody.FORM, file)
             return MultipartBody.Part.createFormData(
                 name, file.name, bodySingle
@@ -31,8 +31,8 @@ class RetrofitTransUtil {
         /**
          * 字符串转请求体
          */
-        fun string2RequestBody(param: String?): RequestBody? {
-            return RequestBody.create(MediaType.parse("text/plain"), param)
+        fun string2RequestBody(param: String): RequestBody? {
+            return RequestBody.create("text/plain".toMediaTypeOrNull(), param)
         }
 
         /**
@@ -40,7 +40,7 @@ class RetrofitTransUtil {
          */
         fun map2RequestBody(params: Map<String, Any?>?): Map<String, RequestBody?>? {
             val map: MutableMap<String, RequestBody?> = HashMap()
-            if (params != null && params.isNotEmpty()) {
+            if (!params.isNullOrEmpty()) {
                 for ((mapKey, mapValue) in params) {
                     if (mapValue != null) {
                         if (mapValue is String) {
@@ -55,11 +55,11 @@ class RetrofitTransUtil {
         /**
          * map转part
          */
-        fun map2Multipart(params: Map<String?, String?>?): List<MultipartBody.Part?>? {
+        fun map2Multipart(params: Map<String, String>?): List<MultipartBody.Part?>? {
             val parts: MutableList<MultipartBody.Part?> = ArrayList()
-            if (params != null && params.isNotEmpty()) {
+            if (!params.isNullOrEmpty()) {
                 for ((mapKey, mapValue) in params) {
-                    if (mapValue != null && mapValue!!.length != 0) {
+                    if (mapValue.isNotEmpty()) {
                         val file = File(mapValue)
                         if (file.exists()) {
                             parts.add(file2Part(mapKey, file))

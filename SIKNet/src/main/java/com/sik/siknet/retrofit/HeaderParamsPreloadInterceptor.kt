@@ -1,4 +1,4 @@
-package com.sk.skextension.utils.net.retrofit
+package com.sik.siknet.retrofit
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -6,7 +6,6 @@ import okhttp3.*
 import okio.BufferedSink
 import kotlin.Throws
 import java.io.IOException
-import java.nio.Buffer
 import java.util.HashMap
 
 /**
@@ -29,12 +28,12 @@ class HeaderParamsPreloadInterceptor : Interceptor {
         for (key in mHeader.keys) {
             requestBuilder.header(key, mHeader[key]!!)
         }
-        if ("POST" == chain.request().method()) {
-            var requestBody: RequestBody? = chain.request().body()
+        if ("POST" == chain.request().method) {
+            var requestBody: RequestBody? = chain.request().body
             if (requestBody == null || requestBody is FormBody) {
                 val formBodyBuilder: FormBody.Builder = FormBody.Builder()
                 if (requestBody != null) {
-                    for (i in 0 until (requestBody as FormBody).size()) {
+                    for (i in 0 until (requestBody as FormBody).size) {
                         formBodyBuilder.addEncoded(
                             requestBody.encodedName(i),
                             requestBody.encodedValue(i)
@@ -45,7 +44,7 @@ class HeaderParamsPreloadInterceptor : Interceptor {
                     formBodyBuilder.addEncoded(key, mParams[key]!!)
                 }
                 requestBody = formBodyBuilder.build()
-            } else if (requestBody.contentType().toString()==JsonBody.JSON.toString()) {
+            } else if (requestBody.contentType().toString()== JsonBody.JSON.toString()) {
                 val buffer:BufferedSink = okio.Buffer()
                 requestBody.writeTo(buffer)
                 val content: String = buffer.buffer.readUtf8()

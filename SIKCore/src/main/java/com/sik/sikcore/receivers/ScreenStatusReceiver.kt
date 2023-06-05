@@ -26,22 +26,22 @@ class ScreenStatusReceiver : BroadcastReceiver() {
         /**
          * 事件总线类型
          */
-        val EVENTBUS_TYPE: String = "ScreenStatusChange"
+        const val EVENTBUS_TYPE: String = "ScreenStatusChange"
 
         /**
          * 屏幕打开
          */
-        val SCREEN_ON: Int = 1
+        const val SCREEN_ON: Int = 1
 
         /**
          * 屏幕关闭
          */
-        val SCREEN_OFF: Int = 2
+        const val SCREEN_OFF: Int = 2
 
         /**
          * 通知单例
          */
-        val screenStatusReceiver: ScreenStatusReceiver by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED){
+        private val screenStatusReceiver: ScreenStatusReceiver by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED){
             ScreenStatusReceiver()
         }
 
@@ -57,7 +57,7 @@ class ScreenStatusReceiver : BroadcastReceiver() {
         }
 
         /**
-         * 取消监听
+         * 取消注册屏幕开关接收器
          */
         fun unRegisterReceiver(context: Context?){
             context?.unregisterReceiver(screenStatusReceiver)

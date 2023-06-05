@@ -52,7 +52,7 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib:1.8.10"
     api "org.jetbrains.kotlin:kotlin-reflect:1.8.10"
     //compose
-    def compose_ui_version = '1.4.3'
+    def compose_ui_version = '1.4.1'
     api "androidx.compose.runtime:runtime-livedata:$compose_ui_version"
     api "androidx.compose.runtime:runtime-saveable:$compose_ui_version"
     api "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1"

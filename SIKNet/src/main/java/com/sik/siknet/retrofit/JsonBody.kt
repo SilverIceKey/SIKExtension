@@ -1,16 +1,16 @@
-package com.sk.skextension.utils.net.retrofit
+package com.sik.siknet.retrofit
 
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
-import okhttp3.internal.Util.checkOffsetAndCount
+import okhttp3.internal.checkOffsetAndCount
 import okio.BufferedSink
-import java.lang.NullPointerException
 import java.nio.charset.Charset
 import kotlin.text.Charsets.UTF_8
 
 class JsonBody(private val content: String) : RequestBody() {
     companion object {
-        val JSON: MediaType = MediaType.get("application/json; charset=UTF-8")
+        val JSON: MediaType = "application/json; charset=UTF-8".toMediaType()
         private val charset: Charset = UTF_8
 
         fun create(content:String):RequestBody{

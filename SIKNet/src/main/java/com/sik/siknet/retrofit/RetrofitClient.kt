@@ -1,6 +1,6 @@
-package com.sk.skextension.utils.net.retrofit
+package com.sik.siknet.retrofit
 
-import com.sk.skextension.utils.SKExtension
+import com.sik.sikcore.SIKCore
 import okhttp3.*
 import okhttp3.Credentials.basic
 import okhttp3.logging.HttpLoggingInterceptor
@@ -142,7 +142,7 @@ class RetrofitClient private constructor() {
     private fun initOkhttp(retrofitConfig: RetrofitConfig): OkHttpClient {
         val cacheSize = (10 * 1024 * 1024).toLong()
         val cacheFile: File
-        cacheFile = File(SKExtension.getApplication().externalCacheDir, "retrofit")
+        cacheFile = File(SIKCore.getApplication().externalCacheDir, "retrofit")
         if (!cacheFile.exists()) {
             cacheFile.mkdirs()
         }
@@ -167,7 +167,7 @@ class RetrofitClient private constructor() {
                 val credential = basic(
                     retrofitConfig.proxyUserName(), retrofitConfig.proxyPassword()
                 )
-                response.request().newBuilder()
+                response.request.newBuilder()
                     .header("Proxy-Authorization", credential)
                     .build()
             }

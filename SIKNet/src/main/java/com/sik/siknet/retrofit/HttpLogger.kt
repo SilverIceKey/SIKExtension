@@ -1,10 +1,7 @@
-package com.sk.skextension.utils.net.retrofit
+package com.sik.siknet.retrofit
 
-import com.blankj.utilcode.util.LogUtils
-import com.sk.skextension.utils.net.retrofit.JsonUtil.formatJson
-import com.sk.skextension.utils.net.retrofit.JsonUtil.decodeUnicode
+import com.sik.sikcore.log.LogUtils
 import okhttp3.logging.HttpLoggingInterceptor
-import org.slf4j.LoggerFactory
 
 /**
  * 日志拦截器

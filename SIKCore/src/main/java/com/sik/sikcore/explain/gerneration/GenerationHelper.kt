@@ -9,17 +9,17 @@ import java.io.File
 /**
  * 生成工具类
  */
-object GernerationHelper {
+object GenerationHelper {
     val JsonFile = ".\\entities\\"
 
     /**
      * 根据配置类生成实体描述
      */
     @JvmStatic
-    fun <T : EntitiesGernerationConfig> gerneratieDescriptionWithConfig(clazz: Class<T>) {
+    fun <T : EntitiesGenerationConfig> generatieDescriptionWithConfig(clazz: Class<T>) {
         val entities = clazz.getAnnotation(Entities::class.java)
         for (entity in entities.entities) {
-            gernerateDescription(entity.java)
+            generateDescription(entity.java)
         }
     }
 
@@ -27,7 +27,7 @@ object GernerationHelper {
      * 生成实体描述
      */
     @JvmStatic
-    private fun gernerateDescription(clazz: Class<*>) {
+    private fun generateDescription(clazz: Class<*>) {
         if (!File(JsonFile).exists()) {
             File(JsonFile).mkdirs()
         }

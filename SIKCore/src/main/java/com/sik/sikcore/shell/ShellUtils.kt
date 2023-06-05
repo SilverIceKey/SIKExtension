@@ -8,7 +8,7 @@ import java.io.InputStreamReader
 
 
 /**
- * 命令行工具
+ * 命令行工具类
  */
 object ShellUtils {
     private val LINE_SEP = System.getProperty("line.separator")

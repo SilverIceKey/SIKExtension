@@ -44,5 +44,5 @@ target_link_libraries( # Specifies the target library.
                        SIKImage
                        # Links the target library to the log library
                        # included in the NDK.
-                       libyuv
+                       yuv
                        ${log-lib} )

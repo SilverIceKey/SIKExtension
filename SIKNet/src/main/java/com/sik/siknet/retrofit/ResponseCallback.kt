@@ -1,6 +1,5 @@
-package com.sk.skextension.utils.net.retrofit
+package com.sik.siknet.retrofit
 
-import com.blankj.utilcode.util.ToastUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import retrofit2.Call
@@ -30,7 +29,7 @@ abstract class ResponseCallback<T> : Callback<T> {
      */
     override fun onFailure(call: Call<T>, t: Throwable) {
         log.warn("网络请求失败", t)
-        ToastUtils.showShort("网络请求失败")
+        networkError("网络请求异常", t)
     }
 
     /**
@@ -59,5 +58,11 @@ abstract class ResponseCallback<T> : Callback<T> {
          */
         @JvmStatic
         var errorCheck: (response: Any) -> Boolean = { true }
+
+        /**
+         * 网络异常
+         */
+        @JvmStatic
+        var networkError: (msg: String, t: Throwable) -> Unit = { _, _ -> }
     }
 }

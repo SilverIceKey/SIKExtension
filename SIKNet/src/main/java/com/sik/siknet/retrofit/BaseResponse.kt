@@ -1,4 +1,4 @@
-package com.sk.skextension.utils.net.retrofit
+package com.sik.siknet.retrofit
 
 /**
  * 基础返回数据类型
