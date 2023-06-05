@@ -15,7 +15,10 @@ dependencyResolutionManagement {
 }
 rootProject.name = "SKExtensionSample"
 include ':app'
-include ':SKExtension'
+include ':SIKExtension'
 include ':SIKImage'
 include ':SIKNet'
 include ':SIKCore'
+include ':SIKEncrypt'
+include ':SIKRoute'
+include ':SIKMedia'

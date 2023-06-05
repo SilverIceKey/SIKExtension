@@ -1,15 +1,12 @@
 package com.sk.skextension.utils.net.mqtt
 
-import android.text.TextUtils
-import com.blankj.utilcode.util.DeviceUtils
-import com.sk.skextension.utils.eventbus.DefaultBusModel
-import com.sk.skextension.utils.receivers.ScreenStatusReceiver
+import com.sik.sikcore.eventbus.DefaultBusModel
+import com.sik.sikcore.receivers.ScreenStatusReceiver
 import org.eclipse.paho.client.mqttv3.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import kotlin.concurrent.thread
 
 /**
  * Mqtt帮助类

@@ -12,7 +12,7 @@ import android.net.wifi.WifiNetworkSpecifier
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.sik.sikcore.SIKCore
-import com.sik.sikcore.file.FileUtil
+import com.sik.sikcore.file.FileUtils
 import java.io.IOException
 import java.util.*
 
@@ -24,7 +24,7 @@ object NetUtil {
      */
     fun getMacAddress(): String? {
         return try {
-            FileUtil.loadFileAsString("/sys/class/net/eth0/address")
+            FileUtils.loadFileAsString("/sys/class/net/eth0/address")
                 .uppercase(Locale.ROOT).substring(0, 17)
         } catch (e: IOException) {
             e.printStackTrace()

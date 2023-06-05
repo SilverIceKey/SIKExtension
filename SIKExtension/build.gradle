@@ -1,27 +1,35 @@
 plugins {
     id 'com.android.library'
+    id 'kotlin-android'
+    id 'kotlin-parcelize'
     id 'org.jetbrains.kotlin.android'
 }
+apply plugin: 'kotlin-android'
 
 apply plugin: 'maven-publish'
-group = 'com.sik.sikcore'
+group = 'com.sik.sikextension'
 version = '1.0.0'
 
 android {
-    namespace 'com.sik.sikcore'
     compileSdk 33
-
+    namespace 'com.sik.extension'
     defaultConfig {
         minSdk 24
         targetSdk 33
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+        externalNativeBuild {
+            cmake {
+                abiFilters "arm64-v8a"
+                cppFlags ''
+            }
+        }
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -30,26 +38,32 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '11'
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.10.2'
+        }
     }
 }
 
 dependencies {
-
-    implementation 'androidx.core:core-ktx:1.8.0'
+    /**
+     * 本地包以及Android相关依赖引用
+     */
+    implementation fileTree(dir: 'libs', includes: ['*.jar'])
+    implementation 'androidx.core:core-ktx:1.10.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.8.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-
-    //json相关
-    api('com.google.code.gson:gson:2.8.9')
-    //日志相关
-    api('org.slf4j:slf4j-api:2.0.7')
-    api('com.github.tony19:logback-android:2.0.0')
-    //事件总线
-    api('org.greenrobot:eventbus:3.3.0')
-    //扩展库
-    api project(path: ':SIKExtension')
+    /**
+     * 第三方库引用
+     */
+    //持久化存储相关
+    api('com.tencent:mmkv-static:1.2.11')
+    //自定义键盘
+    api('com.github.jenly1314:kingkeyboard:1.0.4')
 }

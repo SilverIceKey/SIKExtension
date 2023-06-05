@@ -4,11 +4,11 @@ plugins {
 }
 
 apply plugin: 'maven-publish'
-group = 'com.sik.sikcore'
+group = 'com.sik.sikencrypt'
 version = '1.0.0'
 
 android {
-    namespace 'com.sik.sikcore'
+    namespace 'com.sik.sikencrypt'
     compileSdk 33
 
     defaultConfig {
@@ -17,6 +17,11 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+        externalNativeBuild {
+            cmake {
+                cppFlags ''
+            }
+        }
     }
 
     buildTypes {
@@ -32,6 +37,12 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
 }
 
 dependencies {
@@ -42,14 +53,4 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-
-    //json相关
-    api('com.google.code.gson:gson:2.8.9')
-    //日志相关
-    api('org.slf4j:slf4j-api:2.0.7')
-    api('com.github.tony19:logback-android:2.0.0')
-    //事件总线
-    api('org.greenrobot:eventbus:3.3.0')
-    //扩展库
-    api project(path: ':SIKExtension')
 }

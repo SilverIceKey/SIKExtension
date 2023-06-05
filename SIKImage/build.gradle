@@ -59,4 +59,6 @@ dependencies {
     api('io.coil-kt:coil-gif:2.4.0')
     api('io.coil-kt:coil-svg:2.4.0')
     api('io.coil-kt:coil-video:2.4.0')
+    //二维码相关
+    api('com.google.zxing:core:3.4.0')
 }

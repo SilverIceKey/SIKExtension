@@ -1,12 +1,8 @@
 package com.sik.skextensionsample
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.google.gson.Gson
-import com.sik.sikcore.device.DeviceUtil
-import com.sik.sikcore.shell.ShellUtils
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

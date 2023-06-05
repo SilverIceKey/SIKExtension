@@ -4,11 +4,11 @@ plugins {
 }
 
 apply plugin: 'maven-publish'
-group = 'com.sik.sikcore'
+group = 'com.sik.sikroute'
 version = '1.0.0'
 
 android {
-    namespace 'com.sik.sikcore'
+    namespace 'com.sik.sikroute'
     compileSdk 33
 
     defaultConfig {
@@ -29,6 +29,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.4.4'
+    }
     kotlinOptions {
         jvmTarget = '1.8'
     }
@@ -42,14 +48,13 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-
-    //json相关
-    api('com.google.code.gson:gson:2.8.9')
-    //日志相关
-    api('org.slf4j:slf4j-api:2.0.7')
-    api('com.github.tony19:logback-android:2.0.0')
-    //事件总线
-    api('org.greenrobot:eventbus:3.3.0')
-    //扩展库
-    api project(path: ':SIKExtension')
+    //kotlin反射库
+    api "org.jetbrains.kotlin:kotlin-stdlib:1.8.10"
+    api "org.jetbrains.kotlin:kotlin-reflect:1.8.10"
+    //compose
+    def compose_ui_version = '1.4.3'
+    api "androidx.compose.runtime:runtime-livedata:$compose_ui_version"
+    api "androidx.compose.runtime:runtime-saveable:$compose_ui_version"
+    api "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1"
+    api "androidx.navigation:navigation-compose:2.5.3"
 }
