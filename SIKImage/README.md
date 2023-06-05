@@ -6,7 +6,7 @@
 
 ## 方法介绍：
 
-### [图像转换帮助类](./src/main/java/com/sik/sikimage/ImageConvertHelper.kt)
+### [图像转换工具类](./src/main/java/com/sik/sikimage/ImageConvertUtils.kt)
 
 ```kotlin
 //bitmap转base64
@@ -31,7 +31,7 @@ fun saveFile(bitmap: Bitmap): File?
 fun fileToBase64(file: File?): String?
 ```
 
-### [矩阵操作](./src/main/java/com/sik/sikimage/MatrixUtils.kt)
+### [矩阵操作工具类](./src/main/java/com/sik/sikimage/MatrixUtils.kt)
 
 ```kotlin
 //矩阵缩放，缩放之后位置不移动
@@ -40,7 +40,7 @@ fun scale(matrix: Matrix, scale: Float)
 fun scale(matrix: Matrix, scale: Float, scaleX: Float = 0f, scaleY: Float = 0f)
 ```
 
-### [路径帮助类](./src/main/java/com/sik/sikimage/PathHelper.kt)
+### [路径工具类](./src/main/java/com/sik/sikimage/PathUtils.kt)
 
 ```kotlin
 //根据点判断是直线、四边形、三角形并绘制路径
@@ -58,3 +58,13 @@ fun rotateNV21(input: ByteArray, width: Int, height: Int, rotation: Int): ByteAr
 //等比缩放bitmap
 fun zoomImg(bm: Bitmap, Scale: Float): Bitmap?
 ```
+
+### [二维码工具类](./src/main/java/com/sik/sikimage/QRCodeUtils.kt)
+
+```kotlin
+//根据bitmap读取二维码
+fun readQRCode(bitmap: Bitmap): String
+//快捷创建二维码bitmap
+fun createQRCode(info: String, size: Int, color: Int = -1, logo: Bitmap? = null): Bitmap
+```
+

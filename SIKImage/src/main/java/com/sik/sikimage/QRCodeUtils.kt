@@ -32,6 +32,7 @@ object QRCodeUtils {
     /**
      * 快捷创建二维码bitmap
      */
+    @JvmOverloads
     fun createQRCode(info: String, size: Int, color: Int = -1, logo: Bitmap? = null): Bitmap {
         val hint = HashMap<EncodeHintType, Any>()
         hint[EncodeHintType.MARGIN] = 0
