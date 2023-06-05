@@ -1,16 +1,15 @@
 package com.sik.skextensionsample
 
 import android.os.Bundle
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import com.sik.sikroute.RouteManager
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-    }
-
-    private fun useFunction(){
-//        findViewById<TextView>(R.id.text).text = DeviceUtil.getSN()
+        setContent {
+            RouteManager.instance.NavGraphMain(viewModelStoreOwner = this)
+        }
     }
 }

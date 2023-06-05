@@ -8,4 +8,4 @@ package com.sik.sikroute
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class Route(val name: String, val isStart: Boolean = false)
+annotation class Route(val name: String, val params: Array<String> = [], val isStart: Boolean = false)

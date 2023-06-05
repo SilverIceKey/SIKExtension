@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 
 /**
@@ -37,14 +38,14 @@ abstract class BaseView {
      * 设置界面
      */
     @Composable
-    fun Content(navController: NavHostController){
+    fun Content(navController: NavHostController,navBackStackEntry: NavBackStackEntry){
         initViewModel()
-        initView(navController)
+        InitView(navController,navBackStackEntry)
     }
 
     /**
      * 初始化界面
      */
     @Composable
-    abstract fun initView(navController: NavHostController)
+    abstract fun InitView(navController: NavHostController, navBackStackEntry: NavBackStackEntry)
 }

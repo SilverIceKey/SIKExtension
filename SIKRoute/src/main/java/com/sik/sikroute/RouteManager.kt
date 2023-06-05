@@ -2,9 +2,12 @@ package com.sik.sikroute
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.navigation.NamedNavArgument
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
@@ -18,6 +21,7 @@ class RouteManager {
         /**
          * 实例
          */
+        @JvmStatic
         val instance: RouteManager by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             RouteManager()
         }
@@ -31,7 +35,7 @@ class RouteManager {
     /**
      * 导航表
      */
-    private val routeMap: HashMap<String, BaseView> = hashMapOf()
+    private val routeMap: HashMap<String, RouteEntity> = hashMapOf()
 
     /**
      * 起始导航
@@ -61,12 +65,38 @@ class RouteManager {
                         if (route.isStart) {
                             startRouteName = route.name
                         }
-                        routeMap[route.name] =
+                        routeMap[route.name] = RouteEntity(
+                            route.name,
+                            route.params,
                             routeFunction.call(routeConfigInstance) as BaseView
+                        )
                     }
                 }
             }
         }
+    }
+
+    /**
+     * 生成传递参数
+     */
+    private fun generateParams(params: Array<String>): String {
+        return StringBuilder().apply {
+            if (params.isNotEmpty()) {
+                if (params.size == 1) {
+                    append("/")
+                    append("{${params[0]}}")
+                } else {
+                    append("?")
+                    for (param in params) {
+                        append(param)
+                        append("=")
+                        append("{$param}")
+                        append("&")
+                    }
+                }
+
+            }
+        }.toString()
     }
 
     /**
@@ -80,11 +110,45 @@ class RouteManager {
         val navController = rememberNavController()
         NavHost(navController, startDestination = startRouteName) {
             for (mutableEntry in routeMap) {
-                composable(mutableEntry.key) {
-                    mutableEntry.value.setViewModelStoreOwner(viewModelStoreOwner)
-                    mutableEntry.value.Content(navController)
+                composable(mutableEntry.value.routeName + generateParams(mutableEntry.value.routeParams),
+                    arguments = mutableListOf<NamedNavArgument>().apply {
+                        if (mutableEntry.value.routeParams.size > 1) {
+                            for (routeParam in mutableEntry.value.routeParams) {
+                                add(navArgument(routeParam) { nullable = true })
+                            }
+                        }
+                    }) { navBackStackEntry ->
+                    mutableEntry.value.routeView.setViewModelStoreOwner(viewModelStoreOwner)
+                    mutableEntry.value.routeView.Content(navController, navBackStackEntry)
                 }
             }
         }
     }
+}
+
+/**
+ * 路由跳转
+ */
+fun NavHostController.navigate(routeName: String, params: HashMap<String, String> = hashMapOf()) {
+    val url = StringBuilder().apply {
+        append(routeName)
+        if (params.isNotEmpty()) {
+            if (params.size == 1) {
+                for (param in params) {
+                    append("/")
+                    append("{${param.value}}")
+                }
+            } else {
+                append("?")
+                for (param in params) {
+                    append(param.key)
+                    append("=")
+                    append(param.value)
+                    append("&")
+                }
+            }
+
+        }
+    }.toString()
+    navigate(url)
 }
