@@ -16,6 +16,9 @@ import com.sik.sikcore.file.FileUtils
 import java.io.IOException
 import java.util.*
 
+/**
+ * 网络工具类
+ */
 object NetUtil {
     private val wifiManager: WifiManager = SIKCore.getApplication().getSystemService(Context.WIFI_SERVICE) as WifiManager
 

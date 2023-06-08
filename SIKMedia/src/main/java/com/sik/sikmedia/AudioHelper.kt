@@ -118,7 +118,7 @@ class AudioHelper {
     /**
      * 初始化Handler
      */
-    fun initHandler() {
+    private fun initHandler() {
         thread {
             Looper.prepare()
             audioRecordHandler = @SuppressLint("HandlerLeak")
