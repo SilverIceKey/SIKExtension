@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import com.sik.sikcore.log.LogUtils
+import com.sik.siknet.netty.NettyClientUtils
 import com.sik.sikroute.BaseView
 
 class FirstView : BaseView() {
@@ -25,10 +27,12 @@ class FirstView : BaseView() {
             modifier = Modifier
                 .fillMaxSize()
                 .clickable(true) {
-                    navController.navigate("sec")
+//                    navController.navigate("sec")
+                    NettyClientUtils.instance.connect(CustomNettyConfig())
                 }
         ) {
             Text(text = "第一个页面")
         }
+        LogUtils.i("第一个页面")
     }
 }

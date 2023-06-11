@@ -2,6 +2,7 @@ package com.sik.sikcore.log
 
 import android.os.Environment
 import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.android.BasicLogcatConfigurator
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -9,8 +10,7 @@ import ch.qos.logback.core.rolling.RollingFileAppender
 import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
 import ch.qos.logback.core.util.FileSize
 import com.sik.sikextension.existsAndCreateFolder
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.slf4j.impl.LoggerFactory
 
 /**
  * 日志工具类
@@ -31,8 +31,9 @@ object LogUtils {
     @JvmStatic
     var MAX_LOG_FILE_SIZE = "10MB"
 
-    private val rootLogger =
-        LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+    private val rootLogger by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        LoggerFactory().getLogger(Logger.ROOT_LOGGER_NAME) as Logger
+    }
     private val loggerContext = rootLogger.loggerContext
     private val encoder: PatternLayoutEncoder
     private val rollingPolicy: SizeAndTimeBasedRollingPolicy<ILoggingEvent>
