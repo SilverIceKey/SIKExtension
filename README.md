@@ -1,7 +1,7 @@
 # SKExtension
-## 这个库原先为子模块类型，接下来将改为多模块jitpack选择集成类型。
+### 这个库原先为子模块类型，接下来将改为多模块jitpack选择集成类型。
 
-## 项目包括以下模块
+### 项目包括以下模块
 
 | 名称         | 描述                                                         | 介绍                                               |
 | ------------ | ------------------------------------------------------------ | -------------------------------------------------- |
@@ -13,18 +13,36 @@
 | SIKMedia     | 媒体库-主要用于录音和媒体的编码                              | [媒体工具介绍](./SIKMedia/README.md)               |
 | SIKRoute     | 路由库-主要作用于Compose的路由跳转，用于单Activity存在多界面的情况 | [Compose路由工具介绍](./SIKRoute/README.md)        |
 
+### 集成方式：
+
+在项目的setting.gradle或者root下的build.gradle中找到
+
+```groovy
+repositories {
+	maven { url 'https://jitpack.io' }
+}
+```
+
+在app的build.gradle中进行依赖,版本：[![](https://jitpack.io/v/SilverIceKey/SIKExtension.svg)](https://jitpack.io/#SilverIceKey/SIKExtension)所有模块版本相同
+
+```groovy
+//这样会集成所有模块
+implementation 'com.github.SilverIceKey:SIKExtension:Tag'
+//如果想集成单个模块，请将SIKExtension改为对应的模块名称
+```
 
 
-## 最后一个子模块类型地址
 
-## [SKExtension-last-submodule](https://github.com/SilverIceKey/SKExtension/tree/last_submodule )
+### 最后一个子模块类型地址
 
-## 项目包含以下元素：
+### [SKExtension-last-submodule](https://github.com/SilverIceKey/SKExtension/tree/last_submodule )
 
-- ### 缝合怪
-- ### 屎山代码
-- ### 高耦合
-- ### 拎不清代码一堆
+### 项目包含以下元素：
+
+- #### 缝合怪
+- #### 屎山代码
+- #### 高耦合
+- #### 拎不清代码一堆
 
 
 

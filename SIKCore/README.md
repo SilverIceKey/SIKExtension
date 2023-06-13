@@ -127,3 +127,26 @@ fun getMatches(regex: String, input: CharSequence?): List<String>
 fun getAllZH(input: String?): String
 ```
 
+### [压缩包工具类](./src/main/java/com/sik/sikcore/zip/ZipUtils.kt)
+
+```kotlin
+/**
+ * 压缩文件
+ *
+ * @param srcFiles 源文件列表
+ * @param destFile 目标文件
+ * @param zipListener 压缩监听
+ */
+fun zip(vararg srcFiles: File, destFile: File, zipListener: ZipListener? = null)
+fun zip(vararg srcFiles: String, destFile: String, zipListener: ZipListener? = null)
+/**
+* 解压文件
+*
+* @param srcFile 源文件
+* @param destFolder 目标目录
+* @param zipListener 解压监听
+*/
+fun unzip(srcFile: File, destFolder: File, zipListener: ZipListener? = null)
+fun unzip(srcFile: String, destFolder: String, zipListener: ZipListener? = null)
+```
+
