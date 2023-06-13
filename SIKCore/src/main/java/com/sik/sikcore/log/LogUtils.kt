@@ -9,7 +9,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.rolling.RollingFileAppender
 import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
 import ch.qos.logback.core.util.FileSize
-import com.sik.sikextension.existsAndCreateFolder
+import com.sik.sikcore.extension.existsAndCreateFolder
 import org.slf4j.impl.LoggerFactory
 
 /**

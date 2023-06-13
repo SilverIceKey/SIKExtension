@@ -4,9 +4,9 @@ import android.media.AudioFormat
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
-import com.sik.sikextension.createNewFile
-import com.sik.sikextension.fileInputStream
-import com.sik.sikextension.fileOutputStream
+import com.sik.sikcore.extension.createNewFile
+import com.sik.sikcore.extension.fileInputStream
+import com.sik.sikcore.extension.fileOutputStream
 import com.sik.sikcore.file.FileCreateException
 import java.io.File
 import java.io.FileNotFoundException

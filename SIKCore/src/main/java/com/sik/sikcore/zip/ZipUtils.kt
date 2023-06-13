@@ -1,7 +1,7 @@
 package com.sik.sikcore.zip
 
 import android.util.Log
-import com.sik.sikextension.file
+import com.sik.sikcore.extension.file
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File

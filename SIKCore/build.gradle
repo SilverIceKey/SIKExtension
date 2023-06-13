@@ -49,6 +49,4 @@ dependencies {
     api('com.github.tony19:logback-android:3.0.0')
     //事件总线
     api('org.greenrobot:eventbus:3.3.0')
-    //扩展库
-    api project(path: ':SIKExtension')
 }

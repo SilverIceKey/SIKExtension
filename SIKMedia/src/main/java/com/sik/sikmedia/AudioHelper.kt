@@ -7,7 +7,7 @@ import android.media.MediaRecorder
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import com.sik.sikextension.fileOutputStream
+import com.sik.sikcore.extension.fileOutputStream
 import com.sik.sikcore.SIKCore
 import com.sik.sikcore.file.FileUtils
 import com.sik.sikcore.date.TimeUtils

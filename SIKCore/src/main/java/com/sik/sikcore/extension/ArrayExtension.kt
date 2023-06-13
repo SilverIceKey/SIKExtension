@@ -1,4 +1,4 @@
-package com.sik.sikextension
+package com.sik.sikcore.extension
 
 /**
  * Array数组转[参数1,参数2]形式文本
