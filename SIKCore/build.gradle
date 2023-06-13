@@ -46,7 +46,7 @@ dependencies {
     api('com.google.code.gson:gson:2.8.9')
     //日志相关
     api('org.slf4j:slf4j-api:2.0.7')
-    api('com.github.tony19:logback-android:2.0.0')
+    api('com.github.tony19:logback-android:3.0.0')
     //事件总线
     api('org.greenrobot:eventbus:3.3.0')
     //扩展库
