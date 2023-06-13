@@ -28,7 +28,8 @@ repositories {
 ```groovy
 //这样会集成所有模块
 implementation 'com.github.SilverIceKey:SIKExtension:Tag'
-//如果想集成单个模块，请将SIKExtension改为对应的模块名称
+//如果想集成单个模块
+implementation 'com.github.SilverIceKey.SIKExtension:模块名称:Tag'
 ```
 
 
