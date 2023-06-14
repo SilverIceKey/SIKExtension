@@ -150,3 +150,53 @@ fun unzip(srcFile: File, destFolder: File, zipListener: ZipListener? = null)
 fun unzip(srcFile: String, destFolder: String, zipListener: ZipListener? = null)
 ```
 
+### [数组扩展函数](./src/main/java/com/sik/sikcore/extension/ArrayExtension.kt)
+
+```kotlin
+//对Array进行扩展，Array调用getString可以转化为[参数1,参数2]形式文本
+fun <T : Comparable<T>> Array<out T>.getString(): String
+//list转mutableList
+fun <T : Comparable<T>> List<T>.toMutableList(): MutableList<T>
+```
+
+### [文件扩展函数](./src/main/java/com/sik/sikcore/extension/FileExtension.kt)
+
+```kotlin
+//获取文件的输出流
+fun File.outputStream(): FileOutputStream
+//文件路径直接返回输出流
+fun String.fileOutputStream(): FileOutputStream?
+//文件路径直接返回文件
+fun String.file(): File?
+//文件路径直接返回输入流
+fun String.fileInputStream(): FileInputStream?
+//判断文件是否存在
+fun String.exists(): Boolean
+//如果文件存在则删除文件
+fun String.existsDelete(): Boolean
+//判断文件夹是否存在，不存在则创建
+fun String.existsAndCreateFolder()
+//文件不存的情况下创建文件,存在的情况下直接返回true
+fun String.createNewFile(): Boolean
+//文件路径写入数据
+fun String.write(data: ByteArray)
+//文件路径获取文本数据
+fun String.getData(): String
+```
+
+### [颜色工具类](./src/main/java/com/sik/sikcore/color/ColorUtils.kt)
+
+```kotlin
+//colorInt转16进制
+fun colorIntToHex(@ColorInt colorInt: Int): String
+```
+
+### [Bean工具类](./src/main/java/com/sik/sikcore/data/BeanUtils.kt)
+
+```kotlin
+//使用反射进行相同字段的数据复制
+inline fun <reified T> copyData(source: Any, target: Any): T
+//使用反射进行相同字段的数据复制
+fun copyData(source: Any, target: Any)
+```
+
