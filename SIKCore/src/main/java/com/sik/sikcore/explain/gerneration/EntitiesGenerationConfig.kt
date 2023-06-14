@@ -5,6 +5,6 @@ package com.sik.sikcore.explain.gerneration
  */
 abstract class EntitiesGenerationConfig {
     init {
-        GenerationHelper.generatieDescriptionWithConfig(this.javaClass)
+        GenerationHelper.generateDescriptionWithConfig(this.javaClass)
     }
 }

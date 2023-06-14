@@ -10,16 +10,18 @@ import java.io.File
  * 生成工具类
  */
 object GenerationHelper {
-    val JsonFile = ".\\entities\\"
+    private const val JsonFile = ".\\entities\\"
 
     /**
      * 根据配置类生成实体描述
      */
     @JvmStatic
-    fun <T : EntitiesGenerationConfig> generatieDescriptionWithConfig(clazz: Class<T>) {
+    fun <T : EntitiesGenerationConfig> generateDescriptionWithConfig(clazz: Class<T>) {
         val entities = clazz.getAnnotation(Entities::class.java)
-        for (entity in entities.entities) {
-            generateDescription(entity.java)
+        if (entities != null) {
+            for (entity in entities.entities) {
+                generateDescription(entity.java)
+            }
         }
     }
 

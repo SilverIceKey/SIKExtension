@@ -15,6 +15,7 @@ object ColorUtils {
      * @param colorInt
      * @return
      */
+    @JvmStatic
     fun colorIntToHex(@ColorInt colorInt: Int): String {
         val r = Color.red(colorInt)
         val g = Color.green(colorInt)

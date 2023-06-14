@@ -1,6 +1,5 @@
 package com.sik.sikcore.zip
 
-import android.util.Log
 import org.junit.Test
 import java.io.File
 
