@@ -103,14 +103,18 @@ class RouteManager {
      * 界面导航
      */
     @Composable
-    fun NavGraphMain(viewModelStoreOwner: ViewModelStoreOwner) {
+    fun NavGraphMain(
+        viewModelStoreOwner: ViewModelStoreOwner,
+        iRoute: IRoute
+    ) {
         if (routeClasses.isEmpty()) {
             throw RouteException("Please call init first and set class has Route annotation")
         }
         val navController = rememberNavController()
         NavHost(navController, startDestination = startRouteName) {
             for (mutableEntry in routeMap) {
-                composable(mutableEntry.value.routeName + generateParams(mutableEntry.value.routeParams),
+                composable(
+                    mutableEntry.value.routeName + generateParams(mutableEntry.value.routeParams),
                     arguments = mutableListOf<NamedNavArgument>().apply {
                         if (mutableEntry.value.routeParams.size > 1) {
                             for (routeParam in mutableEntry.value.routeParams) {
@@ -119,6 +123,7 @@ class RouteManager {
                         }
                     }) { navBackStackEntry ->
                     mutableEntry.value.routeView.setViewModelStoreOwner(viewModelStoreOwner)
+                    mutableEntry.value.routeView.setIRoute(iRoute)
                     mutableEntry.value.routeView.Content(navController, navBackStackEntry)
                 }
             }
