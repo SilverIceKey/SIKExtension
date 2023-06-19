@@ -12,7 +12,7 @@ import android.view.ViewTreeObserver
 fun View.doAfterRendered(task: () -> Unit = {}) {
     val onRenderedListener = object : ViewTreeObserver.OnGlobalLayoutListener {
         override fun onGlobalLayout() {
-            this@doAfterRendered.viewTreeObserver.removeOnDrawListener(this)
+            this@doAfterRendered.viewTreeObserver.removeOnGlobalLayoutListener(this)
             task()
         }
     }

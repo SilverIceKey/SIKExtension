@@ -15,9 +15,15 @@ abstract class BaseView {
     private lateinit var viewModelStoreOwner: ViewModelStoreOwner
 
     /**
+     * route interface
+     * 路由接口
+     */
+    lateinit var iRoute: IRoute
+
+    /**
      * 设置viewModelStore
      */
-    fun setViewModelStoreOwner(viewModelStoreOwner: ViewModelStoreOwner){
+    fun setViewModelStoreOwner(viewModelStoreOwner: ViewModelStoreOwner) {
         this.viewModelStoreOwner = viewModelStoreOwner
         initViewModel()
     }
@@ -25,7 +31,7 @@ abstract class BaseView {
     /**
      * 初始化数据交互模型
      */
-    fun <VM:ViewModel> initViewModel(clazz: Class<VM>):VM{
+    fun <VM : ViewModel> initViewModel(clazz: Class<VM>): VM {
         return ViewModelProvider(viewModelStoreOwner)[clazz]
     }
 

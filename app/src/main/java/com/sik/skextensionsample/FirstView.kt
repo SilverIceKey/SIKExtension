@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.sik.sikcore.log.LogUtils
-import com.sik.siknet.netty.NettyClientUtils
 import com.sik.sikroute.BaseView
 
 class FirstView : BaseView() {
@@ -28,7 +27,8 @@ class FirstView : BaseView() {
                 .fillMaxSize()
                 .clickable(true) {
 //                    navController.navigate("sec")
-                    NettyClientUtils.instance.connect(CustomNettyConfig())
+//                    NettyClientUtils.instance.connect(CustomNettyConfig())
+                    iRoute.startActivity(SecActivity::class.java)
                 }
         ) {
             Text(text = "第一个页面")

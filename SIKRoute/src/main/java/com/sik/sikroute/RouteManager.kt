@@ -123,7 +123,7 @@ class RouteManager {
                         }
                     }) { navBackStackEntry ->
                     mutableEntry.value.routeView.setViewModelStoreOwner(viewModelStoreOwner)
-                    mutableEntry.value.routeView.setIRoute(iRoute)
+                    mutableEntry.value.routeView.iRoute = iRoute
                     mutableEntry.value.routeView.Content(navController, navBackStackEntry)
                 }
             }
