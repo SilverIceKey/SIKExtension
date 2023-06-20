@@ -200,3 +200,16 @@ inline fun <reified T> copyData(source: Any, target: Any): T
 fun copyData(source: Any, target: Any)
 ```
 
+### [动画扩展函数](./src/main/java/com/sik/sikcore/anim/AnimExtension.kt)
+
+```kotlin
+/**
+ * Anim
+ * 获取动画
+ * @param animConfig 动画配置
+ * @param createStart 创建完成之后马上执行
+ * @return
+ */
+fun View.anim(animConfig: AnimConfig, createStart: Boolean = true): ValueAnimator
+```
+
