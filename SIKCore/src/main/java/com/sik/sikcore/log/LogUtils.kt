@@ -4,6 +4,7 @@ import android.os.Environment
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.android.BasicLogcatConfigurator
+import ch.qos.logback.classic.android.LogcatAppender
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.rolling.RollingFileAppender
@@ -38,6 +39,7 @@ object LogUtils {
     private val encoder: PatternLayoutEncoder
     private val rollingPolicy: SizeAndTimeBasedRollingPolicy<ILoggingEvent>
     private val appender: RollingFileAppender<ILoggingEvent>
+    private val logcatAppender:LogcatAppender
 
     init {
         BasicLogcatConfigurator.configureDefaultContext()
@@ -69,9 +71,15 @@ object LogUtils {
         appender.rollingPolicy = rollingPolicy
         appender.start()
 
+        logcatAppender = LogcatAppender()
+        logcatAppender.context = loggerContext
+        logcatAppender.encoder = encoder
+        logcatAppender.start()
+
         // Configure Logback
         rootLogger.level = Level.ALL
         rootLogger.addAppender(appender)
+        rootLogger.addAppender(logcatAppender)
     }
 
     fun d(msg: String?) {

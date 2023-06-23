@@ -22,4 +22,8 @@ class MainActivity : ComponentActivity(), IRoute {
         }
         startActivityForResult(intent, requestCode, option)
     }
+
+    override fun startActivityUseIntent(intent: Intent) {
+        startActivity(intent)
+    }
 }

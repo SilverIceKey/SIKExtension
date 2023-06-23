@@ -102,7 +102,7 @@ class TimeUtils {
             Locale.getDefault(Locale.Category.FORMAT)
         )
     ): String {
-        val timeSecond: Long = timeFormatter.parse(time, ParsePosition(0))!!.getTime() / 1000
+        val timeSecond: Long = timeFormatter.parse(time, ParsePosition(0))!!.time / 1000
         return getTimeIntervalOfCur(timeSecond)
     }
 

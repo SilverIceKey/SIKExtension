@@ -1,5 +1,6 @@
 package com.sik.sikroute
 
+import android.content.Intent
 import android.os.Bundle
 
 /**
@@ -16,4 +17,11 @@ interface IRoute {
      * @param option
      */
     fun startActivity(targetClass: Class<*>, requestCode: Int = -1, option: Bundle? = null)
+
+    /**
+     * Start activity use Intent
+     * 跳转，基本用于隐式跳转
+     * @param intent
+     */
+    fun startActivityUseIntent(intent:Intent)
 }

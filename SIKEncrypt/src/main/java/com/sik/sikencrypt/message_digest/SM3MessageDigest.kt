@@ -1,5 +1,6 @@
 package com.sik.sikencrypt.message_digest
 
+import com.sik.sikcore.data.ConvertUtils
 import com.sik.sikencrypt.IMessageDigest
 
 /**
@@ -8,11 +9,13 @@ import com.sik.sikencrypt.IMessageDigest
  */
 class SM3MessageDigest:IMessageDigest {
 
+    private external fun digest(dataBytes: ByteArray): ByteArray
+
     override fun digestToHex(dataBytes: ByteArray): String {
-        return ""
+        return ConvertUtils.bytesToHex(digest(dataBytes))
     }
 
     override fun digestToBase64(dataBytes: ByteArray): String {
-        return ""
+        return ConvertUtils.bytesToBase64String(digest(dataBytes))
     }
 }

@@ -51,4 +51,5 @@ dependencies {
     implementation project(path: ':SIKCore')
     implementation project(path: ':SIKRoute')
     implementation project(path: ':SIKNet')
+    implementation project(path: ':SIKEncrypt')
 }
