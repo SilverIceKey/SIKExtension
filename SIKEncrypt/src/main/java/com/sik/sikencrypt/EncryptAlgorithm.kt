@@ -3,7 +3,7 @@ package com.sik.sikencrypt
 /**
  * 加密工具类
  */
-enum class EncryptTypes {
+enum class EncryptAlgorithm {
     AES,
     DES,
     TripleDES,

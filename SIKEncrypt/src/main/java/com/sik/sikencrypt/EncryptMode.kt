@@ -5,6 +5,7 @@ package com.sik.sikencrypt
  *
  */
 enum class EncryptMode {
-    ECB,
-    CBC
+    CBC,
+    CTR,
+    GCM
 }
