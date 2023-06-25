@@ -25,7 +25,7 @@ add_library( # Sets the name of the library.
         ConvertUtils.cpp
         ConvertUtils.h)
 # Set the path to the directory containing the prebuilt libraries
-set(LIB_DIR ${CMAKE_SOURCE_DIR}../../../../libs/arm64-v8a)
+set(LIB_DIR ${CMAKE_SOURCE_DIR}/../../../libs/arm64-v8a)
 
 add_library(gmssl SHARED IMPORTED)
 set_target_properties(gmssl PROPERTIES IMPORTED_LOCATION ${LIB_DIR}/libgmssl.so)
