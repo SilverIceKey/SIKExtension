@@ -22,7 +22,7 @@ class EncryptConfig : IEncryptConfig {
     }
 
     override fun mode(): EncryptMode {
-        return EncryptMode.ECB
+        return EncryptMode.CBC
     }
 
     override fun padding(): EncryptPadding {

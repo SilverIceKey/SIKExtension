@@ -18,8 +18,8 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_sik_sikencrypt_enrypt_AESEncrypt_initAES(JNIEnv *env, jobject thiz, jbyteArray key) {
     uint8_t *tempKey = ConvertUtils::jByteArrayToUInt8t(env, key);
-    int keySize = sizeof(tempKey);
-    aes_set_encrypt_key(&decrypt_aes_key, tempKey, keySize);
+    size_t keySize = env->GetArrayLength(key);
+    aes_set_encrypt_key(&encrypt_aes_key, tempKey, keySize);
     aes_set_decrypt_key(&decrypt_aes_key, tempKey, keySize);
 }
 extern "C"
@@ -31,24 +31,25 @@ Java_com_sik_sikencrypt_enrypt_AESEncrypt_encrypt(JNIEnv *env, jobject thiz, jst
     const char *paddingChars = env->GetStringUTFChars(padding, nullptr);
     size_t dataEncryptLength = env->GetArrayLength(data_bytes);
     uint8_t *dataEncrypt = ConvertUtils::jByteArrayToUInt8t(env, data_bytes);
-    // 将 jbyteArray 转换为 std::vector<uint8_t>
     std::vector<uint8_t> dataVector(dataEncrypt, dataEncrypt + dataEncryptLength);
-    size_t resultDataLength = dataVector.size();
-    uint8_t resultData[resultDataLength];
-    if (strcmp(modeChars, "ECB") == 0) {
+    if (strcmp(modeChars, "CBC") != 0 && strcmp(paddingChars, "PKCS5Padding") == 0) {
         if (strcmp(paddingChars, "PKCS5Padding") == 0) {
             // 使用 PKCS5Padding
             PKCS5Padding(dataVector, AES_BLOCK_SIZE);
         }
-        aes_ecb_encrypt(&encrypt_aes_key, dataVector.data(), dataVector.size() / 16, resultData);
+    }
+    size_t resultDataLength = dataVector.size();
+    uint8_t resultData[resultDataLength];
+    if (strcmp(modeChars, "ECB") == 0) {
+        aes_ecb_encrypt(&encrypt_aes_key, dataVector.data(), resultDataLength / 16, resultData);
     } else if (strcmp(modeChars, "CBC") == 0) {
         uint8_t *ivData = ConvertUtils::jByteArrayToUInt8t(env, iv);
-        aes_cbc_padding_encrypt(&encrypt_aes_key, ivData, dataVector.data(), dataVector.size(),
+        aes_cbc_padding_encrypt(&encrypt_aes_key, ivData, dataVector.data(), resultDataLength,
                                 resultData,
                                 &resultDataLength);
     } else if (strcmp(modeChars, "CTR") == 0) {
         uint8_t ctr[16];
-        aes_ctr_encrypt(&encrypt_aes_key, ctr, dataVector.data(), dataVector.size(), resultData);
+        aes_ctr_encrypt(&encrypt_aes_key, ctr, dataVector.data(), resultDataLength, resultData);
     }
     jbyteArray result = env->NewByteArray(static_cast<jsize>(resultDataLength));
     env->SetByteArrayRegion(result, 0, static_cast<jsize>(resultDataLength),
