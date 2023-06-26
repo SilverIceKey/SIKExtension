@@ -12,21 +12,31 @@ import kotlin.jvm.Throws
 class TripleDESEncrypt(val iEncryptConfig: IEncryptConfig):IEncrypt {
     @Throws(EncryptException::class)
     override fun encryptToHex(dataBytes: ByteArray): String {
-
+        return ""
     }
 
     @Throws(EncryptException::class)
     override fun encryptToBase64(dataBytes: ByteArray): String {
+        return ""
+    }
 
+    @Throws(EncryptException::class)
+    override fun encryptToByteArray(dataBytes: ByteArray): ByteArray {
+        return ByteArray(0)
     }
 
     @Throws(EncryptException::class)
     override fun decryptFromHex(dataStr: String): String {
-
+        return ""
     }
 
     @Throws(EncryptException::class)
     override fun decryptFromBase64(dataStr: String): String {
+        return ""
+    }
 
+    @Throws(EncryptException::class)
+    override fun decryptFromByteArray(dataBytes: ByteArray): ByteArray {
+        return ByteArray(0)
     }
 }

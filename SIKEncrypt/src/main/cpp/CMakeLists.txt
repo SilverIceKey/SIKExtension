@@ -23,7 +23,14 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         SIKEncrypt.cpp
         ConvertUtils.cpp
-        ConvertUtils.h)
+        ConvertUtils.h
+        utils/AESUtils.cpp
+        utils/DESUtils.cpp
+        utils/RSAUtils.cpp
+        utils/TripleDESUtils.cpp
+        utils/SM4Utils.cpp
+        utils/PaddingUtils.cpp
+        utils/PaddingUtils.h)
 # Set the path to the directory containing the prebuilt libraries
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/../../../libs/arm64-v8a)
 

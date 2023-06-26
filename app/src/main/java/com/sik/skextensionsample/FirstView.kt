@@ -1,7 +1,6 @@
 package com.sik.skextensionsample
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.Settings
@@ -17,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.sik.sikcore.log.LogUtils
+import com.sik.sikencrypt.EncryptUtils
 import com.sik.sikencrypt.MessageDigestTypes
 import com.sik.sikencrypt.MessageDigestUtils
 import com.sik.sikroute.BaseView
@@ -49,12 +49,19 @@ class FirstView : BaseView() {
             iRoute.startActivityUseIntent(intent)
         } else {
             val file = File("/sdcard/Documents/123.jpg")
+            val tempFile1 = File("/sdcard/Documents/1234.jpg")
+            val tempFile2 = File("/sdcard/Documents/1235.jpg")
             LogUtils.i(
                 "信息摘要${
                     MessageDigestUtils.getMode(MessageDigestTypes.SM3).digestToHex(file.readBytes())
                 }"
             )
-
+            val encryptConfig = EncryptConfig()
+            LogUtils.i("AES密钥:${String(encryptConfig.key())}")
+            LogUtils.i("AES偏移:${String(encryptConfig.iv() ?: ByteArray(0))}")
+            val iEncrypt = EncryptUtils.getAlgorithm(encryptConfig)
+            tempFile1.writeBytes(iEncrypt.encryptToByteArray(file.readBytes()))
+            tempFile2.writeBytes(iEncrypt.decryptFromByteArray(tempFile1.readBytes()))
         }
     }
 }

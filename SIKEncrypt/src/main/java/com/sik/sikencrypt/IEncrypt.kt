@@ -8,7 +8,7 @@ import kotlin.jvm.Throws
  */
 interface IEncrypt {
     /**
-     * 获取信息摘要使用十六进制输出
+     * 加密使用十六进制输出
      *
      * @param dataBytes
      * @return
@@ -17,13 +17,22 @@ interface IEncrypt {
     fun encryptToHex(dataBytes: ByteArray): String
 
     /**
-     * 获取信息摘要使用Base64输出
+     * 加密使用Base64输出
      *
      * @param dataBytes
      * @return
      */
     @Throws(EncryptException::class)
     fun encryptToBase64(dataBytes: ByteArray): String
+
+    /**
+     * Encrypt to byte array
+     * 加密使用byte数组输出
+     * @param dataBytes
+     * @return
+     */
+    @Throws(EncryptException::class)
+    fun encryptToByteArray(dataBytes: ByteArray):ByteArray
 
     /**
      * 从十六进制解密
@@ -42,4 +51,13 @@ interface IEncrypt {
      */
     @Throws(EncryptException::class)
     fun decryptFromBase64(dataStr: String): String
+
+    /**
+     * Decrypt from byte array
+     * 从byte数组解密
+     * @param dataBytes
+     * @return
+     */
+    @Throws(EncryptException::class)
+    fun decryptFromByteArray(dataBytes: ByteArray):ByteArray
 }
