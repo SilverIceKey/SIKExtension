@@ -6,6 +6,7 @@ package com.sik.sikencrypt
  * @property message
  */
 enum class EncryptExceptionEnums(val message: String) {
+    INIT_KEY_FIRST("请先初始化Key"),
     KEY_SIZE_ERROR("密钥长度错误"),
     ENCRYPT_ERROR("加密失败"),
     DECRYPT_ERROR("解密失败"),

@@ -15,6 +15,7 @@ object EncryptUtils {
         System.loadLibrary("gmssl")
         System.loadLibrary("SIKEncrypt")
     }
+
     /**
      * 根据配置返回加解密工具
      *

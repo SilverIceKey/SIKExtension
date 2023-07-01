@@ -25,9 +25,6 @@ add_library( # Sets the name of the library.
         ConvertUtils.cpp
         ConvertUtils.h
         utils/AESUtils.cpp
-        utils/DESUtils.cpp
-        utils/RSAUtils.cpp
-        utils/TripleDESUtils.cpp
         utils/SM4Utils.cpp
         utils/PaddingUtils.cpp
         utils/PaddingUtils.h)
@@ -36,7 +33,6 @@ set(LIB_DIR ${CMAKE_SOURCE_DIR}/../../../libs/arm64-v8a)
 
 add_library(gmssl SHARED IMPORTED)
 set_target_properties(gmssl PROPERTIES IMPORTED_LOCATION ${LIB_DIR}/libgmssl.so)
-
 target_include_directories(SIKEncrypt PRIVATE ${CMAKE_SOURCE_DIR}/include)
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -59,6 +55,5 @@ target_link_libraries( # Specifies the target library.
 
         # Links the target library to the log library
         # included in the NDK.
-
         gmssl
         ${log-lib})

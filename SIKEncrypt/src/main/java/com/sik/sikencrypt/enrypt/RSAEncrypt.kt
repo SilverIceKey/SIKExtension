@@ -9,7 +9,7 @@ import kotlin.jvm.Throws
  * RSA加解密
  *
  */
-class RSAEncrypt(val iEncryptConfig: IEncryptConfig):IEncrypt {
+class RSAEncrypt(private val iEncryptConfig: IEncryptConfig):IEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptToHex(dataBytes: ByteArray): String {

@@ -5,6 +5,6 @@ package com.sik.sikencrypt
  *
  */
 enum class EncryptPadding(val padding: String) {
-    NonePadding("NonePadding"),
+    NoPadding("NoPadding"),
     PKCS5Padding("PKCS5Padding")
 }

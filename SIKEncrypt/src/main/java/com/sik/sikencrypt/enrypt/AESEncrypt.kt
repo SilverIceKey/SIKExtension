@@ -61,7 +61,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptToHex(dataBytes: ByteArray): String {
-        if (iEncryptConfig.padding() == EncryptPadding.NonePadding && dataBytes.size % 16 != 0) {
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % 16 != 0) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
         return ConvertUtils.bytesToHex(
@@ -75,7 +75,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptToBase64(dataBytes: ByteArray): String {
-        if (iEncryptConfig.padding() == EncryptPadding.NonePadding && dataBytes.size % 16 != 0) {
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % 16 != 0) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
         return ConvertUtils.bytesToBase64String(
@@ -89,7 +89,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptToByteArray(dataBytes: ByteArray): ByteArray {
-        if (iEncryptConfig.padding() == EncryptPadding.NonePadding && dataBytes.size % 16 != 0) {
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % 16 != 0) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
         return encrypt(
@@ -101,7 +101,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun decryptFromHex(dataStr: String): String {
-        if (iEncryptConfig.padding() == EncryptPadding.NonePadding && ConvertUtils.hexToBytes(
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.hexToBytes(
                 dataStr
             ).size % 16 != 0
         ) {
@@ -116,7 +116,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun decryptFromBase64(dataStr: String): String {
-        if (iEncryptConfig.padding() == EncryptPadding.NonePadding && ConvertUtils.base64StringToBytes(
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.base64StringToBytes(
                 dataStr
             ).size % 16 != 0
         ) {
@@ -131,7 +131,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun decryptFromByteArray(dataBytes: ByteArray): ByteArray {
-        if (iEncryptConfig.padding() == EncryptPadding.NonePadding && dataBytes.size % 16 != 0
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % 16 != 0
         ) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
