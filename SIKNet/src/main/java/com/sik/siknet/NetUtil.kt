@@ -10,7 +10,6 @@ import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSpecifier
 import android.os.Build
-import androidx.annotation.RequiresApi
 import com.sik.sikcore.SIKCore
 import com.sik.sikcore.file.FileUtils
 import java.io.IOException
@@ -20,7 +19,8 @@ import java.util.*
  * 网络工具类
  */
 object NetUtil {
-    private val wifiManager: WifiManager = SIKCore.getApplication().getSystemService(Context.WIFI_SERVICE) as WifiManager
+    private val wifiManager: WifiManager =
+        SIKCore.getApplication().getSystemService(Context.WIFI_SERVICE) as WifiManager
 
     /**
      * 获取MAC地址（有网口的前提下）
@@ -150,38 +150,39 @@ object NetUtil {
 
     @JvmOverloads
     //Android10以上 通过P2P连接Wifi
-    @RequiresApi(Build.VERSION_CODES.Q)
     private fun connectByP2P(
         ssid: String,
         password: String,
         connectSuccess: (String) -> Unit = {},
         connectFailed: (String) -> Unit = {}
     ) {
-        val specifier = WifiNetworkSpecifier.Builder()
-            .setSsid(ssid)
-            .setWpa2Passphrase(password)
-            .build()
-        val request =
-            NetworkRequest.Builder()
-                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .setNetworkSpecifier(specifier)
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+            val specifier = WifiNetworkSpecifier.Builder()
+                .setSsid(ssid)
+                .setWpa2Passphrase(password)
                 .build()
+            val request =
+                NetworkRequest.Builder()
+                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                    .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .setNetworkSpecifier(specifier)
+                    .build()
 
-        val connectivityManager =
-            SIKCore.getApplication()
-                .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkCallback = object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                connectSuccess("连接成功")
+            val connectivityManager =
+                SIKCore.getApplication()
+                    .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val networkCallback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    connectSuccess("连接成功")
 
+                }
+
+                override fun onUnavailable() {
+                    connectFailed("连接失败")
+                }
             }
-
-            override fun onUnavailable() {
-                connectFailed("连接失败")
-            }
+            connectivityManager.requestNetwork(request, networkCallback)
         }
-        connectivityManager.requestNetwork(request, networkCallback)
     }
 
     /**

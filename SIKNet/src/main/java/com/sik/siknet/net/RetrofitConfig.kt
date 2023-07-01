@@ -1,4 +1,4 @@
-package com.sik.siknet.retrofit
+package com.sik.siknet.net
 
 import java.net.Proxy
 

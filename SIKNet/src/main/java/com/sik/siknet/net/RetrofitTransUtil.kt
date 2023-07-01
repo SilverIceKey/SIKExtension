@@ -1,4 +1,4 @@
-package com.sik.siknet.retrofit
+package com.sik.siknet.net
 
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody

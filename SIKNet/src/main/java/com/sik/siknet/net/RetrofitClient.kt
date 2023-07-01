@@ -1,4 +1,4 @@
-package com.sik.siknet.retrofit
+package com.sik.siknet.net
 
 import com.sik.sikcore.SIKCore
 import okhttp3.*

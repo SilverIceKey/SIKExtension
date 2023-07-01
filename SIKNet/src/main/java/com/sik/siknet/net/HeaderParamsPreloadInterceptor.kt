@@ -1,4 +1,4 @@
-package com.sik.siknet.retrofit
+package com.sik.siknet.net
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

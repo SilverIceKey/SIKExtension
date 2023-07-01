@@ -1,4 +1,4 @@
-package com.sik.siknet.retrofit
+package com.sik.siknet.net
 
 import com.sik.sikcore.log.LogUtils
 import okhttp3.logging.HttpLoggingInterceptor
