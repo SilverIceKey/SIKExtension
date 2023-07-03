@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import com.sik.sikcore.data.ConvertUtils
 import com.sik.sikcore.log.LogUtils
 import com.sik.sikencrypt.EncryptUtils
 import com.sik.sikroute.BaseView
@@ -33,12 +34,12 @@ class FirstView : BaseView() {
 //                    navController.navigate("sec")
 //                    NettyClientUtils.instance.connect(CustomNettyConfig())
 //                    iRoute.startActivity(SecActivity::class.java)
-                    aesTest()
+                    test()
                 }
         ) {
             Text(text = "第一个页面")
         }
-        aesTest()
+        test()
 //        if (!Environment.isExternalStorageManager()) {
 //            val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
 //            iRoute.startActivityUseIntent(intent)
@@ -60,13 +61,13 @@ class FirstView : BaseView() {
 //        }
     }
 
-    private fun aesTest() {
+    private fun test() {
         val encryptConfig = EncryptConfig()
-        LogUtils.i("AES密钥:${String(encryptConfig.key())}")
-        LogUtils.i("AES偏移:${String(encryptConfig.iv() ?: ByteArray(0))}")
         val iEncrypt = EncryptUtils.getAlgorithm(encryptConfig)
+        LogUtils.i("公钥:${ConvertUtils.bytesToBase64String(iEncrypt.getPublicKeyBytes())}")
+        LogUtils.i("私钥:${ConvertUtils.bytesToBase64String(iEncrypt.getPrivateKeyBytes())}")
         val encryptResult = iEncrypt.encryptToBase64("123".toByteArray())
-        LogUtils.i("AES加密123:${encryptResult}")
-        LogUtils.i("AES加密123:${iEncrypt.decryptFromBase64(encryptResult)}")
+        LogUtils.i("RSA加密123:${encryptResult}")
+        LogUtils.i("RSA解密123:${iEncrypt.decryptFromBase64(encryptResult)}")
     }
 }

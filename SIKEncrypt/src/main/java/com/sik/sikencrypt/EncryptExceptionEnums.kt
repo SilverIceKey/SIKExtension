@@ -13,4 +13,7 @@ enum class EncryptExceptionEnums(val message: String) {
     NO_IV("该模式需要传入IV"),
     MODE_NOT_SUPPORT("当前模式尚未支持"),
     PADDING_NOT_SUPPORT_DATA_SIZE("当前数据的长度不符合填充模式"),
+    CONFIG_ERROR("配置异常"),
+    PUBLIC_KEY_NOT_SET("公钥未设置"),
+    PRIVATE_KEY_NOT_SET("私钥未设置"),
 }

@@ -23,7 +23,7 @@ object EncryptUtils {
      * @return
      */
     @JvmStatic
-    fun getAlgorithm(iEncryptConfig: IEncryptConfig): IEncrypt {
+    fun <T : IEncryptConfig> getAlgorithm(iEncryptConfig: T): IEncrypt {
         return when (iEncryptConfig.algorithm()) {
             EncryptAlgorithm.AES -> {
                 AESEncrypt(iEncryptConfig)
@@ -42,9 +42,25 @@ object EncryptUtils {
             }
 
             EncryptAlgorithm.RSA -> {
-                RSAEncrypt(iEncryptConfig)
+                if (iEncryptConfig is IRSAEncryptConfig) {
+                    getAlgorithm(iEncryptConfig as IRSAEncryptConfig)
+                } else {
+                    throw EncryptException(EncryptExceptionEnums.CONFIG_ERROR)
+                }
             }
         }
     }
+
+    /**
+     * 获取rsa加密工具
+     *
+     * @param iRSAEncryptConfig
+     * @return
+     */
+    @JvmStatic
+    fun <T : IRSAEncryptConfig> getAlgorithm(iRSAEncryptConfig: T): IRSAEncrypt {
+        return RSAEncrypt(iRSAEncryptConfig)
+    }
+
 
 }

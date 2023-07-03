@@ -3,7 +3,7 @@ package com.sik.sikencrypt
 import kotlin.jvm.Throws
 
 /**
- * 信息摘要接口
+ * 加解密接口
  *
  */
 interface IEncrypt {
