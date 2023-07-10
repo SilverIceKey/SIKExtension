@@ -19,3 +19,32 @@ fun digestToHex(dataBytes: ByteArray): String
 fun digestToBase64(dataBytes: ByteArray): String
 ```
 
+### [加密工具类](./src/main/java/com/sik/sikencrypt/EncryptUtils.kt)
+
+```kotlin
+//根据配置返回加解密工具
+fun <T : IEncryptConfig> getAlgorithm(iEncryptConfig: T): IEncrypt
+//获取rsa加密工具
+fun <T : IRSAEncryptConfig> getAlgorithm(iRSAEncryptConfig: T): IRSAEncrypt
+//----------------针对rsa加密工具---------------------
+//生成公钥和私钥
+fun generateKeyPair(): IRSAEncrypt
+//获取公钥
+fun getPublicKeyBytes(): ByteArray
+//获取私钥
+fun getPrivateKeyBytes(): ByteArray
+//----------------针对rsa加密工具---------------------
+//加密使用十六进制输出
+fun encryptToHex(dataBytes: ByteArray): String
+//加密使用Base64输出
+fun encryptToBase64(dataBytes: ByteArray): String
+//加密使用byte数组输出 一般用于文件加密
+fun encryptToByteArray(dataBytes: ByteArray):ByteArray
+//从十六进制解密
+fun decryptFromHex(dataStr: String): String
+//从Base64解密
+fun decryptFromBase64(dataStr: String): String
+//从byte数组解密 一般用于文件解密
+fun decryptFromByteArray(dataBytes: ByteArray):ByteArray
+```
+

@@ -165,11 +165,11 @@ fun <T : Comparable<T>> List<T>.toMutableList(): MutableList<T>
 //获取文件的输出流
 fun File.outputStream(): FileOutputStream
 //文件路径直接返回输出流
-fun String.fileOutputStream(): FileOutputStream?
+fun String.fileOutputStream(): FileOutputStream
 //文件路径直接返回文件
-fun String.file(): File?
+fun String.file(): File
 //文件路径直接返回输入流
-fun String.fileInputStream(): FileInputStream?
+fun String.fileInputStream(): FileInputStream
 //判断文件是否存在
 fun String.exists(): Boolean
 //如果文件存在则删除文件
@@ -183,6 +183,21 @@ fun String.write(data: ByteArray)
 //文件路径获取文本数据
 fun String.getData(): String
 ```
+
+### [界面扩展函数](./src/main/java/com/sik/sikcore/extension/ViewExtension.kt)
+
+```kotlin
+//在View渲染完之后执行的操作
+fun View.doAfterRendered(task: () -> Unit = {})
+//Dp2px
+fun Number.dp2px(): Float
+//Sp2px
+fun Number.sp2px(): Float
+//px2dp
+fun Number.toDp(): Float
+```
+
+
 
 ### [颜色工具类](./src/main/java/com/sik/sikcore/color/ColorUtils.kt)
 
