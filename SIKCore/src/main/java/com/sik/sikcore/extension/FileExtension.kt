@@ -14,9 +14,9 @@ fun File.outputStream(): FileOutputStream {
 /**
  * 文件路径直接返回输出流
  */
-fun String.fileOutputStream(): FileOutputStream? {
+fun String.fileOutputStream(): FileOutputStream {
     if (this.isEmpty()) {
-        return null
+        throw FileExtensionException("filepath is empty")
     }
     if (!File(this).exists()) {
         File(this.substring(0, this.lastIndexOf(File.separator))).mkdirs()
@@ -28,9 +28,9 @@ fun String.fileOutputStream(): FileOutputStream? {
 /**
  * 文件路径直接返回文件
  */
-fun String.file(): File? {
+fun String.file(): File {
     if (this.isEmpty()) {
-        return null
+        throw FileExtensionException("filepath is empty")
     }
     if (!File(this).exists()) {
         File(this.substring(0, this.lastIndexOf(File.separator))).mkdirs()
@@ -42,9 +42,9 @@ fun String.file(): File? {
 /**
  * 文件路径直接返回输入流
  */
-fun String.fileInputStream(): FileInputStream? {
+fun String.fileInputStream(): FileInputStream {
     if (this.isEmpty()) {
-        return null
+        throw FileExtensionException("filepath is empty")
     }
     if (!File(this).exists()) {
         File(this.substring(0, this.lastIndexOf(File.separator))).mkdirs()
@@ -103,7 +103,7 @@ fun String.createNewFile(): Boolean {
  */
 fun String.write(data: ByteArray) {
     if (this.createNewFile()) {
-        this.fileOutputStream()?.let {
+        this.fileOutputStream().let {
             it.write(data)
             it.close()
         }
@@ -116,7 +116,7 @@ fun String.write(data: ByteArray) {
 fun String.getData(): String {
     val fis = this.fileInputStream()
     var data = ""
-    fis?.let { data = String(it.readBytes()) }
-    fis?.close()
+    fis.let { data = String(it.readBytes()) }
+    fis.close()
     return data
 }

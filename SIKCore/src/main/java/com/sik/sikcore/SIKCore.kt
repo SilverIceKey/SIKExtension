@@ -1,6 +1,7 @@
 package com.sik.sikcore
 
 import android.app.Application
+import android.content.res.Resources
 
 /**
  * 扩展的初始化
