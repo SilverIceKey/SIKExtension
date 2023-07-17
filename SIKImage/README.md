@@ -29,6 +29,16 @@ fun bitmapToNv21(src: Bitmap?, width: Int, height: Int): ByteArray?
 fun saveFile(bitmap: Bitmap): File?
 //从文件读取Base64
 fun fileToBase64(file: File?): String?
+//nv21转Base64
+//可以指定转换之后的大小，默认不指定，可以全局设置
+fun nv21ToBase64Jpeg(
+        nv21: ByteArray,
+        width: Int,
+        height: Int,
+        minSize: Float = minBase64Size,
+        maxSize: Float = maxBase64Size,
+        quality: Int = currentQuality
+    ): String
 ```
 
 ### [矩阵操作工具类](./src/main/java/com/sik/sikimage/MatrixUtils.kt)

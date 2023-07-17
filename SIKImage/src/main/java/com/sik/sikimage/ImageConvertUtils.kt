@@ -1,15 +1,47 @@
 package com.sik.sikimage
 
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageFormat
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.YuvImage
 import android.os.Environment
 import android.util.Base64
-import java.io.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
 
 
 /**
  * 图像帮助类
  */
 object ImageConvertUtils {
+    /**
+     *
+     * Min base64size
+     * 转换出来的bitmap大小最小限制使用quality控制<p>
+     * 当为0时不限制，默认质量90
+     */
+    var minBase64Size: Float = 0f
+
+    /**
+     * Max base64size
+     * 转换出来的bitmap大小最大限制使用quality控制<p>
+     * 当为0时不限制，默认质量90
+     */
+    var maxBase64Size: Float = 0f
+
+    /**
+     * Current quality
+     * 当前符合大小限制的质量
+     */
+    var currentQuality: Int = 90
+
     /**
      * bitmap转base64
      * */
@@ -72,8 +104,8 @@ object ImageConvertUtils {
     /**
      * nv21转base64
      */
-    fun nv21ToBase64(nv21: ByteArray?, width: Int, height: Int): String? {
-        return bitmapToBase64(nv21ToBitmap(nv21, width, height))
+    fun nv21ToBase64(nv21: ByteArray, width: Int, height: Int): String {
+        return nv21ToBase64Jpeg(nv21, width, height)
     }
 
     /**
@@ -231,4 +263,54 @@ object ImageConvertUtils {
         return base64
     }
 
+    /**
+     * nv21转Base64
+     *
+     * @param nv21
+     * @param width
+     * @param height
+     * @param quality
+     * @return
+     */
+    fun nv21ToBase64Jpeg(
+        nv21: ByteArray,
+        width: Int,
+        height: Int,
+        minSize: Float = minBase64Size,
+        maxSize: Float = maxBase64Size,
+        quality: Int = currentQuality
+    ): String {
+        val yuvImage = YuvImage(nv21, ImageFormat.NV21, width, height, null)
+        val jpegStream = ByteArrayOutputStream()
+        val jpegByteArray =
+            compressToJpeg(yuvImage, width, height, minSize, maxSize, quality, jpegStream)
+        // Convert to Base64 string
+        val base64Jpeg = Base64.encodeToString(jpegByteArray, Base64.DEFAULT)
+        jpegStream.close()
+        return base64Jpeg
+    }
+
+    /**
+     * nv21压缩jpeg到指定大小
+     *
+     * @param yuvImage
+     * @param jpegStream
+     * @return
+     */
+    private fun compressToJpeg(
+        yuvImage: YuvImage, width: Int, height: Int,
+        minSize: Float,
+        maxSize: Float, quality: Int, jpegStream: ByteArrayOutputStream
+    ): ByteArray {
+        jpegStream.reset()
+        yuvImage.compressToJpeg(Rect(0, 0, width, height), quality, jpegStream)
+        return if (minSize != 0f && jpegStream.toByteArray().size / 1024f < minSize) {
+            compressToJpeg(yuvImage, width, height, minSize, maxSize, quality + 1, jpegStream)
+        } else if (maxSize != 0f && jpegStream.toByteArray().size / 1024f > maxSize) {
+            compressToJpeg(yuvImage, width, height, minSize, maxSize, quality - 1, jpegStream)
+        } else {
+            currentQuality = quality
+            jpegStream.toByteArray()
+        }
+    }
 }
