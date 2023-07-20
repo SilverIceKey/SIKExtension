@@ -34,3 +34,9 @@ jstring *ConvertUtils::uInt8TToJString(JNIEnv *env, uint8_t data) {
     return reinterpret_cast<jstring *>(output);
 }
 
+jbyteArray ConvertUtils::uint8_to_jbyteArray(JNIEnv *env, uint8_t* buf, int len) {
+    jbyteArray array = env->NewByteArray(len);
+    env->SetByteArrayRegion(array, 0, len, reinterpret_cast<jbyte*>(buf));
+    return array;
+}
+

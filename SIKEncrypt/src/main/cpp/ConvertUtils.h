@@ -18,6 +18,7 @@ public:
     static uint8_t* jByteArrayToUInt8t(JNIEnv *env, jbyteArray dataArray);
     static uint8_t* jStringToUInt8T(JNIEnv *env, jstring dataString);
     static jstring* uInt8TToJString(JNIEnv *env,uint8_t data);
+    static jbyteArray uint8_to_jbyteArray(JNIEnv *env, uint8_t* buf, int len);
 };
 
 
