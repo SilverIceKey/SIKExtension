@@ -92,7 +92,7 @@ class NettyClientUtils {
                                 // 这是一个空闲状态事件
                                 if (evt.state() == IdleState.READER_IDLE) {
                                     // 读空闲，可能对方已经断开连接
-                                    LogUtils.i("读空闲，关闭连接")
+                                    LogUtils.logger.i("读空闲，关闭连接")
                                     ctx!!.close()
                                 }
                             }
@@ -128,12 +128,12 @@ class NettyClientUtils {
                 config.connectSuccess()
             } else {
                 if (config.retryTimes != -1 && currentRetryTimes >= config.retryTimes) {
-                    LogUtils.i("连接失败，连接已到达连接次数")
+                    LogUtils.logger.i("连接失败，连接已到达连接次数")
                     return@addListener
                 }
                 ThreadUtils.mainHandler().postDelayed({
                     connect(config)
-                    LogUtils.i("连接失败，当前连接次数第${currentRetryTimes + 1}次")
+                    LogUtils.logger.i("连接失败，当前连接次数第${currentRetryTimes + 1}次")
                     currentRetryTimes++
                 }, config.retryTime)
             }

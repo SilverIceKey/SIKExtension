@@ -43,7 +43,7 @@ open class HttpLogger : HttpLoggingInterceptor.Logger {
                 mMessage.delete(0, mMessage.length)
             }
         }catch (e:Exception){
-            LogUtils.e(e.message)
+            LogUtils.logger.e(e.message)
         }
     }
 
