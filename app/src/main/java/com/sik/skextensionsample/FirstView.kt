@@ -58,14 +58,14 @@ class FirstView : BaseView() {
             val tempFile1 = File("/sdcard/Documents/1234.jpg")
             val tempFile2 = File("/sdcard/Documents/1235.jpg")
             val encryptConfig = EncryptConfig()
-            LogUtils.logger.i("SM4密钥:${String(encryptConfig.key())}")
-            LogUtils.logger.i("SM4偏移:${String(encryptConfig.iv() ?: ByteArray(0))}")
+            LogUtils.logger.i("SM4密钥数据:${String(encryptConfig.key())}")
+            LogUtils.logger.i("SM4偏移数据:${String(encryptConfig.iv() ?: ByteArray(0))}")
             val iEncrypt = EncryptUtils.getAlgorithm(encryptConfig)
 //            tempFile1.writeBytes(iEncrypt.encryptToByteArray(file.readBytes()))
 //            tempFile2.writeBytes(iEncrypt.decryptFromByteArray(tempFile1.readBytes()))
             val encryptDataHEX = iEncrypt.encryptToHex("123".toByteArray())
-            LogUtils.logger.i("SM4加密内容HEX：${encryptDataHEX}")
-            LogUtils.logger.i("SM4解密内容HEX：${iEncrypt.decryptFromHex(encryptDataHEX)}")
+            LogUtils.logger.i("SM4加密内容HEX数据：${encryptDataHEX}")
+            LogUtils.logger.i("SM4解密内容HEX数据：${iEncrypt.decryptFromHex(encryptDataHEX)}")
         }
     }
 }

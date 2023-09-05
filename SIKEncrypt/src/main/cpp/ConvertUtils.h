@@ -8,6 +8,9 @@
 #include <jni.h>
 #include <string>
 
+
+bool jByteArrayToUInt8(JNIEnv *env, jbyteArray array, uint8_t keyValue[16]);
+unsigned char* jByteArrayToUnsignedChar(JNIEnv *env, jbyteArray array);
 class ConvertUtils {
 /**
  * jbyteArray转uint8_t
@@ -20,6 +23,5 @@ public:
     static jstring* uInt8TToJString(JNIEnv *env,uint8_t data);
     static jbyteArray uint8_to_jbyteArray(JNIEnv *env, uint8_t* buf, int len);
 };
-
 
 #endif //SKEXTENSIONSAMPLE_CONVERTUTILS_H

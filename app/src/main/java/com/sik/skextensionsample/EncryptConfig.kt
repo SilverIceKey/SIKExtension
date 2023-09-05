@@ -4,15 +4,14 @@ import com.sik.sikencrypt.EncryptAlgorithm
 import com.sik.sikencrypt.EncryptMode
 import com.sik.sikencrypt.EncryptPadding
 import com.sik.sikencrypt.IEncryptConfig
-import java.util.UUID
 
 class EncryptConfig : IEncryptConfig {
     override fun key(): ByteArray {
-        return "273eabc706254bd7".toByteArray()
+        return "FA0E80E4E736214CCED4A3732BE35CD4".toByteArray()
     }
 
     override fun iv(): ByteArray? {
-        return "131fd14cd4be40bf".toByteArray()
+        return "CB136CDA4C676998E4AEC36B19707CC0".toByteArray()
     }
 
     override fun algorithm(): EncryptAlgorithm {
