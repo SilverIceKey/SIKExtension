@@ -1,8 +1,12 @@
 package com.sik.siknet.net
 
 import com.sik.sikcore.SIKCore
-import okhttp3.*
+import okhttp3.Cache
 import okhttp3.Credentials.basic
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.Response
+import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -141,8 +145,7 @@ class RetrofitClient private constructor() {
      */
     private fun initOkhttp(retrofitConfig: RetrofitConfig): OkHttpClient {
         val cacheSize = (10 * 1024 * 1024).toLong()
-        val cacheFile: File
-        cacheFile = File(SIKCore.getApplication().externalCacheDir, "retrofit")
+        val cacheFile: File = File(SIKCore.getApplication().externalCacheDir, "retrofit")
         if (!cacheFile.exists()) {
             cacheFile.mkdirs()
         }
@@ -171,6 +174,7 @@ class RetrofitClient private constructor() {
                     .header("Proxy-Authorization", credential)
                     .build()
             }
+            .cookieJar(AutoSaveCookieJar())
             .addInterceptor(headerParamsPreloadInterceptor)
             .addInterceptor(httpLoggingInterceptor)
             .cache(cache)
