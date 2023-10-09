@@ -46,7 +46,8 @@ abstract class BaseView {
     @Composable
     fun Content(navController: NavHostController,navBackStackEntry: NavBackStackEntry){
         initViewModel()
-        InitView(navController,navBackStackEntry)
+        InitView(navController, navBackStackEntry)
+        loadData()
     }
 
     /**
@@ -54,4 +55,10 @@ abstract class BaseView {
      */
     @Composable
     abstract fun InitView(navController: NavHostController, navBackStackEntry: NavBackStackEntry)
+
+    /**
+     * Load data
+     * 加载数据
+     */
+    abstract fun loadData()
 }
