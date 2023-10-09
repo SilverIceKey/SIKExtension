@@ -44,4 +44,16 @@ dependencies {
     api('com.github.tony19:logback-android:3.0.0')
     //事件总线
     api('org.greenrobot:eventbus:3.3.0')
+    // mmkv
+    api('com.tencent:mmkv:1.0.24')
+
+    def work_version = "2.8.1"
+    // (Java only)
+    api("androidx.work:work-runtime:$work_version")
+    // Kotlin + coroutines
+    api("androidx.work:work-runtime-ktx:$work_version")
+    // optional - RxJava2 support
+    api("androidx.work:work-rxjava2:$work_version")
+    // optional - Multiprocess support
+    api("androidx.work:work-multiprocess:$work_version")
 }

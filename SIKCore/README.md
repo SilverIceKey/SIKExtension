@@ -64,6 +64,17 @@ fun getTimeStr(timeMillis: Long): String
 fun calcOffsetTime(sourceTime: String, timeDateFormat: String): Int
 ```
 
+### [日程管理工具类](./src/main/java/com/sik/sikcore/date/ScheduleManagerUtils.kt)
+
+```kotlin
+//添加一次性任务 initialDelay延迟时间 workId唯一日程id
+inline fun <reified T : Worker> addOneTimeWork(context: Context, initialDelay: Long = 0L, workId: Long)
+//取消日程 workId唯一日程id
+fun cancel(context: Context, workId: Long)
+```
+
+
+
 ### [设备相关工具类](./src/main/java/com/sik/sikcore/device/DeviceUtils.kt)
 
 ```kotlin
