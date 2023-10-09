@@ -1,7 +1,7 @@
 package com.sik.sikcore
 
 import android.app.Application
-import android.content.res.Resources
+import com.tencent.mmkv.MMKV
 
 /**
  * 扩展的初始化
@@ -15,6 +15,7 @@ object SIKCore {
      */
     fun init(application: Application) {
         SIKCore.application = application
+        MMKV.initialize(application)
     }
 
     /**
