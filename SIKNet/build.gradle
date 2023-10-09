@@ -44,9 +44,9 @@ dependencies {
     api('com.squareup.okhttp3:logging-interceptor:4.10.0')
     api('io.netty:netty-all:4.1.70.Final')
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4" // 协程(版本自定)
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
-    api 'com.squareup.okhttp3:okhttp:4.10.0' // 要求OkHttp4以上
-    api 'com.github.liangjingkanji:Net:3.5.8'
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1'
+    api 'com.squareup.okhttp3:okhttp:4.11.0' // 要求OkHttp4以上
+    api 'com.github.liangjingkanji:Net:3.6.2'
     //mqtt相关
     api('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5')
 
