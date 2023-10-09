@@ -37,4 +37,8 @@ class SecView : BaseView() {
             )
         }
     }
+
+    override fun loadData() {
+
+    }
 }

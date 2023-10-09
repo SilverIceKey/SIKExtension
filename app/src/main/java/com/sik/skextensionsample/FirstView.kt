@@ -48,6 +48,10 @@ class FirstView : BaseView() {
 
     }
 
+    override fun loadData() {
+
+    }
+
     @RequiresApi(Build.VERSION_CODES.R)
     private fun test() {
         if (!Environment.isExternalStorageManager()) {
