@@ -177,6 +177,14 @@ class RetrofitClient private constructor() {
             .cookieJar(AutoSaveCookieJar())
             .addInterceptor(headerParamsPreloadInterceptor)
             .addInterceptor(httpLoggingInterceptor)
+            .apply {
+                retrofitConfig.interceptors().forEach {
+                    addInterceptor(it)
+                }
+                retrofitConfig.networkInterceptor().forEach {
+                    addNetworkInterceptor(it)
+                }
+            }
             .cache(cache)
             .connectTimeout(retrofitConfig.connectTimeout(), TimeUnit.MILLISECONDS)
             .readTimeout(retrofitConfig.readTimeout(), TimeUnit.MILLISECONDS)

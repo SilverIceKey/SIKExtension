@@ -1,5 +1,6 @@
 package com.sik.siknet.net
 
+import okhttp3.Interceptor
 import java.net.Proxy
 
 /**
@@ -112,6 +113,24 @@ abstract class RetrofitConfig(
      * token是否需要更新
      */
     abstract fun isTokenShouldUpdate(): Boolean
+
+    /**
+     * Interceptors
+     * 拦截器
+     * @return
+     */
+    open fun interceptors(): MutableList<Interceptor> {
+        return mutableListOf()
+    }
+
+    /**
+     * Network interceptor
+     * 网络拦截器
+     * @return
+     */
+    open fun networkInterceptor(): MutableList<Interceptor> {
+        return mutableListOf()
+    }
 
     companion object {
         /**

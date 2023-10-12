@@ -1,8 +1,6 @@
 package com.sik.sikroute
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavHostController
@@ -32,7 +30,7 @@ class RouteManager {
     /**
      * 导航类
      */
-    private val routeClasses: MutableList<KClass<*>> = mutableListOf()
+    private val routeClasses: HashMap<String, KClass<*>?> = hashMapOf()
 
     /**
      * 导航表
@@ -42,30 +40,30 @@ class RouteManager {
     /**
      * 起始导航
      */
-    private var startRouteName: String = ""
+    private var startRouteName: HashMap<String, String> = hashMapOf()
 
     /**
      * 初始化，设置包含Router注解的类
      */
-    fun init(vararg kClass: KClass<*>) {
-        routeClasses.addAll(kClass)
-        initRoute()
+    fun init(kClass: KClass<*>) {
+        routeClasses[kClass.simpleName ?: ""] = kClass
+        initRoute(kClass.simpleName ?: "")
     }
 
     /**
      * 初始化导航
      */
-    private fun initRoute() {
-        for (routeClass in routeClasses) {
-            val routeConfig: RouteConfig? = routeClass.findAnnotation()
-            if (routeConfig != null) {
-                val routeConfigInstance = routeClass.createInstance()
-                val routeFunctions = routeClass.memberFunctions
-                for (routeFunction in routeFunctions) {
+    private fun initRoute(routeConfigName: String) {
+        val routeConfig: RouteConfig? = routeClasses[routeConfigName]?.findAnnotation()
+        if (routeConfig != null) {
+            val routeConfigInstance = routeClasses[routeConfigName]?.createInstance()
+            val routeFunctions = routeClasses[routeConfigName]?.memberFunctions
+            routeFunctions?.let {
+                for (routeFunction in it) {
                     val route: Route? = routeFunction.findAnnotation()
                     if (route != null) {
                         if (route.isStart) {
-                            startRouteName = route.name
+                            startRouteName[routeConfigName] = route.name
                         }
                         routeMap[route.name] = RouteEntity(
                             route.name,
@@ -106,14 +104,15 @@ class RouteManager {
      */
     @Composable
     fun NavGraphMain(
+        kClass: KClass<*>,
         viewModelStoreOwner: ViewModelStoreOwner,
         iRoute: IRoute
     ) {
-        if (routeClasses.isEmpty()) {
+        if (routeClasses[kClass.simpleName ?: ""] == null) {
             throw RouteException("Please call init first and set class has Route annotation")
         }
         val navController = rememberNavController()
-        NavHost(navController, startDestination = startRouteName) {
+        NavHost(navController, startDestination = startRouteName[kClass.simpleName ?: ""] ?: "") {
             for (mutableEntry in routeMap) {
                 composable(
                     mutableEntry.value.routeName + generateParams(mutableEntry.value.routeParams),
