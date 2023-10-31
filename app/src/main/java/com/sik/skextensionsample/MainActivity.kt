@@ -11,7 +11,11 @@ class MainActivity : ComponentActivity(), IRoute {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            RouteManager.instance.NavGraphMain(viewModelStoreOwner = this, iRoute = this)
+            RouteManager.instance.NavGraphMain(
+                kClass = DefaultRouteConfig::class,
+                viewModelStoreOwner = this,
+                iRoute = this
+            )
         }
     }
 
