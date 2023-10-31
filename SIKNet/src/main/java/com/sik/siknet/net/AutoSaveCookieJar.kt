@@ -2,6 +2,8 @@ package com.sik.siknet.net
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.sik.sikcore.SIKCore
 import okhttp3.Cookie
 import okhttp3.CookieJar
@@ -18,17 +20,21 @@ class AutoSaveCookieJar : CookieJar {
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
         val editor = sharedPreferences.edit()
-        for (cookie in cookies) {
-            editor.putString(url.host, cookie.toString())
-        }
+        val cookiesString = Gson().toJson(cookies.map { it.toString() }.toMutableList())
+        editor.putString(url.host, cookiesString)
         editor.apply()
     }
 
     override fun loadForRequest(url: HttpUrl): MutableList<Cookie> {
         val cookies: MutableList<Cookie> = mutableListOf()
         val cookieString = sharedPreferences.getString(url.host, null)
-        if (cookieString != null) {
-            val cookie = Cookie.parse(url, cookieString)
+        val cookiesString =
+            Gson().fromJson<MutableList<String>>(
+                cookieString,
+                object : TypeToken<MutableList<String>>() {}.type
+            )
+        cookiesString.forEach {
+            val cookie = Cookie.parse(url, it)
             if (cookie != null) {
                 cookies.add(cookie)
             }
