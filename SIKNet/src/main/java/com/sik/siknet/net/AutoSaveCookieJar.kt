@@ -27,16 +27,18 @@ class AutoSaveCookieJar : CookieJar {
 
     override fun loadForRequest(url: HttpUrl): MutableList<Cookie> {
         val cookies: MutableList<Cookie> = mutableListOf()
-        val cookieString = sharedPreferences.getString(url.host, null)
-        val cookiesString =
-            Gson().fromJson<MutableList<String>>(
-                cookieString,
-                object : TypeToken<MutableList<String>>() {}.type
-            )
-        cookiesString.forEach {
-            val cookie = Cookie.parse(url, it)
-            if (cookie != null) {
-                cookies.add(cookie)
+        val cookieString = sharedPreferences.getString(url.host, "")
+        if (!cookieString.isNullOrEmpty()){
+            val cookiesString =
+                Gson().fromJson<MutableList<String>>(
+                    cookieString,
+                    object : TypeToken<MutableList<String>>() {}.type
+                )
+            cookiesString.forEach {
+                val cookie = Cookie.parse(url, it)
+                if (cookie != null) {
+                    cookies.add(cookie)
+                }
             }
         }
         return cookies
