@@ -4,6 +4,7 @@ import com.sik.sikcore.SIKCore
 import okhttp3.Cache
 import okhttp3.Credentials.basic
 import okhttp3.Interceptor
+import okhttp3.JavaNetCookieJar
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.Route
@@ -13,6 +14,9 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.io.File
+import java.net.CookieHandler
+import java.net.CookieManager
+import java.net.CookiePolicy
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.util.concurrent.ConcurrentHashMap
@@ -165,6 +169,9 @@ class RetrofitClient private constructor() {
             headerParamsPreloadInterceptor.addParams(retrofitConfig.defaultParams())
         }
         headerParamsPreloadInterceptors[retrofitConfig.TAG] = headerParamsPreloadInterceptor
+        val cookieManager = CookieManager()
+        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL)
+        CookieHandler.setDefault(cookieManager)
         builder
             .proxyAuthenticator { _: Route?, response: Response ->
                 val credential = basic(
@@ -174,7 +181,7 @@ class RetrofitClient private constructor() {
                     .header("Proxy-Authorization", credential)
                     .build()
             }
-            .cookieJar(AutoSaveCookieJar())
+            .cookieJar(JavaNetCookieJar(cookieManager))
             .addInterceptor(headerParamsPreloadInterceptor)
             .addInterceptor(httpLoggingInterceptor)
             .apply {
