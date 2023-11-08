@@ -73,8 +73,6 @@ inline fun <reified T : Worker> addOneTimeWork(context: Context, initialDelay: L
 fun cancel(context: Context, workId: Long)
 ```
 
-
-
 ### [设备相关工具类](./src/main/java/com/sik/sikcore/device/DeviceUtils.kt)
 
 ```kotlin
@@ -208,8 +206,6 @@ fun Number.sp2px(): Float
 fun Number.toDp(): Float
 ```
 
-
-
 ### [颜色工具类](./src/main/java/com/sik/sikcore/color/ColorUtils.kt)
 
 ```kotlin
@@ -225,6 +221,39 @@ inline fun <reified T> copyData(source: Any, target: Any): T
 //使用反射进行相同字段的数据复制
 fun copyData(source: Any, target: Any)
 ```
+
+### [转换工具类](https://github.com/SilverIceKey/SIKExtension/blob/master/SIKCore/src/main/java/com/sik/sikcore/data/ConvertUtils.kt)
+
+```kotlin
+//byte数组转16进制字符串
+fun bytesToHex(byteArray: ByteArray): String
+//16进制字符串转byte数组
+fun hexToBytes(hex: String): ByteArray
+//byte数组转Base64字符串
+fun bytesToBase64String(byteArray: ByteArray): String
+//base64字符串转byte数组
+fun base64StringToBytes(base64Str:String):ByteArray
+```
+
+### [全局参数临时存储池](https://github.com/SilverIceKey/SIKExtension/blob/master/SIKCore/src/main/java/com/sik/sikcore/data/GlobalDataTempStore.kt)
+
+```kotlin
+//保存数据
+fun saveData(key: String, value: Any)
+//获取数据 默认获取完数据就删除
+fun getData(key: String, isDeleteAfterGet: Boolean = true): Any?
+```
+
+### [日程管理工具类](https://github.com/SilverIceKey/SIKExtension/blob/master/SIKCore/src/main/java/com/sik/sikcore/date/ScheduleManagerUtils.kt)
+
+```kotlin
+//添加一次性任务
+fun <reified T : Worker> addOneTimeWork(context: Context, initialDelay: Long = 0L, workId: Long)
+//取消任务
+fun cancel(context: Context, workId: Long)
+```
+
+
 
 ### [动画扩展函数](./src/main/java/com/sik/sikcore/anim/AnimExtension.kt)
 

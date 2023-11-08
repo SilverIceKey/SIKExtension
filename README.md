@@ -10,7 +10,6 @@
 | SIKNet     | 网络库-主要以[liangjingkanji/NET](https://github.com/liangjingkanji/Net)这个库为基础进行扩展的库 | [网络扩展工具介绍](./SIKNet/README.md)             |
 | SIKEncrypt | 编码加解密库-有基本的编码和加解密的方法，目前有MD5、SHA256、SM3的信息摘要生成的方法，预计还会添加AES、DES、TripleDES、SM4、RSA的加解密方法 | [编码和加解密扩展工具介绍](./SIKEncrypt/README.md) |
 | SIKMedia   | 媒体库-主要用于录音和媒体的编码                              | [媒体工具介绍](./SIKMedia/README.md)               |
-| SIKRoute   | 路由库-主要作用于Compose的路由跳转，用于单Activity存在多界面的情况 | [Compose路由工具介绍](./SIKRoute/README.md)        |
 
 ### 集成方式：
 
@@ -36,6 +35,10 @@ implementation 'com.github.SilverIceKey.SIKExtension:模块名称:Tag'
 ### 最后一个子模块类型地址
 
 ### [SKExtension-last-submodule](https://github.com/SilverIceKey/SKExtension/tree/last_submodule )
+
+### 最后一个含有Route库的地址
+
+### [SilverIceKey/SIKExtension at last_mod_has_route (github.com)](https://github.com/SilverIceKey/SIKExtension/tree/last_mod_has_route)
 
 ### 项目包含以下元素：
 
