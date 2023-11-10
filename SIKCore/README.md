@@ -253,6 +253,17 @@ fun <reified T : Worker> addOneTimeWork(context: Context, initialDelay: Long = 0
 fun cancel(context: Context, workId: Long)
 ```
 
+### [位类型操作判断工具](./src/main/java/com/sik/sikcore/bit/BitTypeUtils.kt)
+
+```kotlin
+//目标类型是否存在
+fun hasType(originType: Int, targetType: Int): Boolean
+//添加类型
+fun addType(originType: Int, targetType: Int): Int
+//删除类型
+fun deleteType(originType: Int, targetType: Int): Int
+```
+
 
 
 ### [动画扩展函数](./src/main/java/com/sik/sikcore/anim/AnimExtension.kt)
