@@ -33,8 +33,7 @@ fun String.file(): File {
         throw FileExtensionException("filepath is empty")
     }
     if (!File(this).exists()) {
-        File(this.substring(0, this.lastIndexOf(File.separator))).mkdirs()
-        File(this).createNewFile()
+        throw FileExtensionException("file not exists!")
     }
     return File(this)
 }
@@ -47,8 +46,7 @@ fun String.fileInputStream(): FileInputStream {
         throw FileExtensionException("filepath is empty")
     }
     if (!File(this).exists()) {
-        File(this.substring(0, this.lastIndexOf(File.separator))).mkdirs()
-        File(this).createNewFile()
+        throw FileExtensionException("file not exists!")
     }
     return File(this).inputStream()
 }
@@ -80,8 +78,13 @@ fun String.existsAndCreateFolder() {
     if (this.isEmpty()) {
         return
     }
-    if (!File(this).exists()) {
-        File(this).mkdirs()
+    val folderPath = if (!this.endsWith(File.separator)) {
+        "${this}${File.separator}"
+    } else {
+        this
+    }
+    if (!File(folderPath).exists()) {
+        File(folderPath).mkdirs()
     }
 }
 
