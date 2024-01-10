@@ -213,7 +213,7 @@ class ZipUtils private constructor(
             }
             zipListener.zipEnd(zipDestFile!!)
         } catch (e: Exception) {
-            zipListener.error(e.localizedMessage ?: "An error occurred during zip operation")
+            zipListener.error(e.stackTraceToString())
         }
     }
 
@@ -245,7 +245,7 @@ class ZipUtils private constructor(
             }
             zipListener.unzipEnd(unzippedFiles)
         } catch (e: Exception) {
-            zipListener.error(e.localizedMessage ?: "An error occurred during unzip operation")
+            zipListener.error(e.stackTraceToString())
         }
     }
 }
