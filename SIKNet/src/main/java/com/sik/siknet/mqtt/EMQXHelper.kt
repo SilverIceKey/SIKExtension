@@ -2,7 +2,13 @@ package com.sik.siknet.mqtt
 
 import com.sik.sikcore.eventbus.DefaultBusModel
 import com.sik.sikcore.receivers.ScreenStatusReceiver
-import org.eclipse.paho.client.mqttv3.*
+import org.eclipse.paho.client.mqttv3.IMqttActionListener
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
+import org.eclipse.paho.client.mqttv3.IMqttToken
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient
+import org.eclipse.paho.client.mqttv3.MqttCallback
+import org.eclipse.paho.client.mqttv3.MqttException
+import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.slf4j.Logger
@@ -62,7 +68,7 @@ class EMQXHelper {
                     log.info("qos:${emqxConfig.qos()}")
                     mqttClient.subscribe(emqxConfig.topic, emqxConfig.qos())
                 } catch (e: MqttException) {
-
+                    //重连异常
                 }
             }
 
@@ -87,12 +93,11 @@ class EMQXHelper {
      */
     @Subscribe
     fun onScreenStatusChange(bus: DefaultBusModel) {
-        if (bus.type == ScreenStatusReceiver.EVENTBUS_TYPE) {
-            if (bus.code == ScreenStatusReceiver.SCREEN_ON) {
-                if (!mqttClient.isConnected) {
-                    init()
-                }
-            }
+        if (bus.type == ScreenStatusReceiver.EVENTBUS_TYPE &&
+            bus.code == ScreenStatusReceiver.SCREEN_ON &&
+            !mqttClient.isConnected
+        ) {
+            init()
         }
     }
 
@@ -119,7 +124,7 @@ class EMQXHelper {
                     }
 
                     override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-
+                        //连接失败
                     }
 
                 })

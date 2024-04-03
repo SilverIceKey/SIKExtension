@@ -1,9 +1,12 @@
 package com.sik.sikcore.extension
 
+import android.animation.ObjectAnimator
 import android.content.res.Resources
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewTreeObserver
+import android.view.animation.DecelerateInterpolator
+import android.widget.ProgressBar
 
 /**
  * Do after rendered
@@ -50,4 +53,17 @@ fun Number.sp2px(): Float {
  */
 fun Number.toDp(): Float {
     return this.toFloat() / (Resources.getSystem().displayMetrics.densityDpi / 160)
+}
+
+/**
+ * ProgressBar的扩展函数，实现平滑更新进度。
+ * @param newProgress 要更新到的新进度值。
+ * @param duration 动画持续时间，单位为毫秒。
+ */
+fun ProgressBar.setProgressSmoothly(newProgress: Int, duration: Long = 500) {
+    ObjectAnimator.ofInt(this, "progress", progress, newProgress).apply {
+        this.duration = duration
+        interpolator = DecelerateInterpolator()
+        start()
+    }
 }

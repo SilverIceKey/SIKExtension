@@ -88,13 +88,11 @@ class NettyClientUtils {
 
                         override fun userEventTriggered(ctx: ChannelHandlerContext?, evt: Any?) {
                             super.userEventTriggered(ctx, evt)
-                            if (evt is IdleStateEvent) {
+                            if (evt is IdleStateEvent&&evt.state() == IdleState.READER_IDLE) {
                                 // 这是一个空闲状态事件
-                                if (evt.state() == IdleState.READER_IDLE) {
-                                    // 读空闲，可能对方已经断开连接
-                                    LogUtils.logger.i("读空闲，关闭连接")
-                                    ctx!!.close()
-                                }
+                                // 读空闲，可能对方已经断开连接
+                                LogUtils.logger.i("读空闲，关闭连接")
+                                ctx!!.close()
                             }
                         }
 

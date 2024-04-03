@@ -1,7 +1,5 @@
 package com.sik.sikencrypt
 
-import com.sik.sikencrypt.IEncryptConfig
-
 /**
  * RSA加密配置
  *

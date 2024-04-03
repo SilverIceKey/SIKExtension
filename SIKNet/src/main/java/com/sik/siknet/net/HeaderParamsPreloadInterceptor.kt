@@ -4,9 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import okhttp3.*
 import okio.BufferedSink
-import kotlin.Throws
 import java.io.IOException
-import java.util.HashMap
 
 /**
  * 头部和参数默认添加拦截器
@@ -26,7 +24,7 @@ class HeaderParamsPreloadInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val requestBuilder: Request.Builder = chain.request().newBuilder()
         for (key in mHeader.keys) {
-            requestBuilder.header(key, mHeader[key]!!)
+            requestBuilder.header(key, mHeader[key] ?: "")
         }
         if ("POST" == chain.request().method) {
             var requestBody: RequestBody? = chain.request().body

@@ -6,4 +6,8 @@ package com.sik.sikcore.extension
  * @constructor Create empty File extension exception
  */
 class FileExtensionException(message: String?) : Exception(message) {
+    companion object {
+        const val FILE_PATH_ERROR: String = "filepath is empty"
+        const val FILE_NOT_EXIST_ERROR: String = "file not exists!"
+    }
 }

@@ -16,7 +16,7 @@ fun File.outputStream(): FileOutputStream {
  */
 fun String.fileOutputStream(): FileOutputStream {
     if (this.isEmpty()) {
-        throw FileExtensionException("filepath is empty")
+        throw FileExtensionException(FileExtensionException.FILE_PATH_ERROR)
     }
     if (!File(this).exists()) {
         File(this.substring(0, this.lastIndexOf(File.separator))).mkdirs()
@@ -30,10 +30,10 @@ fun String.fileOutputStream(): FileOutputStream {
  */
 fun String.file(): File {
     if (this.isEmpty()) {
-        throw FileExtensionException("filepath is empty")
+        throw FileExtensionException(FileExtensionException.FILE_PATH_ERROR)
     }
     if (!File(this).exists()) {
-        throw FileExtensionException("file not exists!")
+        throw FileExtensionException(FileExtensionException.FILE_NOT_EXIST_ERROR)
     }
     return File(this)
 }
@@ -43,10 +43,10 @@ fun String.file(): File {
  */
 fun String.fileInputStream(): FileInputStream {
     if (this.isEmpty()) {
-        throw FileExtensionException("filepath is empty")
+        throw FileExtensionException(FileExtensionException.FILE_PATH_ERROR)
     }
     if (!File(this).exists()) {
-        throw FileExtensionException("file not exists!")
+        throw FileExtensionException(FileExtensionException.FILE_NOT_EXIST_ERROR)
     }
     return File(this).inputStream()
 }
@@ -118,8 +118,8 @@ fun String.write(data: ByteArray) {
  */
 fun String.getData(): String {
     val fis = this.fileInputStream()
-    var data = ""
-    fis.let { data = String(it.readBytes()) }
+    val data = StringBuilder()
+    fis.let { data.append(String(it.readBytes())) }
     fis.close()
-    return data
+    return data.toString()
 }

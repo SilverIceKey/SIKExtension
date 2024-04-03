@@ -45,7 +45,7 @@ class AudioHelper {
             return
         }
         var filePath = savePath
-        if (!filePath?.endsWith(File.separator)!!) {
+        if (!filePath.endsWith(File.separator)) {
             filePath += File.separator
         }
         val fileName = "${TimeUtils.instance.nowString("yyyy-MM-dd-HH-mm-ss-SSS")}.mp3"
@@ -137,7 +137,7 @@ class AudioHelper {
                             }
                         }
                         AUDIORECORD_PAUSE -> {
-
+                            //录音暂停
                         }
                         AUDIORECORD_RESUME -> {
                             while (isRecording) {
@@ -171,7 +171,7 @@ class AudioHelper {
         }
         initHandler()
         var filePath = savePath
-        if (!filePath?.endsWith(File.separator)!!) {
+        if (!filePath.endsWith(File.separator)) {
             filePath += File.separator
         }
         val fileName = "${TimeUtils.instance.nowString("yyyy-MM-dd-HH-mm-ss-SSS")}.pcm"

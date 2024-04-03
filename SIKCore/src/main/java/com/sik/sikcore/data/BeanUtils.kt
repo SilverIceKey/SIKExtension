@@ -27,7 +27,7 @@ object BeanUtils {
                     sourceField.isAccessible = true
                     val targetField = fatherClass.getDeclaredField(it.name)
                     targetField.isAccessible = true
-                    targetField.set(target, sourceField.get(source))
+                    targetField[target] = sourceField[source]
                 }
             }
             fatherClass = fatherClass.superclass
@@ -54,7 +54,7 @@ object BeanUtils {
                     sourceField.isAccessible = true
                     val targetField = fatherClass.getDeclaredField(it.name)
                     targetField.isAccessible = true
-                    targetField.set(target, sourceField.get(source))
+                    targetField[target] = sourceField[source]
                 }
             }
             fatherClass = fatherClass.superclass

@@ -189,16 +189,16 @@ object ImageConvertUtils {
         val nv21 = ByteArray(width * height * 3 / 2)
         for (j in 0 until height) {
             for (i in 0 until width) {
-                val R = argb[index] and 0xFF0000 shr 16
-                val G = argb[index] and 0x00FF00 shr 8
-                val B = argb[index] and 0x0000FF
-                val Y = (66 * R + 129 * G + 25 * B + 128 shr 8) + 16
-                val U = (-38 * R - 74 * G + 112 * B + 128 shr 8) + 128
-                val V = (112 * R - 94 * G - 18 * B + 128 shr 8) + 128
-                nv21[yIndex++] = (if (Y < 0) 0 else if (Y > 255) 255 else Y).toByte()
+                val r = argb[index] and 0xFF0000 shr 16
+                val g = argb[index] and 0x00FF00 shr 8
+                val b = argb[index] and 0x0000FF
+                val y = (66 * r + 129 * g + 25 * b + 128 shr 8) + 16
+                val u = (-38 * r - 74 * g + 112 * b + 128 shr 8) + 128
+                val v = (112 * r - 94 * g - 18 * b + 128 shr 8) + 128
+                nv21[yIndex++] = (y.coerceIn(0,255)).toByte()
                 if (j % 2 == 0 && index % 2 == 0 && uvIndex < nv21.size - 2) {
-                    nv21[uvIndex++] = (if (V < 0) 0 else if (V > 255) 255 else V).toByte()
-                    nv21[uvIndex++] = (if (U < 0) 0 else if (U > 255) 255 else U).toByte()
+                    nv21[uvIndex++] = (v.coerceIn(0,255)).toByte()
+                    nv21[uvIndex++] = (u.coerceIn(0,255)).toByte()
                 }
                 ++index
             }

@@ -123,7 +123,7 @@ class MediaCodecHelper {
                  * 转码完成
                  */
                 override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
-
+                    //待定
                 }
 
                 /**
@@ -134,21 +134,21 @@ class MediaCodecHelper {
                     index: Int,
                     info: MediaCodec.BufferInfo
                 ) {
-
+                    //待定
                 }
 
                 /**
                  * 转码报错
                  */
                 override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
-
+                    //待定
                 }
 
                 /**
                  * 输出格式变化
                  */
                 override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
-
+                    //待定
                 }
 
             })
@@ -159,8 +159,8 @@ class MediaCodecHelper {
                 val inputIndex = encodeCodec?.dequeueInputBuffer(0)
                 if (inputIndex != -1) {
                     val inputBuffer = inputIndex?.let { inputBuffers?.get(it) }
-                    val size = fis?.read(pcmData)
-                    size?.let {
+                    val size = fis.read(pcmData)
+                    size.let {
                         if (it < 0) {
                             encodeCodec?.queueInputBuffer(inputIndex!!,0,0,0,MediaCodec.BUFFER_FLAG_END_OF_STREAM)
 
@@ -184,6 +184,6 @@ class MediaCodecHelper {
      * 开始视频格式转换
      */
     fun startVideoConvert() {
-
+        //待定
     }
 }

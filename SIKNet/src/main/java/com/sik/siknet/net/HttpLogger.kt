@@ -30,12 +30,6 @@ open class HttpLogger : HttpLoggingInterceptor.Logger {
              * 如果需要json格式输出，取消注释，将下一行注释
              *
              */
-//        if (mresultMessage.startsWith("{") && mresultMessage.endsWith("}")
-//            || mresultMessage.startsWith("[") && mresultMessage.endsWith("]")
-//        ) {
-//            mresultMessage = formatJson(decodeUnicode(mresultMessage))
-//        }
-//            mresultMessage = decodeUnicode(mresultMessage)
             mMessage.appendLine(mresultMessage)
             // 响应结束，打印整条日志
             if (mresultMessage.startsWith("<-- END HTTP")) {
@@ -51,6 +45,6 @@ open class HttpLogger : HttpLoggingInterceptor.Logger {
      * 输出结束
      */
     protected open fun endLog(message: String) {
-
+        //结束输出日志
     }
 }

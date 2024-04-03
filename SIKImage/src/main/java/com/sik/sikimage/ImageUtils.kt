@@ -79,13 +79,11 @@ object ImageUtils {
                 }
                 output[w * yo + xo] = input[w * yi + xi]
                 val fs = w * h
-                val qs = fs shr 2
                 xi = xi shr 1
                 yi = yi shr 1
                 xo = xo shr 1
                 yo = yo shr 1
                 w = w shr 1
-                h = h shr 1
                 // adjust for interleave here
                 val ui = fs + (w * yi + xi) * 2
                 val uo = fs + (w * yo + xo) * 2
@@ -102,13 +100,13 @@ object ImageUtils {
     /**
      * 等比缩放图片
      */
-    fun zoomImg(bm: Bitmap, Scale: Float): Bitmap? {
+    fun zoomImg(bm: Bitmap, scale: Float): Bitmap? {
         // 获得图片的宽高
         val width = bm.width
         val height = bm.height
         // 取得想要缩放的matrix参数
         val matrix = Matrix()
-        matrix.postScale(Scale, Scale)
+        matrix.postScale(scale, scale)
         // 得到新的图片
         return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, true)
     }
