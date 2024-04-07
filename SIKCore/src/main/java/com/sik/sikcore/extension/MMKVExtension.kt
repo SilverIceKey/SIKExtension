@@ -43,14 +43,12 @@ inline fun <reified T> MMKV.getMMKVData(key: String, defaultValue: T): T {
  * 保存数据
  */
 inline fun <reified T> String.saveMMKVData(value: T) {
-    val mmkv = MMKV.defaultMMKV()
-    mmkv.saveMMKVData(this, value)
+    MMKV.defaultMMKV().saveMMKVData(this, value)
 }
 
 /**
  * 获取数据
  */
 inline fun <reified T> String.getMMKVData(defaultValue: T): T {
-    val mmkv = MMKV.defaultMMKV()
-    return mmkv.getMMKVData(this, defaultValue)
+    return MMKV.defaultMMKV().getMMKVData(this, defaultValue)
 }

@@ -1,6 +1,7 @@
 package com.sik.sikcore.date
 
 import android.annotation.SuppressLint
+import com.sik.sikcore.log.LogUtils
 import java.text.DateFormat
 import java.text.ParsePosition
 import java.text.SimpleDateFormat
@@ -35,28 +36,6 @@ class TimeUtils {
          * 默认日期格式带分钟秒毫秒
          */
         const val DEFAULT_DATE_HOUR_MIN_SEC_MILL_FORMAT = "yyyy-MM-dd HH:mm:ss:SSS"
-
-        /**
-         * 一分钟
-         */
-        const val MIN_TIME = 60 * 1000L
-
-        /**
-         * 一小时
-         */
-        const val HOUR_TIME = MIN_TIME * 60
-
-        /**
-         * 一天
-         */
-        const val DAY_TIME = HOUR_TIME * 24
-
-        /**
-         * 获取时间间隔返回刚刚的最低时间
-         * 单位：秒
-         */
-        @JvmStatic
-        var timeForCurrent: Long = 300
 
         /**
          * 日期转换器
@@ -97,69 +76,73 @@ class TimeUtils {
      */
     @JvmOverloads
     fun getTimeIntervalOfCur(
-        time: String, timeFormatter: DateFormat = SimpleDateFormat(
-            DEFAULT_DATE_HOUR_MIN_FORMAT,
+        time: String,
+        timeFormatter: DateFormat = SimpleDateFormat(
+            DEFAULT_DATE_HOUR_MIN_SEC_FORMAT, // 使用你提供的默认格式
             Locale.getDefault(Locale.Category.FORMAT)
         )
     ): String {
-        val timeSecond: Long = timeFormatter.parse(time, ParsePosition(0))!!.time / 1000
-        return getTimeIntervalOfCur(timeSecond)
+        // 尝试解析传入的时间字符串
+        val date = timeFormatter.parse(time, ParsePosition(0))
+        // 如果解析成功，计算时间间隔并返回描述
+        date?.let {
+            val timeSecond: Long = it.time / 1000
+            return getTimeIntervalOfCur(timeSecond)
+        }
+        // 如果解析失败，返回一个默认字符串或抛出异常
+        return "时间格式错误" // 或考虑抛出一个异常，取决于你希望如何处理这种情况
     }
+
 
     /**
      * 计算到目前的时间
      */
     fun getTimeIntervalOfCur(time: Long): String {
-        val curTime = System.currentTimeMillis() / 1000
-        val timeInterval = curTime - time
-        if (timeInterval < timeForCurrent) {
-            return "刚刚"
-        } else if (timeInterval < 60 * 60) {
-            return "${timeInterval / 60}分钟前"
-        } else if (timeInterval < 60 * 60 * 24) {
-            return "${timeInterval / 60 / 60}小时前"
-        } else if (timeInterval < 60 * 60 * 24 * 30) {
-            return "${timeInterval / 60 / 60 / 24}天前"
-        } else if (timeInterval < 60 * 60 * 24 * 30 * 12) {
-            return "${timeInterval / 60 / 60 / 24 / 30}个月前"
+        val curTime = System.currentTimeMillis() / 1000 // 获取当前时间的时间戳（秒）
+        val timeInterval = curTime - time // 计算时间差（秒）
+
+        return when {
+            timeInterval < 300 -> "刚刚" // 假定300秒（5分钟）内为“刚刚”
+            timeInterval < 60 * 60 -> "${timeInterval / 60}分钟前" // 少于1小时
+            timeInterval < 60 * 60 * 24 -> "${timeInterval / (60 * 60)}小时前" // 少于1天
+            timeInterval < 60 * 60 * 24 * 30 -> "${timeInterval / (60 * 60 * 24)}天前" // 少于1个月
+            timeInterval < 60 * 60 * 24 * 365 -> "${timeInterval / (60 * 60 * 24 * 30)}个月前" // 少于1年
+            else -> "${timeInterval / (60 * 60 * 24 * 365)}年前" // 超过1年
         }
-        return ""
     }
+
 
     /**
      * 判断是否是今天
      */
     @JvmOverloads
-    @SuppressLint("SimpleDateFormat")
     fun isToday(date: String, dateFormat: String = DEFAULT_DATE_FORMAT): Boolean {
-        val simpleDateFormat: SimpleDateFormat
-        if (dateFormat == DEFAULT_DATE_FORMAT) {
-            simpleDateFormat = simpleDateDayFormat
-        } else {
-            simpleDateFormat = SimpleDateFormat(dateFormat, Locale.CHINA)
-        }
-        val formatNowDate = simpleDateFormat.format(Date())
-        return date.equals(formatNowDate)
+        val formatNowDate = SimpleDateFormat(dateFormat, Locale.CHINA).format(Date())
+        return date == formatNowDate
     }
+
 
     /**
      * 时间偏移天数
      */
     @JvmOverloads
     fun offsetDay(offsetValue: Int, date: Date = Date()): Date {
-        val formatDate = simpleDateDayFormat.format(date)
-        val parseDate = simpleDateDayFormat.parse(formatDate)
-        return Date(parseDate!!.time + offsetValue * DAY_TIME)
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.add(Calendar.DAY_OF_MONTH, offsetValue)
+        return calendar.time
     }
+
 
     /**
      * 时间偏移小时
      */
     @JvmOverloads
     fun offsetHour(offsetValue: Int, date: Date = Date()): Date {
-        val formatDate = simpleDateHourFormat.format(date)
-        val parseDate = simpleDateHourFormat.parse(formatDate)
-        return Date(parseDate!!.time + offsetValue * HOUR_TIME)
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.add(Calendar.HOUR_OF_DAY, offsetValue)
+        return calendar.time
     }
 
     /**
@@ -167,9 +150,10 @@ class TimeUtils {
      */
     @JvmOverloads
     fun offsetMin(offsetValue: Int, date: Date = Date()): Date {
-        val formatDate = simpleDateHourMinFormat.format(date)
-        val parseDate = simpleDateHourMinFormat.parse(formatDate)
-        return Date(parseDate!!.time + offsetValue * MIN_TIME)
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.add(Calendar.MINUTE, offsetValue)
+        return calendar.time
     }
 
     /**
@@ -177,9 +161,10 @@ class TimeUtils {
      */
     @JvmOverloads
     fun offsetSec(offsetValue: Int, date: Date = Date()): Date {
-        val formatDate = simpleDateHourMinSecFormat.format(date)
-        val parseDate = simpleDateHourMinSecFormat.parse(formatDate)
-        return Date(parseDate!!.time + offsetValue)
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        calendar.add(Calendar.SECOND, offsetValue)
+        return calendar.time
     }
 
     /**
@@ -200,7 +185,12 @@ class TimeUtils {
      * 获取今天日期
      */
     fun today(): Date {
-        return SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA).parse(nowString())!!
+        return Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
     }
 
     /**
@@ -222,40 +212,88 @@ class TimeUtils {
      * 判断日期是否在今天之前
      */
     fun isTimeBeforeToday(realDate: Date): Boolean {
-        return realDate.before(today())
+        val startOfToday = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
+        return realDate.before(startOfToday)
     }
+
 
     /**
      * 判断日期是否在今天之前
      */
-    fun isTimeBeforeToday(realDate: String): Boolean {
-        return simpleDateDayFormat.parse(realDate)!!.before(today())
+    fun isTimeBeforeToday(realDateStr: String): Boolean {
+        val formatter = SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.getDefault())
+        val realDate = formatter.parse(realDateStr)
+        val today = Calendar.getInstance()
+
+        val realDateCal = Calendar.getInstance().apply {
+            time = realDate ?: return false
+        }
+
+        return when {
+            realDateCal[Calendar.YEAR] < today[Calendar.YEAR] -> true
+            realDateCal[Calendar.YEAR] == today[Calendar.YEAR] && realDateCal[Calendar.DAY_OF_YEAR] < today[Calendar.DAY_OF_YEAR] -> true
+            else -> {
+                false
+            }
+        }
     }
+
 
     /**
      * 时间仅保留日期返回Date
      */
     fun getDateOnly(date: Date): Date {
-        return SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.CHINA).parse(
-            SimpleDateFormat(
-                DEFAULT_DATE_FORMAT,
-                Locale.CHINA
-            ).format(date)
-        )!!
+        val cal = Calendar.getInstance()
+        cal.time = date
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.time
     }
 
     /**
      * 计算时间天数
      */
-    fun calcDayNum(beforeDate: Date, afterDate: Date): Long {
-        return (afterDate.time - beforeDate.time) / DAY_TIME
+    fun calcDayNum(startDate: Date, endDate: Date): Long {
+        val startCal = Calendar.getInstance().apply {
+            time = startDate
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        val endCal = Calendar.getInstance().apply {
+            time = endDate
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        val diff = endCal.timeInMillis - startCal.timeInMillis
+        return diff / (24 * 60 * 60 * 1000)
     }
 
     /**
      * 计算时间天数
      */
     fun calcDayNum(beforeDate: String, afterDate: String): Long {
-        return (simpleDateDayFormat.parse(beforeDate)!!.time - simpleDateDayFormat.parse(afterDate)!!.time) / DAY_TIME
+        return try {
+            calcDayNum(
+                simpleDateDayFormat.parse(beforeDate),
+                simpleDateDayFormat.parse(afterDate)
+            )
+        } catch (e: Exception) {
+            LogUtils.logger.e("时间转换错误")
+            0
+        }
     }
 
     /**

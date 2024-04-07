@@ -15,14 +15,13 @@ fun File.outputStream(): FileOutputStream {
  * 文件路径直接返回输出流
  */
 fun String.fileOutputStream(): FileOutputStream {
-    if (this.isEmpty()) {
-        throw FileExtensionException(FileExtensionException.FILE_PATH_ERROR)
+    if (this.isEmpty()) throw FileExtensionException(FileExtensionException.FILE_PATH_ERROR)
+    val file = File(this)
+    if (!file.exists()) {
+        file.parentFile?.mkdirs()
+        file.createNewFile()
     }
-    if (!File(this).exists()) {
-        File(this.substring(0, this.lastIndexOf(File.separator))).mkdirs()
-        File(this).createNewFile()
-    }
-    return File(this).outputStream()
+    return FileOutputStream(file)
 }
 
 /**
@@ -64,7 +63,7 @@ fun String.exists(): Boolean {
 /**
  * 删除文件
  */
-fun String.existsDelete(): Boolean {
+fun String.deleteIfExists(): Boolean {
     if (this.isEmpty() || !File(this).exists()) {
         return false
     }
@@ -75,16 +74,8 @@ fun String.existsDelete(): Boolean {
  * 判断文件夹是否存在，不存在则创建
  */
 fun String.existsAndCreateFolder() {
-    if (this.isEmpty()) {
-        return
-    }
-    val folderPath = if (!this.endsWith(File.separator)) {
-        "${this}${File.separator}"
-    } else {
-        this
-    }
-    if (!File(folderPath).exists()) {
-        File(folderPath).mkdirs()
+    if (this.isNotEmpty()) {
+        File(this).mkdirs()
     }
 }
 
@@ -106,15 +97,15 @@ fun String.createNewFile(): Boolean {
  */
 fun String.write(data: ByteArray) {
     if (this.createNewFile()) {
-        this.fileOutputStream().let {
-            it.write(data)
-            it.close()
+        FileOutputStream(File(this)).use { outputStream ->
+            outputStream.write(data)
         }
     }
 }
 
 /**
  * 文件路径获取文本数据
+ * 不支持大文件读取
  */
 fun String.getData(): String {
     val fis = this.fileInputStream()

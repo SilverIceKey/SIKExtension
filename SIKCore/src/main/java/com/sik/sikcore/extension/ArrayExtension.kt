@@ -6,14 +6,3 @@ package com.sik.sikcore.extension
 fun <T : Comparable<T>> Array<out T>.getString(): String {
     return this.contentToString()
 }
-
-/**
- * kotlin list转mutablelist
- */
-fun <T : Comparable<T>> List<T>.toMutableList(): MutableList<T> {
-    val resultMutableList = mutableListOf<T>()
-    this.stream().forEach {
-        resultMutableList.add(it)
-    }
-    return resultMutableList
-}
