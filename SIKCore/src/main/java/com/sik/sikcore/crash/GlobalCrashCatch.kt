@@ -1,23 +1,34 @@
 package com.sik.sikcore.crash
 
 import android.content.Context
-import com.sik.sikcore.explain.Explain
 
 /**
  * 全局异常捕捉
  */
 class GlobalCrashCatch : Thread.UncaughtExceptionHandler {
-    @Explain(explainValue = "本地context")
+    /**
+     * Context
+     * 本地context
+     */
     private lateinit var context: Context
 
-    @Explain(explainValue = "默认异常处理")
+    /**
+     * Default handler
+     * 默认异常处理
+     */
     private lateinit var defaultHandler: Thread.UncaughtExceptionHandler
 
-    @Explain(explainValue = "全局异常处理回调")
+    /**
+     * Global crash handle callback
+     * 全局异常处理回调
+     */
     private var globalCrashHandleCallback: GlobalCrashHandleCallback? = null
 
     companion object {
-        @Explain(explainValue = "全局异常捕捉类")
+        /**
+         * Instance
+         * 全局异常捕捉类
+         */
         val instance: GlobalCrashCatch by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             GlobalCrashCatch()
         }
