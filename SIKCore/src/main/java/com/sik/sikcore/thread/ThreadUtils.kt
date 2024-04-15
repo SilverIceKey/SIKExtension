@@ -24,6 +24,7 @@ object ThreadUtils {
     /**
      * 主线程
      */
+    @JvmStatic
     fun mainHandler(): Handler {
         return mainHandler
     }
@@ -62,6 +63,7 @@ object ThreadUtils {
      * @param block
      * @receiver
      */
+    @JvmStatic
     fun runOnIO(block: suspend CoroutineScope.() -> Unit) {
         ioScope.launch {
             block()
@@ -74,6 +76,7 @@ object ThreadUtils {
      * @param block
      * @receiver
      */
+    @JvmStatic
     fun runOnMain(block: suspend CoroutineScope.() -> Unit) {
         mainScope.launch {
             block()
@@ -87,6 +90,7 @@ object ThreadUtils {
      * @param block
      * @receiver
      */
+    @JvmStatic
     fun runOnIODelayed(delayTimeMillis: Long, block: suspend CoroutineScope.() -> Unit) {
         ioScope.launch {
             delay(delayTimeMillis)
@@ -101,6 +105,7 @@ object ThreadUtils {
      * @param block
      * @receiver
      */
+    @JvmStatic
     fun runOnMainDelayed(delayTimeMillis: Long, block: suspend CoroutineScope.() -> Unit) {
         mainScope.launch {
             delay(delayTimeMillis)
@@ -116,6 +121,7 @@ object ThreadUtils {
      * @receiver
      * @return
      */
+    @JvmStatic
     suspend fun <T> withIO(block: suspend CoroutineScope.() -> T): T {
         return withContext(ioScope.coroutineContext) {
             block()
@@ -130,6 +136,7 @@ object ThreadUtils {
      * @receiver
      * @return
      */
+    @JvmStatic
     suspend fun <T> withMain(block: suspend CoroutineScope.() -> T): T {
         return withContext(mainScope.coroutineContext) {
             block()
@@ -140,6 +147,7 @@ object ThreadUtils {
      * Cancel all
      * 取消所有
      */
+    @JvmStatic
     fun cancelAll() {
         ioScope.cancel()
         mainScope.cancel()
