@@ -1,8 +1,8 @@
-package com.sik.siknet.net
+package com.sik.siknet.http
 
-import com.sik.siknet.net.interceptor.AutoSaveCookieJar
-import com.sik.siknet.net.interceptor.DefaultHeaderInterceptor
-import com.sik.siknet.net.interceptor.DefaultParameterInterceptor
+import com.sik.siknet.http.interceptor.AutoSaveCookieJar
+import com.sik.siknet.http.interceptor.DefaultHeaderInterceptor
+import com.sik.siknet.http.interceptor.DefaultParameterInterceptor
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient

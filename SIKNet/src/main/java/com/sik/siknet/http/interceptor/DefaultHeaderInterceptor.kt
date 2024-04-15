@@ -1,4 +1,4 @@
-package com.sik.siknet.net.interceptor
+package com.sik.siknet.http.interceptor
 
 import okhttp3.Interceptor
 import okhttp3.Interceptor.Chain

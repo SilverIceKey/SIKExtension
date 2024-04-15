@@ -1,4 +1,4 @@
-package com.sik.siknet.net.interceptor
+package com.sik.siknet.http.interceptor
 
 import com.sik.sikcore.extension.getMMKVData
 import com.sik.sikcore.extension.saveMMKVData

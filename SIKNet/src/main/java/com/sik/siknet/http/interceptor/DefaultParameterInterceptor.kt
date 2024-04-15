@@ -1,9 +1,9 @@
-package com.sik.siknet.net.interceptor
+package com.sik.siknet.http.interceptor
 
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.sik.siknet.net.HttpUtils.CLIENT_MEDIA_TYPE
+import com.sik.siknet.http.HttpUtils.CLIENT_MEDIA_TYPE
 import okhttp3.FormBody
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

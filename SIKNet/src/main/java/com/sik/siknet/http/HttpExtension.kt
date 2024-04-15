@@ -1,9 +1,9 @@
-package com.sik.siknet.net
+package com.sik.siknet.http
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.sik.siknet.net.interceptor.ProgressInterceptor
-import com.sik.siknet.net.interceptor.ProgressListener
+import com.sik.siknet.http.interceptor.ProgressInterceptor
+import com.sik.siknet.http.interceptor.ProgressListener
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody

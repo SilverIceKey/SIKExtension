@@ -1,4 +1,4 @@
-package com.sik.siknet.net
+package com.sik.siknet.http
 
 import okhttp3.Request
 import java.io.IOException
