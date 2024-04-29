@@ -25,6 +25,8 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         const val SM4_BLOCK_SIZE = 16
     }
 
+    private val logger = LogUtils.getLogger(SM4Encrypt::class)
+
     init {
         if (iEncryptConfig.key().size < 16) {
             throw EncryptException(EncryptExceptionEnums.KEY_SIZE_ERROR)
@@ -64,7 +66,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     } else {
                         dataBytes
                     }
-                LogUtils.logger.i("待加密数据:${paddingData.contentToString()}")
+                logger.i("待加密数据:${paddingData.contentToString()}")
                 encryptECB(paddingData)
             }
 
@@ -92,7 +94,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         return when (mode) {
             "ECB" -> {
                 val decryptData = decryptECB(dataBytes)
-                LogUtils.logger.i("解密数据:${decryptData.contentToString()}")
+                logger.i("解密数据:${decryptData.contentToString()}")
                 if (padding == EncryptPadding.PKCS5Padding.padding) {
                     PaddingUtils.removePKCS5Padding(decryptData)
                 } else {

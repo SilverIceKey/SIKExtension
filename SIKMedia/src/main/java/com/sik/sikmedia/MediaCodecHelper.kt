@@ -106,10 +106,7 @@ class MediaCodecHelper {
         }
         //构建编码器
         encodeCodec = MediaCodec.createEncoderByType(audioFormatType)
-        encodeCodec?.let {
-            //渲染配置
-            it.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-        }
+        encodeCodec?.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
     }
 
     private fun runConvert(sourceFile: String, targetFile: String) {

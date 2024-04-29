@@ -71,6 +71,8 @@ class TimeUtils {
         }
     }
 
+    private val logger = LogUtils.getLogger(TimeUtils::class)
+
     /**
      * 计算到目前的时间
      */
@@ -291,7 +293,7 @@ class TimeUtils {
                 simpleDateDayFormat.parse(afterDate)
             )
         } catch (e: Exception) {
-            LogUtils.logger.e("时间转换错误")
+            logger.e("时间转换错误")
             0
         }
     }
@@ -331,6 +333,6 @@ class TimeUtils {
     @SuppressLint("SimpleDateFormat")
     fun calcOffsetTime(sourceTime: String, timeDateFormat: String): Int {
         val deviceTime = now().time
-        return ((SimpleDateFormat(timeDateFormat).parse(sourceTime)!!.time-deviceTime)/1000L).toInt()
+        return ((SimpleDateFormat(timeDateFormat).parse(sourceTime)!!.time - deviceTime) / 1000L).toInt()
     }
 }

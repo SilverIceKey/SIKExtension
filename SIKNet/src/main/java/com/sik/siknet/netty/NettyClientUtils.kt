@@ -55,6 +55,9 @@ class NettyClientUtils {
         }
     }
 
+    private val logger =LogUtils.getLogger(NettyClientUtils::class)
+
+
     /**
      * 连接服务端
      */
@@ -88,10 +91,10 @@ class NettyClientUtils {
 
                         override fun userEventTriggered(ctx: ChannelHandlerContext?, evt: Any?) {
                             super.userEventTriggered(ctx, evt)
-                            if (evt is IdleStateEvent&&evt.state() == IdleState.READER_IDLE) {
+                           if (evt is IdleStateEvent&&evt.state() == IdleState.READER_IDLE) {
                                 // 这是一个空闲状态事件
                                 // 读空闲，可能对方已经断开连接
-                                LogUtils.logger.i("读空闲，关闭连接")
+                                logger.i("读空闲，关闭连接")
                                 ctx!!.close()
                             }
                         }
@@ -126,12 +129,12 @@ class NettyClientUtils {
                 config.connectSuccess()
             } else {
                 if (config.retryTimes != -1 && currentRetryTimes >= config.retryTimes) {
-                    LogUtils.logger.i("连接失败，连接已到达连接次数")
+                    logger.i("连接失败，连接已到达连接次数")
                     return@addListener
                 }
                 ThreadUtils.mainHandler().postDelayed({
                     connect(config)
-                    LogUtils.logger.i("连接失败，当前连接次数第${currentRetryTimes + 1}次")
+                    logger.i("连接失败，当前连接次数第${currentRetryTimes + 1}次")
                     currentRetryTimes++
                 }, config.retryTime)
             }

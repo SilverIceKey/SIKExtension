@@ -38,6 +38,22 @@ fun String.file(): File {
 }
 
 /**
+ * Folder
+ * 获取文件夹
+ * @return
+ */
+fun String.folder(): File {
+    if (this.isEmpty()) {
+        throw FileExtensionException(FileExtensionException.FILE_PATH_ERROR)
+    }
+    val folder = File(this)
+    if (!folder.exists()) {
+        folder.mkdirs()
+    }
+    return folder
+}
+
+/**
  * 文件路径直接返回输入流
  */
 fun String.fileInputStream(): FileInputStream {
