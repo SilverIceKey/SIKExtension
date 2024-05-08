@@ -34,8 +34,9 @@ android {
 
 dependencies {
 
-    compileOnly 'androidx.core:core-ktx:1.8.0'
-    compileOnly 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.8.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.fragment:fragment-ktx:1.6.2'
 
     //json相关
     api('com.google.code.gson:gson:2.8.9')

@@ -118,7 +118,7 @@ class LogUtils(private val clazz: KClass<*>) {
     }
 
     private fun getLogsDirPath(): String {
-        val logsDirPath = "${SIKCore.getApplication().dataDir}/logs"
+        val logsDirPath = "${SIKCore.getApplication().filesDir}/logs"
         return logsDirPath.folder().absolutePath
     }
 }

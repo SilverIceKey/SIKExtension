@@ -1,6 +1,7 @@
 package com.sik.sikcore
 
 import android.app.Application
+import com.sik.sikcore.activity.ActivityTracker
 import com.tencent.mmkv.MMKV
 
 /**
@@ -15,6 +16,7 @@ object SIKCore {
      */
     fun init(application: Application) {
         SIKCore.application = application
+        application.registerActivityLifecycleCallbacks(ActivityTracker)
         MMKV.initialize(application)
     }
 
