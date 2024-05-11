@@ -206,6 +206,15 @@ fun Number.sp2px(): Float
 fun Number.toDp(): Float
 ```
 
+### [对象扩展函数](./src/main/java/com/sik/sikcore/extension/ObjectExtension.kt)
+
+```kotlin
+// 扩展Any?（任何可为空的类型）
+fun Any?.isNullOrEmpty(): Boolean
+//任何类型转为json，如果为空默认为对象,可以指定数组
+fun Any?.toJson(isJsonObject: Boolean = true): String
+```
+
 ### [颜色工具类](./src/main/java/com/sik/sikcore/color/ColorUtils.kt)
 
 ```kotlin
