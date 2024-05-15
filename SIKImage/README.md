@@ -78,3 +78,22 @@ fun readQRCode(bitmap: Bitmap): String
 fun createQRCode(info: String, size: Int, color: Int = -1, logo: Bitmap? = null): Bitmap
 ```
 
+### [系统媒体存储工具类](./src/main/java/com/sik/sikimage/MediaStoreUtils.kt)
+
+```kotlin
+/**
+ * 拉取图片
+ */
+ fun fetchImages(
+    sortKey: String = MediaStore.Images.Media.DATE_MODIFIED,
+    sortType: String = "DESC"
+ ): List<Uri>
+/**
+ * 拉取视频
+ */
+ fun fetchVideos(
+    sortKey: String = MediaStore.Video.Media.DATE_MODIFIED,
+    sortType: String = "DESC"
+ ): List<Uri>
+```
+
