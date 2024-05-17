@@ -1,5 +1,6 @@
 package com.sik.siknet.http
 
+import com.sik.sikcore.log.LogUtils
 import com.sik.siknet.http.interceptor.AutoSaveCookieJar
 import com.sik.siknet.http.interceptor.DefaultHeaderInterceptor
 import com.sik.siknet.http.interceptor.DefaultParameterInterceptor
@@ -7,10 +8,18 @@ import okhttp3.Interceptor
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.util.concurrent.TimeUnit
 
 object HttpUtils {
+    /**
+     * 日志
+     */
+    val logger = LogUtils.getLogger(HttpUtils::class)
 
+    /**
+     * 请求头类型
+     */
     val CLIENT_MEDIA_TYPE: MediaType? = "application/json; charset=utf-8".toMediaTypeOrNull()
 
     /**
@@ -22,6 +31,11 @@ object HttpUtils {
      * 网络拦截器
      */
     val networkInterceptor: MutableList<Interceptor> = mutableListOf()
+
+    /**
+     * 全局网络异常处理
+     */
+    var globalNetExceptionHandler: (Request, NetException) -> Boolean = { _, _ ->  false}
 
     /**
      * Create ok http client

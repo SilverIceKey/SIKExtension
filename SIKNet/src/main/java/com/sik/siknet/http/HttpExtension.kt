@@ -29,11 +29,26 @@ inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()):
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
         Gson().fromJson(
-            body,
-            object : TypeToken<T>() {}.type
+            body, object : TypeToken<T>() {}.type
         )
     } catch (e: Exception) {
-        throw NetException(request, e.message, e)
+        // 创建自定义异常 NetException
+        val netException = NetException(request, e.message, e)
+        // 全局异常处理器，返回是否处理成功的布尔值
+        val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
+        if (globalNetExceptionHandler) {
+            try {
+                Gson().fromJson<T>(
+                    "{}", object : TypeToken<T>() {}.type
+                )
+            } catch (convertException: Exception) {
+                Gson().fromJson<T>(
+                    "[]", object : TypeToken<T>() {}.type
+                )
+            }
+        } else {
+            throw netException
+        }
     }
 }
 
@@ -47,11 +62,26 @@ inline fun <reified T> String.httpPostForm(formParameters: Map<String, String>):
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
         Gson().fromJson(
-            body,
-            object : TypeToken<T>() {}.type
+            body, object : TypeToken<T>() {}.type
         )
     } catch (e: Exception) {
-        throw NetException(request, e.message, e)
+        // 创建自定义异常 NetException
+        val netException = NetException(request, e.message, e)
+        // 全局异常处理器，返回是否处理成功的布尔值
+        val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
+        if (globalNetExceptionHandler) {
+            try {
+                Gson().fromJson<T>(
+                    "{}", object : TypeToken<T>() {}.type
+                )
+            } catch (convertException: Exception) {
+                Gson().fromJson<T>(
+                    "[]", object : TypeToken<T>() {}.type
+                )
+            }
+        } else {
+            throw netException
+        }
     }
 }
 
@@ -66,22 +96,38 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
         }
     }
     val mediaType = "application/json; charset=utf-8".toMediaType()
-    val requestBody: RequestBody =
-        (json ?: "").toRequestBody(mediaType)
+    val requestBody: RequestBody = (json ?: "").toRequestBody(mediaType)
     val request = Request.Builder().url(this).method("POST", requestBody).build()
     return try {
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
         Gson().fromJson(
-            body,
-            object : TypeToken<T>() {}.type
+            body, object : TypeToken<T>() {}.type
         )
     } catch (e: Exception) {
-        throw NetException(request, e.message, e)
+        // 创建自定义异常 NetException
+        val netException = NetException(request, e.message, e)
+        // 全局异常处理器，返回是否处理成功的布尔值
+        val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
+        if (globalNetExceptionHandler) {
+            try {
+                Gson().fromJson<T>(
+                    "{}", object : TypeToken<T>() {}.type
+                )
+            } catch (convertException: Exception) {
+                Gson().fromJson<T>(
+                    "[]", object : TypeToken<T>() {}.type
+                )
+            }
+        } else {
+            throw netException
+        }
     }
 }
 
-inline fun <reified T> String.httpUploadFile(fileParameterName: String, file: File, params: Map<String, String>): T {
+inline fun <reified T> String.httpUploadFile(
+    fileParameterName: String, file: File, params: Map<String, String>
+): T {
     val fileBody = file.asRequestBody("application/octet-stream".toMediaType())
     val requestBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
         .addFormDataPart(fileParameterName, file.name, fileBody)
@@ -98,11 +144,26 @@ inline fun <reified T> String.httpUploadFile(fileParameterName: String, file: Fi
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
         Gson().fromJson<T>(
-            body,
-            object : TypeToken<T>() {}.type
+            body, object : TypeToken<T>() {}.type
         )
     } catch (e: Exception) {
-        throw NetException(request, e.message, e)
+        // 创建自定义异常 NetException
+        val netException = NetException(request, e.message, e)
+        // 全局异常处理器，返回是否处理成功的布尔值
+        val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
+        if (globalNetExceptionHandler) {
+            try {
+                Gson().fromJson<T>(
+                    "{}", object : TypeToken<T>() {}.type
+                )
+            } catch (convertException: Exception) {
+                Gson().fromJson<T>(
+                    "[]", object : TypeToken<T>() {}.type
+                )
+            }
+        } else {
+            throw netException
+        }
     }
 }
 
@@ -147,13 +208,16 @@ fun String.httpDownloadFile(
             addNetworkInterceptor(ProgressInterceptor(progressListener, destinationFile))
         }.build().newCall(request).execute() // 执行同步网络请求
         if (!response.isSuccessful || (response.header("Content-Type")
-                ?: "")
-                .contains("text/plain")
+                ?: "").contains("text/plain")
         ) {
             return false // 下载失败
         }
         true // 下载成功
     } catch (e: IOException) {
+        // 创建自定义异常 NetException
+        val netException = NetException(request, e.message, e)
+        // 全局异常处理器，返回是否处理成功的布尔值
+        HttpUtils.globalNetExceptionHandler(request, netException)
         false // 发生异常，下载失败
     }
 }
