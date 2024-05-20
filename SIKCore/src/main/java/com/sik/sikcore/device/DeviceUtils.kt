@@ -7,7 +7,8 @@ import android.provider.Settings
 import com.sik.sikcore.SIKCore
 import com.sik.sikcore.shell.ShellUtils
 import java.security.MessageDigest
-import java.util.*
+import java.util.Locale
+import java.util.UUID
 import kotlin.experimental.and
 
 
@@ -30,7 +31,7 @@ object DeviceUtils {
      * @return 设备硬件标识
      */
     @JvmOverloads
-    fun getDeviceId(context: Context = SIKCore.getApplication()): String {
+    fun getDeviceId(context: Context = SIKCore.getApplication(), length: Int = 32): String {
         val sbDeviceId = StringBuilder()
 
         //获得AndroidId（无需权限）
@@ -59,10 +60,10 @@ object DeviceUtils {
         if (sbDeviceId.isNotEmpty()) {
             try {
                 val hash = getHashByString(sbDeviceId.toString())
-                val sha1 = bytesToHex(hash)
-                if (!sha1.isNullOrEmpty()) {
+                val sha256 = bytesToHex(hash)
+                if (!sha256.isNullOrEmpty()) {
                     //返回最终的DeviceId
-                    return sha1
+                    return sha256.take(length)
                 }
             } catch (ex: Exception) {
                 ex.printStackTrace()
@@ -134,7 +135,7 @@ object DeviceUtils {
      */
     private fun getHashByString(data: String): ByteArray {
         return try {
-            val messageDigest: MessageDigest = MessageDigest.getInstance("SHA1")
+            val messageDigest: MessageDigest = MessageDigest.getInstance("SHA256")
             messageDigest.reset()
             messageDigest.update(data.toByteArray(charset("UTF-8")))
             messageDigest.digest()
