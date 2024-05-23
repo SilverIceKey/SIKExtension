@@ -71,8 +71,8 @@ afterEvaluate { project ->
                     artifact sourcesJar
                     artifact javadocJar
                 }
-
             }
+
         }
     }
 

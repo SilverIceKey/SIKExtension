@@ -51,7 +51,7 @@ class LogUtils(private val clazz: KClass<*>) {
 
     private fun configureLogger(logger: Logger) {
         val lc = logger.loggerContext
-        lc.stop()
+//        lc.stop()
 
         val encoder = PatternLayoutEncoder().apply {
             context = lc
