@@ -20,15 +20,15 @@ object MediaPlayerUtils {
     private var mediaPlayer: MediaPlayer? = null
     private var nextPlayer: MediaPlayer? = null
     private var exoPlayer: ExoPlayer? = null
-    private var queue: MutableList<String> = mutableListOf()
+    private var queue: MutableList<Any> = mutableListOf()
 
     /**
      * 播放音频
      */
     fun playAudio(dataSource: Any) {
         when (dataSource) {
-            is String -> queue.add(dataSource)
-            is List<*> -> queue.addAll(dataSource.filterIsInstance<String>())
+            is String, is Int, is Uri -> queue.add(dataSource)
+            is List<*> -> queue.addAll(listOf(dataSource.filter { it is String || it is Int || it is Uri }))
             else -> return
         }
 
@@ -39,10 +39,15 @@ object MediaPlayerUtils {
 
     private fun playNext() {
         val dataSource = queue.removeAt(0)
-        if (dataSource.endsWith(".m3u8")) {
-            setupExoPlayer(dataSource)
-        } else {
-            setupMediaPlayer(dataSource)
+        when (dataSource) {
+            is String -> if (dataSource.endsWith(".m3u8")) {
+                setupExoPlayer(dataSource)
+            } else {
+                setupMediaPlayer(dataSource)
+            }
+
+            is Int -> setupMediaPlayerFromRaw(dataSource)
+            is Uri -> setupMediaPlayer(dataSource)
         }
     }
 
@@ -57,6 +62,70 @@ object MediaPlayerUtils {
         player.apply {
             reset()
             setDataSource(SIKCore.getApplication(), Uri.parse(dataSource))
+            setOnPreparedListener {
+                it.start()
+            }
+            prepareAsync()
+            setOnCompletionListener {
+                player.reset()
+                if (queue.isNotEmpty()) {
+                    playNext()
+                } else {
+                    releaseMediaPlayer()
+                }
+            }
+            setOnErrorListener { _, _, _ ->
+                player.reset()
+                true
+            }
+        }
+        nextPlayer = mediaPlayer
+        mediaPlayer = player
+    }
+
+    private fun setupMediaPlayer(dataSource: Uri) {
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer()
+        } else {
+            nextPlayer = MediaPlayer()
+        }
+
+        val player = nextPlayer ?: mediaPlayer!!
+        player.apply {
+            reset()
+            setDataSource(SIKCore.getApplication(), dataSource)
+            setOnPreparedListener {
+                it.start()
+            }
+            prepareAsync()
+            setOnCompletionListener {
+                player.reset()
+                if (queue.isNotEmpty()) {
+                    playNext()
+                } else {
+                    releaseMediaPlayer()
+                }
+            }
+            setOnErrorListener { _, _, _ ->
+                player.reset()
+                true
+            }
+        }
+        nextPlayer = mediaPlayer
+        mediaPlayer = player
+    }
+
+    private fun setupMediaPlayerFromRaw(rawResId: Int) {
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer()
+        } else {
+            nextPlayer = MediaPlayer()
+        }
+
+        val player = nextPlayer ?: mediaPlayer!!
+        player.apply {
+            reset()
+            setDataSource(SIKCore.getApplication().resources.openRawResourceFd(rawResId))
             setOnPreparedListener {
                 it.start()
             }
