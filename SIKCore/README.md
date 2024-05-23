@@ -168,6 +168,12 @@ fun <T : Comparable<T>> Array<out T>.getString(): String
 fun <T : Comparable<T>> List<T>.toMutableList(): MutableList<T>
 ```
 
+### [数字扩展函数](./src/main/java/com/sik/sikcore/extension/NumberExtension.kt)
+
+```kotlin
+//文件大小单位转换
+fun Long.formatBytes(): String
+```
 ### [文件扩展函数](./src/main/java/com/sik/sikcore/extension/FileExtension.kt)
 
 ```kotlin
