@@ -57,4 +57,6 @@ dependencies {
     api("androidx.work:work-rxjava2:$work_version")
     // optional - Multiprocess support
     api("androidx.work:work-multiprocess:$work_version")
+    //kotlin反射相关
+    api("org.jetbrains.kotlin:kotlin-reflect:1.8.20")
 }

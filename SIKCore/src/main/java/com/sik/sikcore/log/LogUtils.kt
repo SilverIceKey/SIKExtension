@@ -4,7 +4,6 @@ import android.os.Environment
 import android.util.Log
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.android.BasicLogcatConfigurator
 import ch.qos.logback.classic.android.LogcatAppender
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
@@ -13,7 +12,7 @@ import ch.qos.logback.core.rolling.RollingFileAppender
 import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
 import ch.qos.logback.core.util.FileSize
 import com.sik.sikcore.SIKCore
-import com.sik.sikcore.extension.existsAndCreateFolder
+import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.extension.folder
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -25,7 +24,7 @@ import kotlin.reflect.KClass
  */
 class LogUtils(private val clazz: KClass<*>) {
     companion object {
-        private const val LOG_FILE_NAME_PATTERN = "app_log.%d{yyyy-MM-dd}.%i.log"
+        private const val LOG_FILE_NAME_PATTERN = "log.%d{yyyy-MM-dd}.%i.log"
         var DEBUG: Boolean = true
 
         @JvmStatic
@@ -51,7 +50,6 @@ class LogUtils(private val clazz: KClass<*>) {
 
     private fun configureLogger(logger: Logger) {
         val lc = logger.loggerContext
-//        lc.stop()
 
         val encoder = PatternLayoutEncoder().apply {
             context = lc
@@ -95,25 +93,42 @@ class LogUtils(private val clazz: KClass<*>) {
     }
 
     fun d(msg: String?) = msg?.let { logger.debug(it) }
-    fun i(msg: String?) = msg?.let { logger.info(it) }
+    fun i(msg: String?) = msg?.let {
+        it::class.annotations.find { it is LogInfo }?.let { annotation ->
+            logger.info((annotation as LogInfo).description)
+        }
+        logger.info(it)
+    }
+
+    fun i(clazz: KClass<*>) {
+        clazz.annotations.find { it is LogInfo }?.let {
+            logger.info((it as LogInfo).description)
+        }
+    }
+
     fun w(msg: String?) = msg?.let { logger.warn(it) }
     fun e(msg: String?) = msg?.let { logger.error(it) }
 
     fun copyLogFileToPublicStorage() {
         try {
-            val sourceFile = File(getLogsDirPath(), "app_log_file.log") // 替换为实际日志文件名
-            val publicDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            val sourceFolder = File(getLogsDirPath()) // 替换为实际日志文件名
+            val publicDirectory =
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath + File.separator + "log")
             if (!publicDirectory.exists()) publicDirectory.mkdirs()
-            val destinationFile = File(publicDirectory, sourceFile.name)
-
-            sourceFile.inputStream().use { input ->
-                destinationFile.outputStream().use { output ->
-                    input.copyTo(output)
+            sourceFolder.listFiles()?.forEach {
+                val destinationFile = File(publicDirectory, it.name)
+                if (!destinationFile.exists()) {
+                    destinationFile.createNewFile()
+                }
+                it.inputStream().use { input ->
+                    destinationFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
                 }
             }
-            Log.i("LogUtils", "Log file copied to ${destinationFile.absolutePath}")
+            Log.i("LogUtils", "日志文件夹下的日志已经复制到${sourceFolder.absolutePath}")
         } catch (e: IOException) {
-            Log.e("LogUtils", "Failed to copy log file: ${e.message}")
+            Log.e("LogUtils", "复制日志文件失败: ${e.message}")
         }
     }
 
