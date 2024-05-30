@@ -9,13 +9,9 @@ import com.sik.sikcore.log.LogUtils
 class MainActivity : AppCompatActivity() {
     private val logger = LogUtils.getLogger(MainActivity::class)
 
-    @field:LogInfo(description = "请求地址")
-    val http = "http://127.0.0.1"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         logger.i(this::class)
-        logger.i(http)
-        logger.copyLogFileToPublicStorage()
     }
 }

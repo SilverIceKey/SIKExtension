@@ -12,6 +12,7 @@ import ch.qos.logback.core.rolling.RollingFileAppender
 import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
 import ch.qos.logback.core.util.FileSize
 import com.sik.sikcore.SIKCore
+import com.sik.sikcore.explain.AnnotationScanner
 import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.extension.folder
 import org.slf4j.LoggerFactory
@@ -94,8 +95,8 @@ class LogUtils(private val clazz: KClass<*>) {
 
     fun d(msg: String?) = msg?.let { logger.debug(it) }
     fun i(msg: String?) = msg?.let {
-        it::class.annotations.find { it is LogInfo }?.let { annotation ->
-            logger.info((annotation as LogInfo).description)
+        AnnotationScanner.getDescription(it)?.let {
+            logger.info(it)
         }
         logger.info(it)
     }
