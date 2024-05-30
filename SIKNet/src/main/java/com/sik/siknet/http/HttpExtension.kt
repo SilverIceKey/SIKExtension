@@ -16,6 +16,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()): T {
+    HttpUtils.logger.i(this)
     // 构造带参数的URL
     val urlWithParams = buildString {
         append(this@httpGet)
@@ -53,6 +54,7 @@ inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()):
 }
 
 inline fun <reified T> String.httpPostForm(formParameters: Map<String, String>): T {
+    HttpUtils.logger.i(this)
     val formBodyBuilder = FormBody.Builder()
     for ((key, value) in formParameters) {
         formBodyBuilder.add(key, value)
@@ -86,6 +88,7 @@ inline fun <reified T> String.httpPostForm(formParameters: Map<String, String>):
 }
 
 inline fun <reified T> String.httpPostJson(data: Any? = null): T {
+    HttpUtils.logger.i(this)
     val json = if (data is String) {
         data
     } else {
@@ -128,6 +131,7 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
 inline fun <reified T> String.httpUploadFile(
     fileParameterName: String, file: File, params: Map<String, String>
 ): T {
+    HttpUtils.logger.i(this)
     val fileBody = file.asRequestBody("application/octet-stream".toMediaType())
     val requestBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
         .addFormDataPart(fileParameterName, file.name, fileBody)
@@ -174,6 +178,7 @@ fun String.httpDownloadFile(
     destinationFile: File,
     progressListener: ProgressListener
 ): Boolean {
+    HttpUtils.logger.i(this)
     val json = if (data is String) {
         data
     } else {
