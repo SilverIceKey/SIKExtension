@@ -28,7 +28,11 @@ object AnnotationScanner {
             clazz.memberProperties.forEach { prop ->
                 if (prop.isTypeOf<String>()) {
                     prop.isAccessible = true // 确保可以访问属性
-                    val annotation = prop.javaField?.getAnnotation(LogInfo::class.java)
+                    // 检查字段上的注解
+                    val fieldAnnotation = prop.javaField?.getAnnotation(LogInfo::class.java)
+                    // 检查 getter 方法上的注解
+                    val getterAnnotation = prop.getter.findAnnotation<LogInfo>()
+                    val annotation = fieldAnnotation ?: getterAnnotation
                     if (annotation != null) {
                         try {
                             val value = if (prop.parameters.isEmpty()) {

@@ -5,7 +5,8 @@ package com.sik.sikcore.explain
  */
 @Target(
     AnnotationTarget.CLASS, AnnotationTarget.FUNCTION,
-    AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD
+    AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD,
+    AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER
 )
 @Retention(AnnotationRetention.RUNTIME) // 确保注解在运行时可用
 @MustBeDocumented

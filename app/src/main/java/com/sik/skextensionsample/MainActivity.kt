@@ -13,5 +13,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         logger.i(this::class)
+        logger.i(ObjectDemo.demoField)
+        logger.i(ObjectDemo.demoField2)
     }
 }
