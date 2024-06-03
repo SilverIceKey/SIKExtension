@@ -38,6 +38,11 @@ object HttpUtils {
     var globalNetExceptionHandler: (Request, NetException) -> Boolean = { _, _ ->  false}
 
     /**
+     * 是否在请求时写日志
+     */
+    var isLoggerInRequest: Boolean = true
+
+    /**
      * Create ok http client
      * 创建okhttpClient
      * @param timeoutTime

@@ -2,6 +2,7 @@ package com.sik.siknet.http
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.sik.sikcore.extension.toJson
 import com.sik.siknet.http.interceptor.ProgressInterceptor
 import com.sik.siknet.http.interceptor.ProgressListener
 import okhttp3.FormBody
@@ -16,7 +17,10 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()): T {
-    HttpUtils.logger.i(this)
+    if (HttpUtils.isLoggerInRequest) {
+        HttpUtils.logger.i(this)
+        HttpUtils.logger.i(params.toJson())
+    }
     // 构造带参数的URL
     val urlWithParams = buildString {
         append(this@httpGet)
@@ -54,7 +58,10 @@ inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()):
 }
 
 inline fun <reified T> String.httpPostForm(formParameters: Map<String, String>): T {
-    HttpUtils.logger.i(this)
+    if (HttpUtils.isLoggerInRequest) {
+        HttpUtils.logger.i(this)
+        HttpUtils.logger.i(formParameters.toJson())
+    }
     val formBodyBuilder = FormBody.Builder()
     for ((key, value) in formParameters) {
         formBodyBuilder.add(key, value)
@@ -88,7 +95,7 @@ inline fun <reified T> String.httpPostForm(formParameters: Map<String, String>):
 }
 
 inline fun <reified T> String.httpPostJson(data: Any? = null): T {
-    HttpUtils.logger.i(this)
+
     val json = if (data is String) {
         data
     } else {
@@ -97,6 +104,10 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
         } else {
             Gson().toJson(data)
         }
+    }
+    if (HttpUtils.isLoggerInRequest) {
+        HttpUtils.logger.i(this)
+        HttpUtils.logger.i(json)
     }
     val mediaType = "application/json; charset=utf-8".toMediaType()
     val requestBody: RequestBody = (json ?: "").toRequestBody(mediaType)
@@ -131,7 +142,10 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
 inline fun <reified T> String.httpUploadFile(
     fileParameterName: String, file: File, params: Map<String, String>
 ): T {
-    HttpUtils.logger.i(this)
+    if (HttpUtils.isLoggerInRequest) {
+        HttpUtils.logger.i(this)
+        HttpUtils.logger.i(params.toJson())
+    }
     val fileBody = file.asRequestBody("application/octet-stream".toMediaType())
     val requestBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
         .addFormDataPart(fileParameterName, file.name, fileBody)
@@ -178,11 +192,14 @@ fun String.httpDownloadFile(
     destinationFile: File,
     progressListener: ProgressListener
 ): Boolean {
-    HttpUtils.logger.i(this)
     val json = if (data is String) {
         data
     } else {
         Gson().toJson(data)
+    }
+    if (HttpUtils.isLoggerInRequest) {
+        HttpUtils.logger.i(this)
+        HttpUtils.logger.i(json)
     }
     val mediaType = "application/json; charset=utf-8".toMediaType()
     val requestBody: RequestBody = (json ?: "").toRequestBody(mediaType)
