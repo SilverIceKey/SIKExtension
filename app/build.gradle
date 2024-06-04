@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.sik.skextensionsample'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.sik.skextensionsample"
         minSdk 23
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -48,4 +48,6 @@ dependencies {
     implementation project(path: ':SIKCore')
     implementation project(path: ':SIKNet')
     implementation project(path: ':SIKEncrypt')
+    implementation project(path: ':SIKImage')
+    implementation project(path: ':SIKMedia')
 }
