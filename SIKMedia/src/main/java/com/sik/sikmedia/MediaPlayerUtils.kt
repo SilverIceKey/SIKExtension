@@ -2,6 +2,7 @@ package com.sik.sikmedia
 
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -12,6 +13,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import com.sik.sikcore.SIKCore
+import java.io.IOException
 
 /**
  * 媒体播放工具类，支持MediaPlayer和ExoPlayer，自动根据文件格式选择播放器
@@ -123,9 +125,18 @@ object MediaPlayerUtils {
         }
 
         val player = nextPlayer ?: mediaPlayer!!
+        val afd = SIKCore.getApplication().resources.openRawResourceFd(rawResId)
         player.apply {
             reset()
-            setDataSource(SIKCore.getApplication().resources.openRawResourceFd(rawResId))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                setDataSource(afd)
+            } else {
+                try {
+                    setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
             setOnPreparedListener {
                 it.start()
             }
