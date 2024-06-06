@@ -39,6 +39,10 @@ object MediaPlayerUtils {
         }
     }
 
+    /**
+     * 播放下一个音频
+     *
+     */
     private fun playNext() {
         val dataSource = queue.removeAt(0)
         when (dataSource) {
@@ -53,6 +57,11 @@ object MediaPlayerUtils {
         }
     }
 
+    /**
+     * 设置媒体播放器
+     *
+     * @param dataSource
+     */
     private fun setupMediaPlayer(dataSource: String) {
         if (mediaPlayer == null) {
             mediaPlayer = MediaPlayer()
@@ -85,6 +94,11 @@ object MediaPlayerUtils {
         mediaPlayer = player
     }
 
+    /**
+     * 设置媒体播放器
+     *
+     * @param dataSource
+     */
     private fun setupMediaPlayer(dataSource: Uri) {
         if (mediaPlayer == null) {
             mediaPlayer = MediaPlayer()
@@ -117,6 +131,11 @@ object MediaPlayerUtils {
         mediaPlayer = player
     }
 
+    /**
+     * 设置媒体播放器
+     *
+     * @param rawResId
+     */
     private fun setupMediaPlayerFromRaw(rawResId: Int) {
         if (mediaPlayer == null) {
             mediaPlayer = MediaPlayer()
@@ -158,6 +177,11 @@ object MediaPlayerUtils {
         mediaPlayer = player
     }
 
+    /**
+     * 设置媒体源
+     *
+     * @param dataSource
+     */
     @OptIn(UnstableApi::class)
     private fun setupExoPlayer(dataSource: String) {
         releaseExoPlayer()  // 释放之前的ExoPlayer资源
@@ -203,6 +227,10 @@ object MediaPlayerUtils {
         queue.clear()
     }
 
+    /**
+     * 释放播放器
+     *
+     */
     private fun releaseMediaPlayer() {
         mediaPlayer?.release()
         nextPlayer?.release()
@@ -210,6 +238,10 @@ object MediaPlayerUtils {
         nextPlayer = null
     }
 
+    /**
+     * 释放播放器
+     *
+     */
     private fun releaseExoPlayer() {
         exoPlayer?.release()
         exoPlayer = null

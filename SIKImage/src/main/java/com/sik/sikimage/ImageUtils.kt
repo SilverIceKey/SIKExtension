@@ -4,7 +4,7 @@ import android.graphics.Matrix
 import kotlin.math.abs
 
 /**
- * yuv工具类
+ * 图像工具类
  */
 object ImageUtils {
     init {

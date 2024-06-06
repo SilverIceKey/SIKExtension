@@ -6,6 +6,7 @@ import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.YuvImage
+import android.media.Image
 import android.os.Environment
 import android.util.Base64
 import java.io.ByteArrayOutputStream
@@ -15,10 +16,11 @@ import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.nio.ByteBuffer
 
 
 /**
- * 图像帮助类
+ * 图像转换工具类
  */
 object ImageConvertUtils {
     /**
@@ -195,10 +197,10 @@ object ImageConvertUtils {
                 val y = (66 * r + 129 * g + 25 * b + 128 shr 8) + 16
                 val u = (-38 * r - 74 * g + 112 * b + 128 shr 8) + 128
                 val v = (112 * r - 94 * g - 18 * b + 128 shr 8) + 128
-                nv21[yIndex++] = (y.coerceIn(0,255)).toByte()
+                nv21[yIndex++] = (y.coerceIn(0, 255)).toByte()
                 if (j % 2 == 0 && index % 2 == 0 && uvIndex < nv21.size - 2) {
-                    nv21[uvIndex++] = (v.coerceIn(0,255)).toByte()
-                    nv21[uvIndex++] = (u.coerceIn(0,255)).toByte()
+                    nv21[uvIndex++] = (v.coerceIn(0, 255)).toByte()
+                    nv21[uvIndex++] = (u.coerceIn(0, 255)).toByte()
                 }
                 ++index
             }
@@ -288,6 +290,27 @@ object ImageConvertUtils {
         val base64Jpeg = Base64.encodeToString(jpegByteArray, Base64.DEFAULT)
         jpegStream.close()
         return base64Jpeg
+    }
+
+    /**
+     * CameraX的Image转Bitmap
+     *
+     * @param image
+     * @param rotationDegrees
+     * @return
+     */
+    fun imageToBitmap(image: Image, rotationDegrees: Int): Bitmap {
+        val buffer: ByteBuffer = image.planes[0].buffer
+        val bytes = ByteArray(buffer.capacity())
+        buffer.get(bytes)
+        var bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
+
+        // 旋转Bitmap以纠正方向
+        val matrix = Matrix()
+        matrix.postRotate(rotationDegrees.toFloat())
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+
+        return bitmap
     }
 
     /**
