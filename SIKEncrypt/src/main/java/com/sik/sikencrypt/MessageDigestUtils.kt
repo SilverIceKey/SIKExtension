@@ -9,10 +9,6 @@ import com.sik.sikencrypt.message_digest.SM3MessageDigest
  *
  */
 object MessageDigestUtils {
-    init {
-        System.loadLibrary("gmssl")
-        System.loadLibrary("SIKEncrypt")
-    }
     /**
      * 获取信息摘要类型
      *

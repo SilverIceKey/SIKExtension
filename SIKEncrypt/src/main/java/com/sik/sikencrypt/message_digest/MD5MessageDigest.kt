@@ -2,6 +2,7 @@ package com.sik.sikencrypt.message_digest
 
 import com.sik.sikcore.data.ConvertUtils
 import com.sik.sikencrypt.IMessageDigest
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.MessageDigest
 
 

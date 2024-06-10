@@ -11,41 +11,24 @@ import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
-import java.util.*
 import javax.crypto.Cipher
 
-/**
- * RSA加解密
- *
- */
 class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
-    // Cipher实例，用于执行加密和解密操作
-    private val cipher: Cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
+    private val cipher: Cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
     private var publicKey: ByteArray = byteArrayOf()
     private var privateKey: ByteArray = byteArrayOf()
 
-    /**
-     * 生成公钥和私钥
-     *
-     * @return
-     */
     override fun generateKeyPair(): IRSAEncrypt {
-        // 创建KeyPairGenerator对象
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
-        // 初始化KeyPairGenerator对象
         keyPairGenerator.initialize(2048)
-        // 生成KeyPair
         val keyPair = keyPairGenerator.genKeyPair()
-        // 获取公钥和私钥的字节数组形式
         publicKey = keyPair.public.encoded
         privateKey = keyPair.private.encoded
         return this
     }
 
     private fun getPublicKey(): PublicKey {
-        if ((config.publicKey().isEmpty() && config.privateKey()
-                .isEmpty()) && publicKey.isEmpty()
-        ) {
+        if ((config.publicKey().isEmpty() && config.privateKey().isEmpty()) && publicKey.isEmpty()) {
             generateKeyPair()
         } else if (config.publicKey().isEmpty()) {
             throw EncryptException(EncryptExceptionEnums.PUBLIC_KEY_NOT_SET)
@@ -56,11 +39,9 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     }
 
     private fun getPrivateKey(): PrivateKey {
-        if ((config.publicKey().isEmpty() && config.privateKey()
-                .isEmpty()) && privateKey.isEmpty()
-        ) {
+        if ((config.publicKey().isEmpty() && config.privateKey().isEmpty()) && privateKey.isEmpty()) {
             generateKeyPair()
-        } else if (config.publicKey().isEmpty()) {
+        } else if (config.privateKey().isEmpty()) {
             throw EncryptException(EncryptExceptionEnums.PRIVATE_KEY_NOT_SET)
         }
         val keySpec = PKCS8EncodedKeySpec(privateKey)
@@ -84,42 +65,50 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptToHex(dataBytes: ByteArray): String {
-        cipher.init(Cipher.ENCRYPT_MODE, getPublicKey())
-        val encrypted = cipher.doFinal(dataBytes)
-        return ConvertUtils.bytesToHex(encrypted)
+        return encrypt(dataBytes).let {
+            ConvertUtils.bytesToHex(it)
+        }
     }
 
     @Throws(EncryptException::class)
     override fun encryptToBase64(dataBytes: ByteArray): String {
-        cipher.init(Cipher.ENCRYPT_MODE, getPublicKey())
-        val encrypted = cipher.doFinal(dataBytes)
-        return ConvertUtils.bytesToBase64String(encrypted)
+        return encrypt(dataBytes).let {
+            ConvertUtils.bytesToBase64String(it)
+        }
     }
 
     @Throws(EncryptException::class)
     override fun encryptToByteArray(dataBytes: ByteArray): ByteArray {
-        cipher.init(Cipher.ENCRYPT_MODE, getPublicKey())
-        return cipher.doFinal(dataBytes)
+        return encrypt(dataBytes)
     }
 
     @Throws(EncryptException::class)
     override fun decryptFromHex(dataStr: String): String {
         val bytes = ConvertUtils.hexToBytes(dataStr)
-        cipher.init(Cipher.DECRYPT_MODE, getPrivateKey())
-        val decrypted = cipher.doFinal(bytes)
-        return String(decrypted, Charsets.UTF_8)
+        return decrypt(bytes).let {
+            String(it, Charsets.UTF_8)
+        }
     }
 
     @Throws(EncryptException::class)
     override fun decryptFromBase64(dataStr: String): String {
         val bytes = ConvertUtils.base64StringToBytes(dataStr)
-        cipher.init(Cipher.DECRYPT_MODE, getPrivateKey())
-        val decrypted = cipher.doFinal(bytes)
-        return String(decrypted, Charsets.UTF_8)
+        return decrypt(bytes).let {
+            String(it, Charsets.UTF_8)
+        }
     }
 
     @Throws(EncryptException::class)
     override fun decryptFromByteArray(dataBytes: ByteArray): ByteArray {
+        return decrypt(dataBytes)
+    }
+
+    private fun encrypt(dataBytes: ByteArray): ByteArray {
+        cipher.init(Cipher.ENCRYPT_MODE, getPublicKey())
+        return cipher.doFinal(dataBytes)
+    }
+
+    private fun decrypt(dataBytes: ByteArray): ByteArray {
         cipher.init(Cipher.DECRYPT_MODE, getPrivateKey())
         return cipher.doFinal(dataBytes)
     }

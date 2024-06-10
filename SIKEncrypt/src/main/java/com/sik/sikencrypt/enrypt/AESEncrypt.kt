@@ -7,13 +7,24 @@ import com.sik.sikencrypt.EncryptMode
 import com.sik.sikencrypt.EncryptPadding
 import com.sik.sikencrypt.IEncrypt
 import com.sik.sikencrypt.IEncryptConfig
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.nio.charset.Charset
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * AES加解密
  *
  */
 class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
+    companion object {
+        /**
+         * 块大小
+         */
+        private const val BLOCK_SIZE = 16
+    }
+
     init {
         if (iEncryptConfig.key().size != 16 && iEncryptConfig.key().size != 24 && iEncryptConfig.key().size != 32) {
             throw EncryptException(EncryptExceptionEnums.KEY_SIZE_ERROR)
@@ -24,44 +35,11 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         if (iEncryptConfig.mode() == EncryptMode.GCM || iEncryptConfig.mode() == EncryptMode.CTR) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
-        initAES(iEncryptConfig.key())
     }
-
-    /**
-     * Init aes
-     * 初始化AES
-     */
-    private external fun initAES(key: ByteArray)
-
-    /**
-     * Encrypt
-     * 加密
-     * @param dataBytes
-     * @return
-     */
-    private external fun encrypt(
-        mode: String,
-        padding: String,
-        iv: ByteArray?,
-        dataBytes: ByteArray
-    ): ByteArray
-
-    /**
-     * Decrypt
-     * 解密
-     * @param dataBytes
-     * @return
-     */
-    private external fun decrypt(
-        mode: String,
-        padding: String,
-        iv: ByteArray?,
-        dataBytes: ByteArray
-    ): ByteArray
 
     @Throws(EncryptException::class)
     override fun encryptToHex(dataBytes: ByteArray): String {
-        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % 16 != 0) {
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
         return ConvertUtils.bytesToHex(
@@ -75,7 +53,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptToBase64(dataBytes: ByteArray): String {
-        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % 16 != 0) {
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
         return ConvertUtils.bytesToBase64String(
@@ -89,7 +67,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptToByteArray(dataBytes: ByteArray): ByteArray {
-        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % 16 != 0) {
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
         return encrypt(
@@ -103,7 +81,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
     override fun decryptFromHex(dataStr: String): String {
         if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.hexToBytes(
                 dataStr
-            ).size % 16 != 0
+            ).size % BLOCK_SIZE != 0
         ) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
@@ -118,7 +96,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
     override fun decryptFromBase64(dataStr: String): String {
         if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.base64StringToBytes(
                 dataStr
-            ).size % 16 != 0
+            ).size % BLOCK_SIZE != 0
         ) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
@@ -131,7 +109,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun decryptFromByteArray(dataBytes: ByteArray): ByteArray {
-        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % 16 != 0
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0
         ) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
@@ -140,5 +118,54 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             iEncryptConfig.padding().padding,
             iEncryptConfig.iv(), dataBytes
         )
+    }
+
+    private fun encrypt(
+        mode: String,
+        padding: String,
+        iv: ByteArray?,
+        dataBytes: ByteArray
+    ): ByteArray {
+        val cipher = Cipher.getInstance(
+            "${iEncryptConfig.algorithm().name}/$mode/$padding",
+            BouncyCastleProvider.PROVIDER_NAME
+        )
+        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        if (iv != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iv))
+        } else {
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec)
+        }
+        val encryptedData = cipher.doFinal(dataBytes)
+        return if (iv != null && iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
+            iv + encryptedData
+        } else {
+            encryptedData
+        }
+    }
+
+    private fun decrypt(
+        mode: String,
+        padding: String,
+        iv: ByteArray?,
+        dataBytes: ByteArray
+    ): ByteArray {
+        val cipher = Cipher.getInstance(
+            "${iEncryptConfig.algorithm().name}/$mode/$padding",
+            BouncyCastleProvider.PROVIDER_NAME
+        )
+        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        if (iv != null && iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
+            val actualIv = dataBytes.copyOfRange(0, iv.size)
+            val actualData = dataBytes.copyOfRange(iv.size, dataBytes.size)
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(actualIv))
+            return cipher.doFinal(actualData)
+        } else if (iv != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iv))
+            return cipher.doFinal(dataBytes)
+        } else {
+            cipher.init(Cipher.DECRYPT_MODE, keySpec)
+            return cipher.doFinal(dataBytes)
+        }
     }
 }

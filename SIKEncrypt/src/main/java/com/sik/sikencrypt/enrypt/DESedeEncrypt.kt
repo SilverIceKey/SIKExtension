@@ -14,33 +14,32 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 /**
- * SM4加解密
+ * TripleDES加解密
  *
  */
-class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
+class DESedeEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
     companion object {
         /**
-         * Sm4 Block Size
-         * SM4块大小
+         * 块大小
          */
-        const val SM4_BLOCK_SIZE = 16
+        private const val BLOCK_SIZE = 8
     }
 
     init {
-        if (iEncryptConfig.key().size != 16) {
+        if (iEncryptConfig.key().size != 21) {
             throw EncryptException(EncryptExceptionEnums.KEY_SIZE_ERROR)
         }
         if (iEncryptConfig.mode() != EncryptMode.ECB && iEncryptConfig.iv() == null) {
             throw EncryptException(EncryptExceptionEnums.NO_IV)
         }
-        if (iEncryptConfig.mode() == EncryptMode.GCM) {
+        if (iEncryptConfig.mode() == EncryptMode.GCM || iEncryptConfig.mode() == EncryptMode.CTR) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
     }
 
     @Throws(EncryptException::class)
     override fun encryptToHex(dataBytes: ByteArray): String {
-        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % SM4_BLOCK_SIZE != 0) {
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
         return ConvertUtils.bytesToHex(
@@ -54,7 +53,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptToBase64(dataBytes: ByteArray): String {
-        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % SM4_BLOCK_SIZE != 0) {
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
         return ConvertUtils.bytesToBase64String(
@@ -68,7 +67,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptToByteArray(dataBytes: ByteArray): ByteArray {
-        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % SM4_BLOCK_SIZE != 0) {
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
         return encrypt(
@@ -82,7 +81,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
     override fun decryptFromHex(dataStr: String): String {
         if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.hexToBytes(
                 dataStr
-            ).size % SM4_BLOCK_SIZE != 0
+            ).size % BLOCK_SIZE != 0
         ) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
@@ -97,7 +96,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
     override fun decryptFromBase64(dataStr: String): String {
         if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.base64StringToBytes(
                 dataStr
-            ).size % SM4_BLOCK_SIZE != 0
+            ).size % BLOCK_SIZE != 0
         ) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
@@ -110,7 +109,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
     @Throws(EncryptException::class)
     override fun decryptFromByteArray(dataBytes: ByteArray): ByteArray {
-        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % SM4_BLOCK_SIZE != 0
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0
         ) {
             throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }

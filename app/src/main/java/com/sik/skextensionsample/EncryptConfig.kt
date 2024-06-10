@@ -25,4 +25,7 @@ class EncryptConfig : IEncryptConfig {
     override fun padding(): EncryptPadding {
         return EncryptPadding.PKCS5Padding
     }
+
+    override val composeIV: Boolean
+        get() = super.composeIV
 }

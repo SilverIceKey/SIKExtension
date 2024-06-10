@@ -90,6 +90,7 @@ class LogUtils(private val clazz: KClass<*>) {
             level = Level.ALL
             addAppender(fileAppender)
             addAppender(logcatAppender)
+            isAdditive = false // 确保不继承父类的 Appender
         }
     }
 

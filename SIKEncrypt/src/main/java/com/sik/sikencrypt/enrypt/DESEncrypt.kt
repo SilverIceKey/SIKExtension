@@ -4,13 +4,14 @@ import com.sik.sikcore.data.ConvertUtils
 import com.sik.sikencrypt.EncryptException
 import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.EncryptMode
+import com.sik.sikencrypt.EncryptPadding
 import com.sik.sikencrypt.IEncrypt
 import com.sik.sikencrypt.IEncryptConfig
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.nio.charset.Charset
 import javax.crypto.Cipher
-import javax.crypto.SecretKey
-import javax.crypto.SecretKeyFactory
-import javax.crypto.spec.DESKeySpec
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 
 /**
@@ -18,7 +19,12 @@ import javax.crypto.spec.DESKeySpec
  *
  */
 class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
-    private var secretKey: SecretKey? = null
+    companion object {
+        /**
+         * 块大小
+         */
+        private const val BLOCK_SIZE = 8
+    }
 
     init {
         if (iEncryptConfig.key().size != 8) {
@@ -30,96 +36,137 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         if (iEncryptConfig.mode() == EncryptMode.GCM || iEncryptConfig.mode() == EncryptMode.CTR) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
-        initDES(iEncryptConfig.key())
-    }
-
-    /**
-     * Init DES
-     * 初始化DES
-     * @param key
-     */
-    private fun initDES(key: ByteArray) {
-        // 创建一个 DESKeySpec 对象，使用密钥
-        val desKeySpec = DESKeySpec(key)
-        // 创建一个密钥工厂
-        val keyFactory = SecretKeyFactory.getInstance("DES")
-        // 从密钥工厂中，根据 DESKeySpec 对象，生成一个 SecretKey 对象
-        secretKey = keyFactory.generateSecret(desKeySpec)
     }
 
     @Throws(EncryptException::class)
     override fun encryptToHex(dataBytes: ByteArray): String {
-        if (secretKey == null) {
-            throw EncryptException(EncryptExceptionEnums.INIT_KEY_FIRST)
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0) {
+            throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
-        // 创建一个 Cipher 对象，并设置它的模式（加密或解密）和密钥
-        val cipher =
-            Cipher.getInstance("DES/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}")
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        val outputBytes = cipher.doFinal(dataBytes)
-        // 将加密后的字节数组转换为 Base64 编码的字符串
-        return ConvertUtils.bytesToHex(outputBytes)
+        return ConvertUtils.bytesToHex(
+            encrypt(
+                iEncryptConfig.mode().mode,
+                iEncryptConfig.padding().padding,
+                iEncryptConfig.iv(), dataBytes
+            )
+        )
     }
 
     @Throws(EncryptException::class)
     override fun encryptToBase64(dataBytes: ByteArray): String {
-        // 创建一个 Cipher 对象，并设置它的模式（加密或解密）和密钥
-        val cipher =
-            Cipher.getInstance("DES/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}")
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        val outputBytes = cipher.doFinal(dataBytes)
-        // 将加密后的字节数组转换为 Base64 编码的字符串
-        return ConvertUtils.bytesToBase64String(outputBytes)
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0) {
+            throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
+        }
+        return ConvertUtils.bytesToBase64String(
+            encrypt(
+                iEncryptConfig.mode().mode,
+                iEncryptConfig.padding().padding,
+                iEncryptConfig.iv(), dataBytes
+            )
+        )
     }
 
     @Throws(EncryptException::class)
     override fun encryptToByteArray(dataBytes: ByteArray): ByteArray {
-        if (secretKey == null) {
-            throw EncryptException(EncryptExceptionEnums.INIT_KEY_FIRST)
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0) {
+            throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
-        // 创建一个 Cipher 对象，并设置它的模式（加密或解密）和密钥
-        val cipher =
-            Cipher.getInstance("DES/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}")
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        // 将加密后的字节数组转换为 Base64 编码的字符串
-        return cipher.doFinal(dataBytes)
+        return encrypt(
+            iEncryptConfig.mode().mode,
+            iEncryptConfig.padding().padding,
+            iEncryptConfig.iv(), dataBytes
+        )
     }
 
     @Throws(EncryptException::class)
     override fun decryptFromHex(dataStr: String): String {
-        if (secretKey == null) {
-            throw EncryptException(EncryptExceptionEnums.INIT_KEY_FIRST)
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.hexToBytes(
+                dataStr
+            ).size % BLOCK_SIZE != 0
+        ) {
+            throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
-        // 创建一个 Cipher 对象，并设置它的模式（加密或解密）和密钥
-        val cipher =
-            Cipher.getInstance("DES/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}")
-        cipher.init(Cipher.DECRYPT_MODE, secretKey)
-        val outputBytes = cipher.doFinal(ConvertUtils.hexToBytes(dataStr))
-        return String(outputBytes, Charset.defaultCharset())
+        return decrypt(
+            iEncryptConfig.mode().mode,
+            iEncryptConfig.padding().padding,
+            iEncryptConfig.iv(), ConvertUtils.hexToBytes(dataStr)
+        ).toString(Charset.defaultCharset())
     }
 
     @Throws(EncryptException::class)
     override fun decryptFromBase64(dataStr: String): String {
-        if (secretKey == null) {
-            throw EncryptException(EncryptExceptionEnums.INIT_KEY_FIRST)
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.base64StringToBytes(
+                dataStr
+            ).size % BLOCK_SIZE != 0
+        ) {
+            throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
-        // 创建一个 Cipher 对象，并设置它的模式（加密或解密）和密钥
-        val cipher =
-            Cipher.getInstance("DES/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}")
-        cipher.init(Cipher.DECRYPT_MODE, secretKey)
-        val outputBytes = cipher.doFinal(ConvertUtils.base64StringToBytes(dataStr))
-        return String(outputBytes, Charset.defaultCharset())
+        return decrypt(
+            iEncryptConfig.mode().mode,
+            iEncryptConfig.padding().padding,
+            iEncryptConfig.iv(), ConvertUtils.base64StringToBytes(dataStr)
+        ).toString(Charset.defaultCharset())
     }
 
     @Throws(EncryptException::class)
     override fun decryptFromByteArray(dataBytes: ByteArray): ByteArray {
-        if (secretKey == null) {
-            throw EncryptException(EncryptExceptionEnums.INIT_KEY_FIRST)
+        if (iEncryptConfig.padding() == EncryptPadding.NoPadding && dataBytes.size % BLOCK_SIZE != 0
+        ) {
+            throw EncryptException(EncryptExceptionEnums.PADDING_NOT_SUPPORT_DATA_SIZE)
         }
-        // 创建一个 Cipher 对象，并设置它的模式（加密或解密）和密钥
-        val cipher =
-            Cipher.getInstance("DES/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}")
-        cipher.init(Cipher.DECRYPT_MODE, secretKey)
-        return cipher.doFinal(dataBytes)
+        return decrypt(
+            iEncryptConfig.mode().mode,
+            iEncryptConfig.padding().padding,
+            iEncryptConfig.iv(), dataBytes
+        )
+    }
+
+    private fun encrypt(
+        mode: String,
+        padding: String,
+        iv: ByteArray?,
+        dataBytes: ByteArray
+    ): ByteArray {
+        val cipher = Cipher.getInstance(
+            "${iEncryptConfig.algorithm().name}/$mode/$padding",
+            BouncyCastleProvider.PROVIDER_NAME
+        )
+        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        if (iv != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iv))
+        } else {
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec)
+        }
+        val encryptedData = cipher.doFinal(dataBytes)
+        return if (iv != null && iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
+            iv + encryptedData
+        } else {
+            encryptedData
+        }
+    }
+
+    private fun decrypt(
+        mode: String,
+        padding: String,
+        iv: ByteArray?,
+        dataBytes: ByteArray
+    ): ByteArray {
+        val cipher = Cipher.getInstance(
+            "${iEncryptConfig.algorithm().name}/$mode/$padding",
+            BouncyCastleProvider.PROVIDER_NAME
+        )
+        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        if (iv != null && iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
+            val actualIv = dataBytes.copyOfRange(0, iv.size)
+            val actualData = dataBytes.copyOfRange(iv.size, dataBytes.size)
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(actualIv))
+            return cipher.doFinal(actualData)
+        } else if (iv != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iv))
+            return cipher.doFinal(dataBytes)
+        } else {
+            cipher.init(Cipher.DECRYPT_MODE, keySpec)
+            return cipher.doFinal(dataBytes)
+        }
     }
 }

@@ -1,5 +1,7 @@
 package com.sik.sikencrypt
 
+import java.security.SecureRandom
+
 /**
  * 加解密配置接口
  *
@@ -17,7 +19,11 @@ interface IEncryptConfig {
      *
      * @return
      */
-    fun iv(): ByteArray?
+    fun iv(): ByteArray? {
+        val iv = ByteArray(16) // 128-bit IV
+        SecureRandom().nextBytes(iv)
+        return iv
+    }
 
     /**
      * 加解密方式
@@ -39,4 +45,10 @@ interface IEncryptConfig {
      * @return
      */
     fun padding(): EncryptPadding
+
+    /**
+     * 在头部组合IV和加密结果
+     */
+    val composeIV: Boolean
+        get() = true
 }

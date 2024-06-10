@@ -18,7 +18,8 @@ class SHA256MessageDigest : IMessageDigest {
     }
 
     private fun digest(dataBytes: ByteArray): ByteArray {
-        return MessageDigest.getInstance(algorithm).digest(dataBytes)
+        return MessageDigest.getInstance(algorithm)
+            .digest(dataBytes)
     }
 
     override fun digestToHex(dataBytes: ByteArray): String {

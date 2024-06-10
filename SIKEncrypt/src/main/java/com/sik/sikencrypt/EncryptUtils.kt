@@ -4,7 +4,9 @@ import com.sik.sikencrypt.enrypt.AESEncrypt
 import com.sik.sikencrypt.enrypt.DESEncrypt
 import com.sik.sikencrypt.enrypt.RSAEncrypt
 import com.sik.sikencrypt.enrypt.SM4Encrypt
-import com.sik.sikencrypt.enrypt.TripleDESEncrypt
+import com.sik.sikencrypt.enrypt.DESedeEncrypt
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import java.security.Security
 
 /**
  * 加解密工具
@@ -12,8 +14,14 @@ import com.sik.sikencrypt.enrypt.TripleDESEncrypt
  */
 object EncryptUtils {
     init {
-        System.loadLibrary("gmssl")
-        System.loadLibrary("SIKEncrypt")
+        /**
+         * 移除旧的BC
+         */
+        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME)
+        /**
+         * 添加新的BC
+         */
+        Security.addProvider(BouncyCastleProvider())
     }
 
     /**
@@ -34,7 +42,7 @@ object EncryptUtils {
             }
 
             EncryptAlgorithm.TripleDES -> {
-                TripleDESEncrypt(iEncryptConfig)
+                DESedeEncrypt(iEncryptConfig)
             }
 
             EncryptAlgorithm.SM4 -> {

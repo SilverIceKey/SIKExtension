@@ -6,7 +6,6 @@ import java.io.File
 internal class SM3MessageDigestTest {
     @Test
     fun digest() {
-        System.loadLibrary("SIKEncrypt")
         val sm3 = SM3MessageDigest()
         val file = File("/sdcard/Documents/123.jpg")
         println(file.exists())
