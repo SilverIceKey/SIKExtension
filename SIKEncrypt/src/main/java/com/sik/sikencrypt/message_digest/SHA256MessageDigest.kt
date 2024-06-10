@@ -1,7 +1,12 @@
 package com.sik.sikencrypt.message_digest
 
 import com.sik.sikcore.data.ConvertUtils
+import com.sik.sikcore.extension.file
+import com.sik.sikencrypt.EncryptException
+import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.IMessageDigest
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import java.security.MessageDigest
 
 /**
@@ -17,17 +22,32 @@ class SHA256MessageDigest : IMessageDigest {
         private const val algorithm = "SHA256"
     }
 
-    private fun digest(dataBytes: ByteArray): ByteArray {
-        return MessageDigest.getInstance(algorithm)
-            .digest(dataBytes)
+    private fun digest(inputStream: InputStream): ByteArray {
+        return MessageDigest.getInstance(algorithm).let {
+                val buffer = ByteArray(1024)
+                var bytesRead: Int
+                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                    it.update(buffer, 0, bytesRead)
+                }
+                it.digest()
+            }
     }
 
+
     override fun digestToHex(dataBytes: ByteArray): String {
-        return ConvertUtils.bytesToHex(digest(dataBytes))
+        return ConvertUtils.bytesToHex(digest(ByteArrayInputStream(dataBytes)))
     }
 
     override fun digestToBase64(dataBytes: ByteArray): String {
-        return ConvertUtils.bytesToBase64String(digest(dataBytes))
+        return ConvertUtils.bytesToBase64String(digest(ByteArrayInputStream(dataBytes)))
     }
 
+    override fun digestFile(srcFile: String): String {
+        val tempSrcFile = srcFile.file()
+        if (!tempSrcFile.exists()) {
+            throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
+        } else {
+            return ConvertUtils.bytesToHex(digest(tempSrcFile.inputStream()))
+        }
+    }
 }

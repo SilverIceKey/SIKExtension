@@ -1,6 +1,7 @@
 package com.sik.sikencrypt.enrypt
 
 import com.sik.sikcore.data.ConvertUtils
+import com.sik.sikcore.extension.file
 import com.sik.sikencrypt.EncryptException
 import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.EncryptMode
@@ -8,8 +9,11 @@ import com.sik.sikencrypt.EncryptPadding
 import com.sik.sikencrypt.IEncrypt
 import com.sik.sikencrypt.IEncryptConfig
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import java.io.*
 import java.nio.charset.Charset
 import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
+import javax.crypto.CipherOutputStream
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
@@ -78,6 +82,34 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
     }
 
     @Throws(EncryptException::class)
+    override fun encryptFile(srcFile: String, destFile: String) {
+        val inputFile = File(srcFile)
+        if (!inputFile.exists()) {
+            throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
+        }
+        val outputFile = File(destFile)
+        val cipher = Cipher.getInstance("${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}", BouncyCastleProvider.PROVIDER_NAME)
+        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+        } else {
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec)
+        }
+
+        FileInputStream(inputFile).use { fis ->
+            FileOutputStream(outputFile).use { fos ->
+                CipherOutputStream(fos, cipher).use { cos ->
+                    val buffer = ByteArray(1024)
+                    var bytesRead: Int
+                    while (fis.read(buffer).also { bytesRead = it } != -1) {
+                        cos.write(buffer, 0, bytesRead)
+                    }
+                }
+            }
+        }
+    }
+
+    @Throws(EncryptException::class)
     override fun decryptFromHex(dataStr: String): String {
         if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.hexToBytes(
                 dataStr
@@ -118,6 +150,34 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             iEncryptConfig.padding().padding,
             iEncryptConfig.iv(), dataBytes
         )
+    }
+
+    @Throws(EncryptException::class)
+    override fun decryptFromFile(srcFile: String, destFile: String) {
+        val inputFile = File(srcFile)
+        if (!inputFile.exists()) {
+            throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
+        }
+        val outputFile = File(destFile)
+        val cipher = Cipher.getInstance("${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}", BouncyCastleProvider.PROVIDER_NAME)
+        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+        } else {
+            cipher.init(Cipher.DECRYPT_MODE, keySpec)
+        }
+
+        FileInputStream(inputFile).use { fis ->
+            FileOutputStream(outputFile).use { fos ->
+                CipherInputStream(fis, cipher).use { cis ->
+                    val buffer = ByteArray(1024)
+                    var bytesRead: Int
+                    while (cis.read(buffer).also { bytesRead = it } != -1) {
+                        fos.write(buffer, 0, bytesRead)
+                    }
+                }
+            }
+        }
     }
 
     private fun encrypt(

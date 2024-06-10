@@ -20,4 +20,12 @@ interface IMessageDigest {
      * @return
      */
     fun digestToBase64(dataBytes: ByteArray): String
+
+    /**
+     * 获取文件的信息摘要，使用十六进制输出
+     *
+     * @param srcFile
+     * @return
+     */
+    fun digestFile(srcFile: String): String
 }

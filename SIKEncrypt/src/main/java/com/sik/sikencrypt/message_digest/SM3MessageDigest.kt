@@ -1,25 +1,27 @@
 package com.sik.sikencrypt.message_digest
 
 import com.sik.sikcore.data.ConvertUtils
+import com.sik.sikcore.extension.file
+import com.sik.sikencrypt.EncryptException
+import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.IMessageDigest
 import org.bouncycastle.crypto.digests.SM3Digest
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 
 /**
  * SM3信息摘要
  *
  */
 class SM3MessageDigest : IMessageDigest {
-    companion object {
-        /**
-         * 加密类型
-         */
-        private const val algorithm = "SM3"
-    }
 
-
-    private fun digest(dataBytes: ByteArray): ByteArray {
+    private fun digest(inputStream: InputStream): ByteArray {
         return SM3Digest().let {
-            it.update(dataBytes, 0, dataBytes.size)
+            val buffer = ByteArray(1024)
+            var bytesRead: Int
+            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                it.update(buffer, 0, bytesRead)
+            }
             val hash = ByteArray(it.digestSize)
             it.doFinal(hash, 0)
             hash
@@ -27,10 +29,19 @@ class SM3MessageDigest : IMessageDigest {
     }
 
     override fun digestToHex(dataBytes: ByteArray): String {
-        return ConvertUtils.bytesToHex(digest(dataBytes))
+        return ConvertUtils.bytesToHex(digest(ByteArrayInputStream(dataBytes)))
     }
 
     override fun digestToBase64(dataBytes: ByteArray): String {
-        return ConvertUtils.bytesToBase64String(digest(dataBytes))
+        return ConvertUtils.bytesToBase64String(digest(ByteArrayInputStream(dataBytes)))
+    }
+
+    override fun digestFile(srcFile: String): String {
+        val tempSrcFile = srcFile.file()
+        if (!tempSrcFile.exists()) {
+            throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
+        } else {
+            return ConvertUtils.bytesToHex(digest(tempSrcFile.inputStream()))
+        }
     }
 }

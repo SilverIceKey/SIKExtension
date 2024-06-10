@@ -1,7 +1,5 @@
 package com.sik.sikencrypt
 
-import kotlin.jvm.Throws
-
 /**
  * 加解密接口
  *
@@ -32,7 +30,16 @@ interface IEncrypt {
      * @return
      */
     @Throws(EncryptException::class)
-    fun encryptToByteArray(dataBytes: ByteArray):ByteArray
+    fun encryptToByteArray(dataBytes: ByteArray): ByteArray
+
+    /**
+     * 加密文件
+     *
+     * @param srcFile
+     * @param destFile
+     */
+    @Throws(EncryptException::class)
+    fun encryptFile(srcFile: String, destFile: String)
 
     /**
      * 从十六进制解密
@@ -59,5 +66,15 @@ interface IEncrypt {
      * @return
      */
     @Throws(EncryptException::class)
-    fun decryptFromByteArray(dataBytes: ByteArray):ByteArray
+    fun decryptFromByteArray(dataBytes: ByteArray): ByteArray
+
+    /**
+     * 解密文件
+     *
+     * @param srcFile
+     * @param destFile
+     * @return
+     */
+    @Throws(EncryptException::class)
+    fun decryptFromFile(srcFile: String, destFile: String)
 }

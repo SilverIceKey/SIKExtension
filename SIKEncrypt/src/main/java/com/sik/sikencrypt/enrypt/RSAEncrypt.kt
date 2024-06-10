@@ -5,6 +5,7 @@ import com.sik.sikencrypt.EncryptException
 import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.IRSAEncrypt
 import com.sik.sikencrypt.IRSAEncryptConfig
+import java.io.*
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.PrivateKey
@@ -12,6 +13,8 @@ import java.security.PublicKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
+import javax.crypto.CipherOutputStream
 
 class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     private val cipher: Cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
@@ -83,6 +86,26 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     }
 
     @Throws(EncryptException::class)
+    override fun encryptFile(srcFile: String, destFile: String) {
+        val inputFile = File(srcFile)
+        if (!inputFile.exists()) {
+            throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
+        }
+        val outputFile = File(destFile)
+        FileInputStream(inputFile).use { fis ->
+            FileOutputStream(outputFile).use { fos ->
+                CipherOutputStream(fos, cipher.apply { init(Cipher.ENCRYPT_MODE, getPublicKey()) }).use { cos ->
+                    val buffer = ByteArray(1024)
+                    var bytesRead: Int
+                    while (fis.read(buffer).also { bytesRead = it } != -1) {
+                        cos.write(buffer, 0, bytesRead)
+                    }
+                }
+            }
+        }
+    }
+
+    @Throws(EncryptException::class)
     override fun decryptFromHex(dataStr: String): String {
         val bytes = ConvertUtils.hexToBytes(dataStr)
         return decrypt(bytes).let {
@@ -101,6 +124,26 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     @Throws(EncryptException::class)
     override fun decryptFromByteArray(dataBytes: ByteArray): ByteArray {
         return decrypt(dataBytes)
+    }
+
+    @Throws(EncryptException::class)
+    override fun decryptFromFile(srcFile: String, destFile: String) {
+        val inputFile = File(srcFile)
+        if (!inputFile.exists()) {
+            throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
+        }
+        val outputFile = File(destFile)
+        FileInputStream(inputFile).use { fis ->
+            FileOutputStream(outputFile).use { fos ->
+                CipherInputStream(fis, cipher.apply { init(Cipher.DECRYPT_MODE, getPrivateKey()) }).use { cis ->
+                    val buffer = ByteArray(1024)
+                    var bytesRead: Int
+                    while (cis.read(buffer).also { bytesRead = it } != -1) {
+                        fos.write(buffer, 0, bytesRead)
+                    }
+                }
+            }
+        }
     }
 
     private fun encrypt(dataBytes: ByteArray): ByteArray {

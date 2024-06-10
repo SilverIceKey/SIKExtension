@@ -16,4 +16,5 @@ enum class EncryptExceptionEnums(val message: String) {
     CONFIG_ERROR("配置异常"),
     PUBLIC_KEY_NOT_SET("公钥未设置"),
     PRIVATE_KEY_NOT_SET("私钥未设置"),
+    FILE_NOT_FOUND("文件未找到"),
 }
