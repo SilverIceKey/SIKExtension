@@ -13,8 +13,6 @@ import java.security.PublicKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
-import javax.crypto.CipherInputStream
-import javax.crypto.CipherOutputStream
 
 class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     private val cipher: Cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
@@ -31,7 +29,9 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     }
 
     private fun getPublicKey(): PublicKey {
-        if ((config.publicKey().isEmpty() && config.privateKey().isEmpty()) && publicKey.isEmpty()) {
+        if ((config.publicKey().isEmpty() && config.privateKey()
+                .isEmpty()) && publicKey.isEmpty()
+        ) {
             generateKeyPair()
         } else if (config.publicKey().isEmpty()) {
             throw EncryptException(EncryptExceptionEnums.PUBLIC_KEY_NOT_SET)
@@ -42,7 +42,9 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     }
 
     private fun getPrivateKey(): PrivateKey {
-        if ((config.publicKey().isEmpty() && config.privateKey().isEmpty()) && privateKey.isEmpty()) {
+        if ((config.publicKey().isEmpty() && config.privateKey()
+                .isEmpty()) && privateKey.isEmpty()
+        ) {
             generateKeyPair()
         } else if (config.privateKey().isEmpty()) {
             throw EncryptException(EncryptExceptionEnums.PRIVATE_KEY_NOT_SET)
@@ -87,22 +89,7 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptFile(srcFile: String, destFile: String) {
-        val inputFile = File(srcFile)
-        if (!inputFile.exists()) {
-            throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
-        }
-        val outputFile = File(destFile)
-        FileInputStream(inputFile).use { fis ->
-            FileOutputStream(outputFile).use { fos ->
-                CipherOutputStream(fos, cipher.apply { init(Cipher.ENCRYPT_MODE, getPublicKey()) }).use { cos ->
-                    val buffer = ByteArray(1024)
-                    var bytesRead: Int
-                    while (fis.read(buffer).also { bytesRead = it } != -1) {
-                        cos.write(buffer, 0, bytesRead)
-                    }
-                }
-            }
-        }
+        throw EncryptException(EncryptExceptionEnums.FILE_ENCRYPT_NOT_SUPPORT)
     }
 
     @Throws(EncryptException::class)
@@ -128,22 +115,7 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
 
     @Throws(EncryptException::class)
     override fun decryptFromFile(srcFile: String, destFile: String) {
-        val inputFile = File(srcFile)
-        if (!inputFile.exists()) {
-            throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
-        }
-        val outputFile = File(destFile)
-        FileInputStream(inputFile).use { fis ->
-            FileOutputStream(outputFile).use { fos ->
-                CipherInputStream(fis, cipher.apply { init(Cipher.DECRYPT_MODE, getPrivateKey()) }).use { cis ->
-                    val buffer = ByteArray(1024)
-                    var bytesRead: Int
-                    while (cis.read(buffer).also { bytesRead = it } != -1) {
-                        fos.write(buffer, 0, bytesRead)
-                    }
-                }
-            }
-        }
+        throw EncryptException(EncryptExceptionEnums.FILE_ENCRYPT_NOT_SUPPORT)
     }
 
     private fun encrypt(dataBytes: ByteArray): ByteArray {

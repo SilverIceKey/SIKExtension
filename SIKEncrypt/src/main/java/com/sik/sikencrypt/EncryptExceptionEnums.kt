@@ -17,4 +17,5 @@ enum class EncryptExceptionEnums(val message: String) {
     PUBLIC_KEY_NOT_SET("公钥未设置"),
     PRIVATE_KEY_NOT_SET("私钥未设置"),
     FILE_NOT_FOUND("文件未找到"),
+    FILE_ENCRYPT_NOT_SUPPORT("不支持文件加解密"),
 }

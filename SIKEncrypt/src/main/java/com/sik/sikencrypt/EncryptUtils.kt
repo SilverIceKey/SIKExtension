@@ -41,7 +41,7 @@ object EncryptUtils {
                 DESEncrypt(iEncryptConfig)
             }
 
-            EncryptAlgorithm.TripleDES -> {
+            EncryptAlgorithm.DESede -> {
                 DESedeEncrypt(iEncryptConfig)
             }
 

@@ -6,7 +6,7 @@ package com.sik.sikencrypt
 enum class EncryptAlgorithm {
     AES,
     DES,
-    TripleDES,
+    DESede,
     RSA,
     SM4,
 }

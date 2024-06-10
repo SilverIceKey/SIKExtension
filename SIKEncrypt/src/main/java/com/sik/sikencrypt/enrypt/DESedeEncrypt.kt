@@ -30,7 +30,7 @@ class DESedeEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
     }
 
     init {
-        if (iEncryptConfig.key().size != 21) {
+        if (iEncryptConfig.key().size != 16 && iEncryptConfig.key().size != 24) {
             throw EncryptException(EncryptExceptionEnums.KEY_SIZE_ERROR)
         }
         if (iEncryptConfig.mode() != EncryptMode.ECB && iEncryptConfig.iv() == null) {
