@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
         logger.i(MessageDigestUtils.getMode(MessageDigestTypes.SHA256).digestFile("/sdcard/Documents/123.jpg"))
 
 
-//        EncryptUtils.getAlgorithm(EncryptConfig())
+        EncryptUtils.getAlgorithm(EncryptConfig()).encryptFile("/sdcard/Documents/123.jpg","/sdcard/Documents/456.jpg")
+        EncryptUtils.getAlgorithm(EncryptConfig()).decryptFromFile("/sdcard/Documents/456.jpg","/sdcard/Documents/789.jpg")
     }
 }

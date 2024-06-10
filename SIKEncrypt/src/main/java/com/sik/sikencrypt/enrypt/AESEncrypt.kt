@@ -1,7 +1,6 @@
 package com.sik.sikencrypt.enrypt
 
 import com.sik.sikcore.data.ConvertUtils
-import com.sik.sikcore.extension.file
 import com.sik.sikencrypt.EncryptException
 import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.EncryptMode
@@ -11,6 +10,7 @@ import com.sik.sikencrypt.IEncryptConfig
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.*
 import java.nio.charset.Charset
+import java.security.NoSuchAlgorithmException
 import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
 import javax.crypto.CipherOutputStream
@@ -36,9 +36,9 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         if (iEncryptConfig.mode() != EncryptMode.ECB && iEncryptConfig.iv() == null) {
             throw EncryptException(EncryptExceptionEnums.NO_IV)
         }
-        if (iEncryptConfig.mode() == EncryptMode.GCM || iEncryptConfig.mode() == EncryptMode.CTR) {
-            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
-        }
+//        if (iEncryptConfig.mode() == EncryptMode.GCM || iEncryptConfig.mode() == EncryptMode.CTR) {
+//            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
+//        }
     }
 
     @Throws(EncryptException::class)
@@ -88,7 +88,14 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
         }
         val outputFile = File(destFile)
-        val cipher = Cipher.getInstance("${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}", BouncyCastleProvider.PROVIDER_NAME)
+        val cipher = try {
+            Cipher.getInstance(
+                "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
+                BouncyCastleProvider.PROVIDER_NAME
+            )
+        } catch (e: NoSuchAlgorithmException) {
+            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
+        }
         val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
         if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
@@ -159,7 +166,14 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
         }
         val outputFile = File(destFile)
-        val cipher = Cipher.getInstance("${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}", BouncyCastleProvider.PROVIDER_NAME)
+        val cipher = try {
+            Cipher.getInstance(
+                "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
+                BouncyCastleProvider.PROVIDER_NAME
+            )
+        } catch (e: NoSuchAlgorithmException) {
+            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
+        }
         val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
         if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
             cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
@@ -186,10 +200,14 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         iv: ByteArray?,
         dataBytes: ByteArray
     ): ByteArray {
-        val cipher = Cipher.getInstance(
-            "${iEncryptConfig.algorithm().name}/$mode/$padding",
-            BouncyCastleProvider.PROVIDER_NAME
-        )
+        val cipher = try {
+            Cipher.getInstance(
+                "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
+                BouncyCastleProvider.PROVIDER_NAME
+            )
+        } catch (e: NoSuchAlgorithmException) {
+            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
+        }
         val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
         if (iv != null && iEncryptConfig.mode() != EncryptMode.ECB) {
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iv))
@@ -210,10 +228,14 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         iv: ByteArray?,
         dataBytes: ByteArray
     ): ByteArray {
-        val cipher = Cipher.getInstance(
-            "${iEncryptConfig.algorithm().name}/$mode/$padding",
-            BouncyCastleProvider.PROVIDER_NAME
-        )
+        val cipher = try {
+            Cipher.getInstance(
+                "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
+                BouncyCastleProvider.PROVIDER_NAME
+            )
+        } catch (e: NoSuchAlgorithmException) {
+            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
+        }
         val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
         if (iv != null && iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
             val actualIv = dataBytes.copyOfRange(0, iv.size)
