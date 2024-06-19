@@ -36,9 +36,6 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         if (iEncryptConfig.mode() != EncryptMode.ECB && iEncryptConfig.iv() == null) {
             throw EncryptException(EncryptExceptionEnums.NO_IV)
         }
-//        if (iEncryptConfig.mode() == EncryptMode.GCM || iEncryptConfig.mode() == EncryptMode.CTR) {
-//            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
-//        }
     }
 
     @Throws(EncryptException::class)
