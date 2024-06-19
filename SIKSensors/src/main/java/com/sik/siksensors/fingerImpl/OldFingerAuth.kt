@@ -3,19 +3,19 @@ package com.sik.siksensors.fingerImpl
 import android.Manifest
 import android.app.KeyguardManager
 import android.content.Context
-import android.hardware.biometrics.BiometricManager
 import android.hardware.fingerprint.FingerprintManager
-import android.os.Build
 import android.os.CancellationSignal
-import androidx.annotation.RequiresApi
 import com.sik.sikcore.SIKCore
+import com.sik.sikcore.log.LogUtils
 import com.sik.sikcore.permission.PermissionUtils
 import com.sik.siksensors.IFingerAuth
 
 /**
  * 旧指纹认证
  */
-class OldFingerAuth:IFingerAuth {
+class OldFingerAuth : IFingerAuth {
+    private val logger = LogUtils.getLogger(OldFingerAuth::class)
+
     /**
      * 指纹管理器-旧
      */
@@ -59,17 +59,18 @@ class OldFingerAuth:IFingerAuth {
      */
     private fun authenticateFingerprintOld(matchCallback: (Boolean) -> Unit) {
         cancellationSignal = CancellationSignal()
-        fingerprintManager!!.authenticate(
+        fingerprintManager?.authenticate(
             null,
             cancellationSignal,
             0,
             object : FingerprintManager.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    matchCallback(false)
+                    logger.i("onAuthenticationError:${errorCode},${errString}")
                 }
 
                 override fun onAuthenticationHelp(helpCode: Int, helpString: CharSequence) {
-                    matchCallback(false)
+                    logger.i("onAuthenticationError:${helpCode},${helpString}")
+
                 }
 
                 override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {

@@ -50,4 +50,5 @@ dependencies {
     implementation project(path: ':SIKEncrypt')
     implementation project(path: ':SIKImage')
     implementation project(path: ':SIKMedia')
+    implementation project(path: ':SIKSensors')
 }
