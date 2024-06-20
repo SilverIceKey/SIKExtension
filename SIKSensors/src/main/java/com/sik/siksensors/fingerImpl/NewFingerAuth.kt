@@ -14,6 +14,7 @@ import com.sik.sikcore.log.LogUtils
 import com.sik.sikcore.permission.PermissionUtils
 import com.sik.sikcore.thread.ThreadUtils
 import com.sik.siksensors.FingerConfig
+import com.sik.siksensors.FingerErrorEnum
 import com.sik.siksensors.FingerException
 import com.sik.siksensors.IFingerAuth
 import java.util.concurrent.Executor
@@ -42,7 +43,7 @@ class NewFingerAuth<T : FingerConfig>(private val fingerConfig: T) : IFingerAuth
     private lateinit var cancellationSignal: CancellationSignal
 
     @RequiresApi(Build.VERSION_CODES.R)
-    override fun authenticateFingerprint(auth: (Boolean) -> Unit) {
+    override fun authenticateFingerprint(auth: (FingerErrorEnum) -> Unit) {
         checkFingerConfig()
         when (biometricManager?.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
             BiometricManager.BIOMETRIC_SUCCESS -> {
@@ -82,31 +83,31 @@ class NewFingerAuth<T : FingerConfig>(private val fingerConfig: T) : IFingerAuth
                                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult?) {
                                     super.onAuthenticationSucceeded(result)
                                     logger.i("onAuthenticationSucceeded:${result.toJson()}")
-                                    auth(true)
+                                    auth(FingerErrorEnum.AUTHENTICATION_SUCCESS)
                                 }
 
                                 override fun onAuthenticationFailed() {
                                     super.onAuthenticationFailed()
                                     logger.i("onAuthenticationFailed:验证失败")
-                                    auth(false)
+                                    auth(FingerErrorEnum.AUTHENTICATION_FAILED)
                                 }
                             })
                     } else {
-                        auth(false)
+                        auth(FingerErrorEnum.NO_PERMISSION)
                     }
                 }
             }
 
             BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
-                auth(false)
+                auth(FingerErrorEnum.NO_HARDWARE)
             }
 
             BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
-                auth(false)
+                auth(FingerErrorEnum.HW_UNAVAILABLE)
             }
 
             BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-                auth(false)
+                auth(FingerErrorEnum.NO_ENROLLED_FINGERPRINTS)
             }
         }
     }

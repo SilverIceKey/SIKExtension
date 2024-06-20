@@ -7,5 +7,5 @@ fun interface IFingerAuth {
     /**
      * 指纹认证
      */
-    fun authenticateFingerprint(auth: (Boolean) -> Unit)
+    fun authenticateFingerprint(auth: (FingerErrorEnum) -> Unit)
 }

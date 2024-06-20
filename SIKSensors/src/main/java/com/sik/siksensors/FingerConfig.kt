@@ -6,7 +6,7 @@ import android.content.DialogInterface
  * 指纹识别配置
  *
  */
-abstract class FingerConfig {
+abstract class FingerConfig() {
     /**
      * 指纹识别标题
      */
@@ -15,7 +15,7 @@ abstract class FingerConfig {
     /**
      * 指纹识别描述
      */
-    var description: String = "进行指纹识别"
+    var description: String = "请将您的手指放在指纹传感器上。"
 
     /**
      * 取消按钮文本
@@ -27,12 +27,22 @@ abstract class FingerConfig {
      */
     var listener: DialogInterface.OnClickListener = DialogInterface.OnClickListener { _, _ -> }
 
+    /**
+     * 使用系统弹窗
+     */
+    var useSystemDialog: Boolean = true
+
     companion object {
         /**
          * 默认配置
          */
         @JvmStatic
-        val defaultConfig
-            get() = object : FingerConfig() {}
+        val defaultConfig: DefaultFingerConfig
+            get() = DefaultFingerConfig()
+
+    }
+
+    class DefaultFingerConfig : FingerConfig() {
+
     }
 }

@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.log.LogUtils
 import com.sik.siksensors.FingerConfig
+import com.sik.siksensors.FingerErrorEnum
 import com.sik.siksensors.FingerUtils
 
 @LogInfo(description = "进入主界面")
@@ -15,12 +16,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         findViewById<Button>(R.id.finger).setOnClickListener {
-            FingerUtils.authenticateFingerprint(fingerConfig = FingerConfig.defaultConfig) {
-                if(it){
-                    logger.i("验证成功")
-                }else{
-                    logger.i("验证失败")
-                }
+            FingerUtils.authenticateFingerprint(fingerConfig = FingerConfig.defaultConfig.apply {
+                useSystemDialog = false
+            }) {
+                logger.i("${it.message}")
             }
         }
     }

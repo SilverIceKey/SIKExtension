@@ -16,16 +16,20 @@ object FingerUtils {
      * 指纹认证
      */
     @JvmStatic
-    fun <T : FingerConfig> authenticateFingerprint(
+    inline fun <reified T : FingerConfig> authenticateFingerprint(
         fingerConfig: T?,
-        auth: (Boolean) -> Unit
+        crossinline auth: (FingerErrorEnum) -> Unit
     ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (fingerConfig == null) {
-                throw FingerException("请传入指纹识别配置")
+        var tempFingerConfig = fingerConfig
+        if (tempFingerConfig == null) {
+            tempFingerConfig = if (FingerConfig.defaultConfig is T) {
+                FingerConfig.defaultConfig as T
             } else {
-                NewFingerAuth(fingerConfig).authenticateFingerprint { auth(it) }
+                null
             }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && tempFingerConfig?.useSystemDialog == true) {
+            NewFingerAuth(tempFingerConfig).authenticateFingerprint { auth(it) }
         } else {
             OldFingerAuth().authenticateFingerprint { auth(it) }
         }
