@@ -342,3 +342,24 @@ fun requestAllFilesAccessPermission(
  */
 fun getCurrentActivity(): Activity? 
 ```
+
+### [密码生成器](./src/main/java/com/sik/sikcore/generator/PasswordGenerator.kt)
+
+```kotlin
+/**
+ * 生成指定长度的密码
+ * @param length 密码长度
+ * @param useUpper 是否使用大写字母
+ * @param useLower 是否使用小写字母
+ * @param useDigits 是否使用数字
+ * @param useSpecial 是否使用特殊字符
+ * @return 生成的密码
+ */
+fun generatePassword(
+    length: Int,
+    useUpper: Boolean = true,
+    useLower: Boolean = true,
+    useDigits: Boolean = true,
+    useSpecial: Boolean = true
+): String 
+```
