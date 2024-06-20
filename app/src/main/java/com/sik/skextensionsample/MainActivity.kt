@@ -5,9 +5,8 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.log.LogUtils
-import com.sik.siksensors.FingerConfig
-import com.sik.siksensors.FingerErrorEnum
-import com.sik.siksensors.FingerUtils
+import com.sik.siksensors.fingerprints.FingerPrintsConfig
+import com.sik.siksensors.fingerprints.FingerPrintsUtils
 
 @LogInfo(description = "进入主界面")
 class MainActivity : AppCompatActivity() {
@@ -16,7 +15,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         findViewById<Button>(R.id.finger).setOnClickListener {
-            FingerUtils.authenticateFingerprint(fingerConfig = FingerConfig.defaultConfig.apply {
+            FingerPrintsUtils.authenticateFingerprint(fingerConfig = FingerPrintsConfig.defaultConfig.apply {
                 useSystemDialog = false
             }) {
                 logger.i("${it.message}")

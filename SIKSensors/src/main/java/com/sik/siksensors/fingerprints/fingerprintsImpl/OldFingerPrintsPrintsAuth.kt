@@ -1,4 +1,4 @@
-package com.sik.siksensors.fingerImpl
+package com.sik.siksensors.fingerprints.fingerprintsImpl
 
 import android.Manifest
 import android.app.KeyguardManager
@@ -8,14 +8,14 @@ import android.os.CancellationSignal
 import com.sik.sikcore.SIKCore
 import com.sik.sikcore.log.LogUtils
 import com.sik.sikcore.permission.PermissionUtils
-import com.sik.siksensors.FingerErrorEnum
-import com.sik.siksensors.IFingerAuth
+import com.sik.siksensors.SensorErrorEnum
+import com.sik.siksensors.fingerprints.IFingerPrintsAuth
 
 /**
  * 旧指纹认证
  */
-class OldFingerAuth : IFingerAuth {
-    private val logger = LogUtils.getLogger(OldFingerAuth::class)
+class OldFingerPrintsPrintsAuth : IFingerPrintsAuth {
+    private val logger = LogUtils.getLogger(OldFingerPrintsPrintsAuth::class)
 
     /**
      * 指纹管理器-旧
@@ -33,31 +33,31 @@ class OldFingerAuth : IFingerAuth {
     }
 
     private lateinit var cancellationSignal: CancellationSignal
-    override fun authenticateFingerprint(auth: (FingerErrorEnum) -> Unit) {
+    override fun authenticateFingerprint(auth: (SensorErrorEnum) -> Unit) {
         if (fingerprintManager?.isHardwareDetected == true) {
             checkPermission(auth)
         } else {
-            auth(FingerErrorEnum.NO_HARDWARE)
+            auth(SensorErrorEnum.NO_HARDWARE)
         }
     }
 
     /**
      * 检查权限
      */
-    private fun checkPermission(auth: (FingerErrorEnum) -> Unit) {
+    private fun checkPermission(auth: (SensorErrorEnum) -> Unit) {
         PermissionUtils.checkAndRequestPermissions(arrayOf(Manifest.permission.USE_FINGERPRINT)) {
             if (it) {
                 if (fingerprintManager?.hasEnrolledFingerprints() == false) {
-                    auth(FingerErrorEnum.NO_ENROLLED_FINGERPRINTS)
+                    auth(SensorErrorEnum.NO_ENROLLED_FINGERPRINTS)
                 } else {
                     if (keyguardManager?.isKeyguardSecure == true) {
                         authenticateFingerprintOld(auth)
                     } else {
-                        auth(FingerErrorEnum.NO_KEYGUARD_SECURE)
+                        auth(SensorErrorEnum.NO_KEYGUARD_SECURE)
                     }
                 }
             } else {
-                auth(FingerErrorEnum.NO_PERMISSION)
+                auth(SensorErrorEnum.NO_PERMISSION)
             }
         }
     }
@@ -65,7 +65,7 @@ class OldFingerAuth : IFingerAuth {
     /**
      * 认证指纹-旧
      */
-    private fun authenticateFingerprintOld(auth: (FingerErrorEnum) -> Unit) {
+    private fun authenticateFingerprintOld(auth: (SensorErrorEnum) -> Unit) {
         cancellationSignal = CancellationSignal()
         fingerprintManager?.authenticate(
             null,
@@ -82,11 +82,11 @@ class OldFingerAuth : IFingerAuth {
                 }
 
                 override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
-                    auth(FingerErrorEnum.AUTHENTICATION_SUCCESS)
+                    auth(SensorErrorEnum.AUTHENTICATION_SUCCESS)
                 }
 
                 override fun onAuthenticationFailed() {
-                    auth(FingerErrorEnum.AUTHENTICATION_FAILED)
+                    auth(SensorErrorEnum.AUTHENTICATION_FAILED)
                 }
             },
             null

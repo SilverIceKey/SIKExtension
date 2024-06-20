@@ -1,4 +1,4 @@
-package com.sik.siksensors
+package com.sik.siksensors.fingerprints
 
 import android.content.DialogInterface
 
@@ -6,7 +6,7 @@ import android.content.DialogInterface
  * 指纹识别配置
  *
  */
-abstract class FingerConfig() {
+abstract class FingerPrintsConfig() {
     /**
      * 指纹识别标题
      */
@@ -37,12 +37,12 @@ abstract class FingerConfig() {
          * 默认配置
          */
         @JvmStatic
-        val defaultConfig: DefaultFingerConfig
-            get() = DefaultFingerConfig()
+        val defaultConfig: DefaultFingerPrintsConfig
+            get() = DefaultFingerPrintsConfig()
 
     }
 
-    class DefaultFingerConfig : FingerConfig() {
+    class DefaultFingerPrintsConfig : FingerPrintsConfig() {
 
     }
 }

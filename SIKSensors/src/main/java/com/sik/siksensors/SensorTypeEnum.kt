@@ -1,0 +1,15 @@
+package com.sik.siksensors
+
+import android.hardware.Sensor
+
+enum class SensorTypeEnum(val type: Int) {
+    ACCELEROMETER(Sensor.TYPE_ACCELEROMETER),
+    GYROSCOPE(Sensor.TYPE_GYROSCOPE),
+    MAGNETIC_FIELD(Sensor.TYPE_MAGNETIC_FIELD),
+    LIGHT(Sensor.TYPE_LIGHT),
+    GRAVITY(Sensor.TYPE_GRAVITY),
+    LINEAR_ACCELERATION(Sensor.TYPE_LINEAR_ACCELERATION),
+    ROTATION_VECTOR(Sensor.TYPE_ROTATION_VECTOR),
+    STEP_COUNTER(Sensor.TYPE_STEP_COUNTER),
+    STEP_DETECTOR(Sensor.TYPE_STEP_DETECTOR)
+}
