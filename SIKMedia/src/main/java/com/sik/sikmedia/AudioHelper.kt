@@ -7,10 +7,11 @@ import android.media.MediaRecorder
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import com.sik.sikcore.extension.fileOutputStream
 import com.sik.sikcore.SIKCore
-import com.sik.sikcore.file.FileUtils
 import com.sik.sikcore.date.TimeUtils
+import com.sik.sikcore.extension.createNewFile
+import com.sik.sikcore.extension.exists
+import com.sik.sikcore.extension.fileOutputStream
 import java.io.File
 import java.io.OutputStream
 import kotlin.concurrent.thread
@@ -55,11 +56,11 @@ class AudioHelper {
         mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
         mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
         mediaRecorder?.setOutputFile(filePath + fileName)
-        if (!FileUtils.isFileExists(filePath)) {
+        if (!filePath.exists()) {
             File(filePath).mkdirs()
         }
-        if (!FileUtils.isFileExists(file)) {
-            FileUtils.createOrExistsFile(file)
+        if (!file.exists()) {
+            file.createNewFile()
         }
         onSuccess(filePath + fileName)
         mediaRecorder?.prepare()
@@ -187,11 +188,11 @@ class AudioHelper {
             AudioFormat.ENCODING_PCM_16BIT,
             audioSize!!
         )
-        if (!FileUtils.isFileExists(filePath)) {
+        if (!filePath.exists()) {
             File(filePath).mkdirs()
         }
-        if (!FileUtils.isFileExists(fileSavePath)) {
-            FileUtils.createOrExistsFile(fileSavePath)
+        if (!fileSavePath.exists()) {
+            fileSavePath.createNewFile()
         }
         onSuccess(filePath + fileName)
         val message = Message()

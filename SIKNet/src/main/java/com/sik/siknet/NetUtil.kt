@@ -13,14 +13,14 @@ import android.os.Build
 import com.sik.sikcore.SIKCore
 import com.sik.sikcore.file.FileUtils
 import java.io.IOException
-import java.util.*
+import java.util.Locale
 
 /**
  * 网络工具类
  */
 object NetUtil {
     private val wifiManager: WifiManager =
-        SIKCore.getApplication().getSystemService(Context.WIFI_SERVICE) as WifiManager
+        SIKCore.getApplication().applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
     /**
      * 获取MAC地址（有网口的前提下）
@@ -123,27 +123,33 @@ object NetUtil {
             wifiManager.saveConfiguration()
         }
         //不需要密码的场景
-        if (type == WifiCapability.WIFI_CIPHER_NO_PASS) {
-            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE)
+        when (type) {
+            WifiCapability.WIFI_CIPHER_NO_PASS -> config.allowedKeyManagement.set(
+                WifiConfiguration.KeyMgmt.NONE
+            )
+
             //以WEP加密的场景
-        } else if (type == WifiCapability.WIFI_CIPHER_WEP) {
-            config.hiddenSSID = true
-            config.wepKeys[0] = "\"" + password + "\""
-            config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN)
-            config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED)
-            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE)
-            config.wepTxKeyIndex = 0
-            //以WPA加密的场景，自己测试时，发现热点以WPA2建立时，同样可以用这种配置连接
-        } else if (type == WifiCapability.WIFI_CIPHER_WPA) {
-            config.preSharedKey = "\"" + password + "\""
-            config.hiddenSSID = true
-            config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN)
-            config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP)
-            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK)
-            config.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP)
-            config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP)
-            config.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP)
-            config.status = WifiConfiguration.Status.ENABLED
+            WifiCapability.WIFI_CIPHER_WEP -> {
+                config.hiddenSSID = true
+                config.wepKeys[0] = "\"" + password + "\""
+                config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN)
+                config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED)
+                config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE)
+                config.wepTxKeyIndex = 0
+                //以WPA加密的场景，自己测试时，发现热点以WPA2建立时，同样可以用这种配置连接
+            }
+
+            WifiCapability.WIFI_CIPHER_WPA -> {
+                config.preSharedKey = "\"" + password + "\""
+                config.hiddenSSID = true
+                config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN)
+                config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP)
+                config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK)
+                config.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP)
+                config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP)
+                config.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP)
+                config.status = WifiConfiguration.Status.ENABLED
+            }
         }
         return config
     }
@@ -191,13 +197,13 @@ object NetUtil {
     @JvmOverloads
     private fun openWifi(openFailed: (String) -> Unit = {}): Boolean {
         if (!wifiManager.isWifiEnabled) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 //请用户手动打开wifi
                 openFailed("请前往设置打开wifi")
-                return false
+                false
             } else {
                 wifiManager.isWifiEnabled = true
-                return true
+                true
             }
         }
         return true

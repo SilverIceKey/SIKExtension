@@ -28,7 +28,9 @@ object FileUtils {
 
     /**
      * 文件是否存在
+     * @see com.sik.sikcore.extension.exists
      */
+    @Deprecated("重复代码")
     fun isFileExists(filePath: String): Boolean {
         if (filePath.isEmpty()) {
             return false
@@ -38,7 +40,9 @@ object FileUtils {
 
     /**
      * 创建的文件如果存在则不创建
+     * @see com.sik.sikcore.extension.createNewFile
      */
+    @Deprecated("重复代码")
     fun createOrExistsFile(file: String) {
         if (file.isEmpty()) {
             return
