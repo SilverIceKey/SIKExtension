@@ -1,6 +1,7 @@
 package com.sik.sikcore.generator
 
 import java.security.SecureRandom
+import kotlin.random.Random
 
 /**
  * 密码生成器
@@ -30,6 +31,9 @@ object PasswordGenerator {
         useDigits: Boolean = true,
         useSpecial: Boolean = true
     ): String {
+        require(length > 0) { "密码长度必须大于0" }
+
+        val random = Random.Default
         val characterPool = buildString {
             if (useUpper) append(UPPERCASE)
             if (useLower) append(LOWERCASE)
@@ -37,10 +41,33 @@ object PasswordGenerator {
             if (useSpecial) append(SPECIAL_CHARACTERS)
         }
 
-        require(characterPool.isNotEmpty()) { "至少选择一种文本类型" }
+        require(characterPool.isNotEmpty()) { "至少选择一种字符类型" }
 
-        return (1..length)
-            .map { characterPool[random.nextInt(characterPool.length)] }
-            .joinToString("")
+        while (true) {
+            val password = (1..length)
+                .map { characterPool[random.nextInt(characterPool.length)] }
+                .joinToString("")
+
+            if (isValidPassword(password, useUpper, useLower, useDigits, useSpecial)) {
+                return password
+            }
+        }
+    }
+
+    /**
+     * 验证密码是否符合规则
+     */
+    fun isValidPassword(
+        password: String,
+        useUpper: Boolean,
+        useLower: Boolean,
+        useDigits: Boolean,
+        useSpecial: Boolean
+    ): Boolean {
+        if (useUpper && !password.any { it in UPPERCASE }) return false
+        if (useLower && !password.any { it in LOWERCASE }) return false
+        if (useDigits && !password.any { it in DIGITS }) return false
+        if (useSpecial && !password.any { it in SPECIAL_CHARACTERS }) return false
+        return true
     }
 }
