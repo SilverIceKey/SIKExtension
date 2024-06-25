@@ -363,3 +363,62 @@ fun generatePassword(
     useSpecial: Boolean = true
 ): String 
 ```
+
+### [震动马达工具类](./com/sik/sikcore/device/VibratorUtils.kt)
+
+```kotlin
+/**
+ * 震动频率，
+ * 奇数下标为开启，
+ * 偶数下标为停止，
+ * 单位：ms
+ */
+val pattern by lazy {
+    mutableListOf<Long>()
+}
+/**
+ * 震动强度，
+ * 奇数下标为开启，
+ * 偶数下标为停止，
+ * 单位：0-255
+ */
+val amplitudes by lazy {
+    mutableListOf<Int>()
+}
+/**
+ * 检查权限
+ */
+fun checkPermission(callback: PermissionUtils.PermissionCallback)
+/**
+ * 频率震动
+ */
+fun vibrate(vibrateMode: VibrateMode)
+/**
+ * 取消震动
+ */
+fun cancel()
+/**
+ * 是否有震动器
+ */
+fun hasVibrator(): Boolean
+/**
+ * 获取震动马达列表
+ */
+fun vibratorIds(): IntArray
+/**
+ * 设置震动马达
+ */
+fun setVibrator(vibratorId: Int)
+/**
+ * 震动模式
+ */
+enum class VibrateMode(private val mode: Int) {
+    ONCE(-1),
+    INFINITE(0);
+
+    fun getMode(): Int {
+        return mode
+    }
+}
+```
+
