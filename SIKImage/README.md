@@ -74,8 +74,39 @@ fun zoomImg(bm: Bitmap, Scale: Float): Bitmap?
 ```kotlin
 //根据bitmap读取二维码
 fun readQRCode(bitmap: Bitmap): String
-//快捷创建二维码bitmap
-fun createQRCode(info: String, size: Int, color: Int = -1, logo: Bitmap? = null): Bitmap
+/**
+ * 快捷创建二维码bitmap
+ */
+@JvmOverloads
+fun createQRCode(
+    info: String,
+    size: Int,
+    color: Int = -1,
+    logo: Bitmap? = null,
+    withInfo: Boolean = false
+): Bitmap
+```
+
+### [条形码工具类](./src/main/java/com/sik/sikimage/BarCodeUtils.kt)
+
+```kotlin
+/**
+ * 设置条形码格式
+ */
+fun setBarCodeFormat(barcodeFormat: BarcodeFormat)
+//根据bitmap读取条形码
+fun readBarCode(bitmap: Bitmap): String
+/**
+ * 快捷创建条形码bitmap
+ */
+@JvmOverloads
+fun createBarCode(
+    info: String,
+    width: Int,
+    height: Int,
+    color: Int = -1,
+    withInfo: Boolean = false
+): Bitmap
 ```
 
 ### [系统媒体存储工具类](./src/main/java/com/sik/sikimage/MediaStoreUtils.kt)
