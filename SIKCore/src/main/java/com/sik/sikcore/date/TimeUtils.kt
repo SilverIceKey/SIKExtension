@@ -59,8 +59,7 @@ class TimeUtils {
          * 日期转换器小时分钟秒
          */
         @JvmStatic
-        val simpleDateHourMinSecFormat =
-            SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_SEC_FORMAT, Locale.CHINA)
+        val simpleDateHourMinSecFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_SEC_FORMAT, Locale.CHINA)
 
         /**
          * timeutil单例
@@ -79,40 +78,32 @@ class TimeUtils {
     @JvmOverloads
     fun getTimeIntervalOfCur(
         time: String,
-        timeFormatter: DateFormat = SimpleDateFormat(
-            DEFAULT_DATE_HOUR_MIN_SEC_FORMAT, // 使用你提供的默认格式
-            Locale.getDefault(Locale.Category.FORMAT)
-        )
+        timeFormatter: DateFormat = simpleDateHourMinSecFormat // 使用你提供的默认格式
     ): String {
-        // 尝试解析传入的时间字符串
         val date = timeFormatter.parse(time, ParsePosition(0))
-        // 如果解析成功，计算时间间隔并返回描述
         date?.let {
             val timeSecond: Long = it.time / 1000
             return getTimeIntervalOfCur(timeSecond)
         }
-        // 如果解析失败，返回一个默认字符串或抛出异常
-        return "时间格式错误" // 或考虑抛出一个异常，取决于你希望如何处理这种情况
+        return "时间格式错误"
     }
-
 
     /**
      * 计算到目前的时间
      */
     fun getTimeIntervalOfCur(time: Long): String {
-        val curTime = System.currentTimeMillis() / 1000 // 获取当前时间的时间戳（秒）
-        val timeInterval = curTime - time // 计算时间差（秒）
+        val curTime = System.currentTimeMillis() / 1000
+        val timeInterval = curTime - time
 
         return when {
-            timeInterval < 300 -> "刚刚" // 假定300秒（5分钟）内为“刚刚”
-            timeInterval < 60 * 60 -> "${timeInterval / 60}分钟前" // 少于1小时
-            timeInterval < 60 * 60 * 24 -> "${timeInterval / (60 * 60)}小时前" // 少于1天
-            timeInterval < 60 * 60 * 24 * 30 -> "${timeInterval / (60 * 60 * 24)}天前" // 少于1个月
-            timeInterval < 60 * 60 * 24 * 365 -> "${timeInterval / (60 * 60 * 24 * 30)}个月前" // 少于1年
-            else -> "${timeInterval / (60 * 60 * 24 * 365)}年前" // 超过1年
+            timeInterval < 300 -> "刚刚"
+            timeInterval < 60 * 60 -> "${timeInterval / 60}分钟前"
+            timeInterval < 60 * 60 * 24 -> "${timeInterval / (60 * 60)}小时前"
+            timeInterval < 60 * 60 * 24 * 30 -> "${timeInterval / (60 * 60 * 24)}天前"
+            timeInterval < 60 * 60 * 24 * 365 -> "${timeInterval / (60 * 60 * 24 * 30)}个月前"
+            else -> "${timeInterval / (60 * 60 * 24 * 365)}年前"
         }
     }
-
 
     /**
      * 判断是否是今天
@@ -123,28 +114,20 @@ class TimeUtils {
         return date == formatNowDate
     }
 
-
     /**
      * 时间偏移天数
      */
     @JvmOverloads
     fun offsetDay(offsetValue: Int, date: Date = Date()): Date {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-        calendar.add(Calendar.DAY_OF_MONTH, offsetValue)
-        return calendar.time
+        return offsetDate(Calendar.DAY_OF_MONTH, offsetValue, date)
     }
-
 
     /**
      * 时间偏移小时
      */
     @JvmOverloads
     fun offsetHour(offsetValue: Int, date: Date = Date()): Date {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-        calendar.add(Calendar.HOUR_OF_DAY, offsetValue)
-        return calendar.time
+        return offsetDate(Calendar.HOUR_OF_DAY, offsetValue, date)
     }
 
     /**
@@ -152,10 +135,7 @@ class TimeUtils {
      */
     @JvmOverloads
     fun offsetMin(offsetValue: Int, date: Date = Date()): Date {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-        calendar.add(Calendar.MINUTE, offsetValue)
-        return calendar.time
+        return offsetDate(Calendar.MINUTE, offsetValue, date)
     }
 
     /**
@@ -163,9 +143,13 @@ class TimeUtils {
      */
     @JvmOverloads
     fun offsetSec(offsetValue: Int, date: Date = Date()): Date {
+        return offsetDate(Calendar.SECOND, offsetValue, date)
+    }
+
+    private fun offsetDate(field: Int, offsetValue: Int, date: Date): Date {
         val calendar = Calendar.getInstance()
         calendar.time = date
-        calendar.add(Calendar.SECOND, offsetValue)
+        calendar.add(field, offsetValue)
         return calendar.time
     }
 
@@ -180,19 +164,14 @@ class TimeUtils {
      * 获取当前时间字符串
      */
     fun nowString(dateFormat: String = DEFAULT_DATE_FORMAT): String {
-        return SimpleDateFormat(dateFormat, Locale.CHINA).format(now())
+        return formatDate(now(), dateFormat)
     }
 
     /**
      * 获取今天日期
      */
     fun today(): Date {
-        return Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.time
+        return getDateOnly(now())
     }
 
     /**
@@ -214,15 +193,8 @@ class TimeUtils {
      * 判断日期是否在今天之前
      */
     fun isTimeBeforeToday(realDate: Date): Boolean {
-        val startOfToday = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.time
-        return realDate.before(startOfToday)
+        return isTimeBefore(realDate, today())
     }
-
 
     /**
      * 判断日期是否在今天之前
@@ -230,21 +202,8 @@ class TimeUtils {
     fun isTimeBeforeToday(realDateStr: String): Boolean {
         val formatter = SimpleDateFormat(DEFAULT_DATE_FORMAT, Locale.getDefault())
         val realDate = formatter.parse(realDateStr)
-        val today = Calendar.getInstance()
-
-        val realDateCal = Calendar.getInstance().apply {
-            time = realDate ?: return false
-        }
-
-        return when {
-            realDateCal[Calendar.YEAR] < today[Calendar.YEAR] -> true
-            realDateCal[Calendar.YEAR] == today[Calendar.YEAR] && realDateCal[Calendar.DAY_OF_YEAR] < today[Calendar.DAY_OF_YEAR] -> true
-            else -> {
-                false
-            }
-        }
+        return realDate?.let { isTimeBeforeToday(it) } ?: false
     }
-
 
     /**
      * 时间仅保留日期返回Date
@@ -316,15 +275,9 @@ class TimeUtils {
      * 倒计时输出分钟和秒 例:01:30
      */
     fun getTimeStr(timeMillis: Long): String {
-        val min = "0${timeMillis / 1000 / 60}"
-        val secL = timeMillis / 1000 % 60
-        var secS = ""
-        if (secL < 10) {
-            secS = "0${secL}"
-        } else {
-            secS = "$secL"
-        }
-        return "${min}:${secS}"
+        val min = String.format("%02d", timeMillis / 1000 / 60)
+        val sec = String.format("%02d", timeMillis / 1000 % 60)
+        return "$min:$sec"
     }
 
     /**
@@ -334,5 +287,61 @@ class TimeUtils {
     fun calcOffsetTime(sourceTime: String, timeDateFormat: String): Int {
         val deviceTime = now().time
         return ((SimpleDateFormat(timeDateFormat).parse(sourceTime)!!.time - deviceTime) / 1000L).toInt()
+    }
+
+    /**
+     * 将日期格式化为字符串
+     */
+    fun formatDate(date: Date, format: String = DEFAULT_DATE_FORMAT): String {
+        return SimpleDateFormat(format, Locale.CHINA).format(date)
+    }
+
+    /**
+     * 将字符串解析为日期
+     */
+    fun parseDate(dateStr: String, format: String = DEFAULT_DATE_FORMAT): Date? {
+        return SimpleDateFormat(format, Locale.CHINA).parse(dateStr)
+    }
+
+    /**
+     * 获取当前时间的时间戳（毫秒）
+     */
+    fun currentTimeMillis(): Long {
+        return System.currentTimeMillis()
+    }
+
+    /**
+     * 计算两个时间之间的差异（毫秒）
+     */
+    fun diffInMillis(startDate: Date, endDate: Date): Long {
+        return endDate.time - startDate.time
+    }
+
+    /**
+     * 计算两个时间之间的差异（秒）
+     */
+    fun diffInSeconds(startDate: Date, endDate: Date): Long {
+        return (endDate.time - startDate.time) / 1000
+    }
+
+    /**
+     * 计算两个时间之间的差异（分钟）
+     */
+    fun diffInMinutes(startDate: Date, endDate: Date): Long {
+        return (endDate.time - startDate.time) / (60 * 1000)
+    }
+
+    /**
+     * 计算两个时间之间的差异（小时）
+     */
+    fun diffInHours(startDate: Date, endDate: Date): Long {
+        return (endDate.time - startDate.time) / (60 * 60 * 1000)
+    }
+
+    /**
+     * 计算两个时间之间的差异（天）
+     */
+    fun diffInDays(startDate: Date, endDate: Date): Long {
+        return (endDate.time - startDate.time) / (24 * 60 * 60 * 1000)
     }
 }
