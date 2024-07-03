@@ -39,9 +39,9 @@ android {
 dependencies {
     //网络相关
     api('io.netty:netty-all:4.1.70.Final')
-    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4" // 协程(版本自定)
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1'
-    api 'com.squareup.okhttp3:okhttp:4.11.0' // 要求OkHttp4以上
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3" // 协程(版本自定)
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    api 'com.squareup.okhttp3:okhttp:4.12.0' // 要求OkHttp4以上
     //mqtt相关
     api('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5')
 
