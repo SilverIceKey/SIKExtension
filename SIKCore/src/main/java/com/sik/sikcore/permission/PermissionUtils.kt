@@ -9,7 +9,11 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
 import com.sik.sikcore.activity.ActivityTracker
 import androidx.core.content.ContextCompat
@@ -73,22 +77,31 @@ object PermissionUtils {
     @Composable
     fun RequestPermissions(
         permissions: Array<String>,
-        onPermissionsResult: (Boolean) -> Unit
+        triggerPermissionRequest: MutableState<Boolean>,
+        onPermissionsResult: (Boolean) -> Unit = {},
     ) {
         val launcher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestMultiplePermissions()
-        ) { results ->
-            val allGranted = results.all { it.value == true }
-            onPermissionsResult(allGranted)
-        }
+            contract = ActivityResultContracts.RequestMultiplePermissions(),
+            onResult = { results ->
+                val allGranted = results.all { it.value == true }
+                onPermissionsResult(allGranted)
+            }
+        )
 
-        // Remember the current permissions and launch the launcher when they change
-        val currentPermissions = remember(permissions) { permissions }
-        launcher.launch(currentPermissions)
+        // 触发权限请求
+        LaunchedEffect(triggerPermissionRequest.value) {
+            if (triggerPermissionRequest.value) {
+                launcher.launch(permissions)
+                triggerPermissionRequest.value = false // 请求后重置触发器
+            }
+        }
     }
 
     @Composable
-    fun RequestManageExternalStorage(onPermissionsResult: (Boolean) -> Unit) {
+    fun RequestManageExternalStorage(
+        triggerPermissionRequest: MutableState<Boolean>,
+        onPermissionsResult: (Boolean) -> Unit
+    ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.StartActivityForResult()
@@ -97,9 +110,14 @@ object PermissionUtils {
                 onPermissionsResult(granted)
             }
 
-            launcher.launch(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
+            LaunchedEffect(triggerPermissionRequest.value) {
+                if (triggerPermissionRequest.value) {
+                    launcher.launch(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
+                    triggerPermissionRequest.value = false // 请求后重置触发器
+                }
+            }
         } else {
-            onPermissionsResult(true)
+            onPermissionsResult(true) // 对于R以下版本，假设总是有权限
         }
     }
 
