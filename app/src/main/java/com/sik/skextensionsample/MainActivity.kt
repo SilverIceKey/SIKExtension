@@ -23,9 +23,9 @@ class MainActivity : ComponentActivity() {
 //                },
 //                triggerPermissionRequest = triggerPermissionRequest
 //            )
-            PermissionUtils.RequestManageExternalStorage({
+            PermissionUtils.RequestManageExternalStorage(triggerPermissionRequest) {
 
-            },triggerPermissionRequest)
+            }
             LaunchedEffect(key1 = Unit) {
                 triggerPermissionRequest.value = true
             }
