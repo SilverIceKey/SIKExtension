@@ -1,7 +1,15 @@
 package com.sik.sikcore.permission
 
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Environment
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.fragment.app.FragmentActivity
 import com.sik.sikcore.activity.ActivityTracker
 import androidx.core.content.ContextCompat
@@ -61,6 +69,40 @@ object PermissionUtils {
         }
         return fragment
     }
+
+    @Composable
+    fun RequestPermissions(
+        permissions: Array<String>,
+        onPermissionsResult: (Boolean) -> Unit
+    ) {
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions()
+        ) { results ->
+            val allGranted = results.all { it.value == true }
+            onPermissionsResult(allGranted)
+        }
+
+        // Remember the current permissions and launch the launcher when they change
+        val currentPermissions = remember(permissions) { permissions }
+        launcher.launch(currentPermissions)
+    }
+
+    @Composable
+    fun RequestManageExternalStorage(onPermissionsResult: (Boolean) -> Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val launcher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartActivityForResult()
+            ) { result ->
+                val granted = Environment.isExternalStorageManager()
+                onPermissionsResult(granted)
+            }
+
+            launcher.launch(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
+        } else {
+            onPermissionsResult(true)
+        }
+    }
+
 
     /**
      * 检查指定的权限是否已被授予。
