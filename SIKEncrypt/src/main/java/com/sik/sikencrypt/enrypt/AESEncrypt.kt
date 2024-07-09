@@ -1,6 +1,8 @@
 package com.sik.sikencrypt.enrypt
 
 import com.sik.sikcore.data.ConvertUtils
+import com.sik.sikcore.extension.createNewFile
+import com.sik.sikcore.extension.deleteIfExists
 import com.sik.sikencrypt.EncryptException
 import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.EncryptMode
@@ -113,6 +115,49 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         }
     }
 
+    override fun encryptSelfFile(srcFile: String) {
+        val inputFile = File(srcFile)
+        val tempFile = "${srcFile}.tmp"
+        if (!inputFile.exists()) {
+            throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
+        }
+        val outputFile = File(tempFile)
+        tempFile.deleteIfExists()
+        tempFile.createNewFile()
+        val cipher = try {
+            Cipher.getInstance(
+                "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
+                BouncyCastleProvider.PROVIDER_NAME
+            )
+        } catch (e: NoSuchAlgorithmException) {
+            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
+        }
+        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+        } else {
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec)
+        }
+
+        FileInputStream(inputFile).use { fis ->
+            FileOutputStream(outputFile).use { fos ->
+                CipherOutputStream(fos, cipher).use { cos ->
+                    val buffer = ByteArray(1024)
+                    var bytesRead: Int
+                    while (fis.read(buffer).also { bytesRead = it } != -1) {
+                        cos.write(buffer, 0, bytesRead)
+                    }
+                }
+            }
+        }
+        // 替换原文件
+        if (inputFile.delete()) {
+            outputFile.renameTo(inputFile)
+        } else {
+            throw EncryptException(EncryptExceptionEnums.ENCRYPT_ERROR)
+        }
+    }
+
     @Throws(EncryptException::class)
     override fun decryptFromHex(dataStr: String): String {
         if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.hexToBytes(
@@ -188,6 +233,49 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     }
                 }
             }
+        }
+    }
+
+    override fun decryptSelfFile(srcFile: String) {
+        val inputFile = File(srcFile)
+        val tempFile = "${srcFile}.tmp"
+        if (!inputFile.exists()) {
+            throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
+        }
+        val outputFile = File(tempFile)
+        tempFile.deleteIfExists()
+        tempFile.createNewFile()
+        val cipher = try {
+            Cipher.getInstance(
+                "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
+                BouncyCastleProvider.PROVIDER_NAME
+            )
+        } catch (e: NoSuchAlgorithmException) {
+            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
+        }
+        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+        } else {
+            cipher.init(Cipher.DECRYPT_MODE, keySpec)
+        }
+
+        FileInputStream(inputFile).use { fis ->
+            FileOutputStream(outputFile).use { fos ->
+                CipherInputStream(fis, cipher).use { cis ->
+                    val buffer = ByteArray(1024)
+                    var bytesRead: Int
+                    while (cis.read(buffer).also { bytesRead = it } != -1) {
+                        fos.write(buffer, 0, bytesRead)
+                    }
+                }
+            }
+        }
+        // 替换原文件
+        if (inputFile.delete()) {
+            outputFile.renameTo(inputFile)
+        } else {
+            throw EncryptException(EncryptExceptionEnums.ENCRYPT_ERROR)
         }
     }
 

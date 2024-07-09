@@ -42,6 +42,12 @@ interface IEncrypt {
     fun encryptFile(srcFile: String, destFile: String)
 
     /**
+     * 文件自加密
+     */
+    @Throws(EncryptException::class)
+    fun encryptSelfFile(srcFile: String)
+
+    /**
      * 从十六进制解密
      *
      * @param dataStr
@@ -77,4 +83,10 @@ interface IEncrypt {
      */
     @Throws(EncryptException::class)
     fun decryptFromFile(srcFile: String, destFile: String)
+
+    /**
+     * 文件自解密
+     */
+    @Throws(EncryptException::class)
+    fun decryptSelfFile(srcFile: String)
 }

@@ -92,6 +92,10 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
         throw EncryptException(EncryptExceptionEnums.FILE_ENCRYPT_NOT_SUPPORT)
     }
 
+    override fun encryptSelfFile(srcFile: String) {
+        throw EncryptException(EncryptExceptionEnums.FILE_ENCRYPT_NOT_SUPPORT)
+    }
+
     @Throws(EncryptException::class)
     override fun decryptFromHex(dataStr: String): String {
         val bytes = ConvertUtils.hexToBytes(dataStr)
@@ -115,6 +119,10 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
 
     @Throws(EncryptException::class)
     override fun decryptFromFile(srcFile: String, destFile: String) {
+        throw EncryptException(EncryptExceptionEnums.FILE_ENCRYPT_NOT_SUPPORT)
+    }
+
+    override fun decryptSelfFile(srcFile: String) {
         throw EncryptException(EncryptExceptionEnums.FILE_ENCRYPT_NOT_SUPPORT)
     }
 
