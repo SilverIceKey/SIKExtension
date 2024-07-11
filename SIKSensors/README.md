@@ -4,6 +4,14 @@
 
 ## 使用方法：
 
+需要在Manifest中声明以下权限:
+```xml
+<uses-permission android:name="android.permission.USE_BIOMETRIC" />
+<uses-permission android:name="android.permission.USE_FINGERPRINT" />
+<uses-permission android:name="android.permission.BODY_SENSORS" />
+<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+```
+
 ## 方法介绍：
 
 ### [指纹工具类](./src/main/java/com/sik/siksensors/fingerprints/FingerPrintsUtils.kt)

@@ -4,6 +4,12 @@
 
 ## 使用方法：
 
+需要在Manifest中声明以下权限:
+```xml
+<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+```
+
 ## 方法介绍：
 
 ### [核心模块](./src/main/java/com/sik/sikcore/SIKCore.kt)

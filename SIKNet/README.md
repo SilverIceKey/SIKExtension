@@ -2,6 +2,13 @@
 
 ## 说明：使用扩展函数的特性基于Okhttp对Api String进行网络请求调用
 
+需要在Manifest中声明以下权限:
+```xml
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+```
+
 ## 使用方法：
 
     Api.httpGet<T>():T//Get 请求
