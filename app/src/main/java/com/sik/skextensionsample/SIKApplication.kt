@@ -8,6 +8,5 @@ class SIKApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         SIKCore.init(this)
-        AnnotationScanner.scan(ScanConfiguration::class)
     }
 }
