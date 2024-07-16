@@ -51,9 +51,13 @@ object BarCodeUtils {
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
         val luminanceSource = RGBLuminanceSource(bitmap.width, bitmap.height, pixels)
         val binaryBitmap = BinaryBitmap(HybridBinarizer(luminanceSource))
-        return MultiFormatReader().apply {
-            setHints(mapOf(DecodeHintType.POSSIBLE_FORMATS to barCodeFormatList))
-        }.decode(binaryBitmap).text
+        return try {
+            MultiFormatReader().apply {
+                setHints(mapOf(DecodeHintType.POSSIBLE_FORMATS to barCodeFormatList))
+            }.decode(binaryBitmap).text
+        } catch (e: Exception) {
+            ""
+        }
     }
 
     /**
@@ -122,7 +126,12 @@ object BarCodeUtils {
         val bitmap = Bitmap.createBitmap(resultWidth, resultHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawBitmap(src, (resultWidth - srcWidth) / 2f, 0f, null)
-        canvas.drawText(info, (resultWidth - rect.width()) / 2f, (srcHeight + rect.height() + 10).toFloat(), paint)
+        canvas.drawText(
+            info,
+            (resultWidth - rect.width()) / 2f,
+            (srcHeight + rect.height() + 10).toFloat(),
+            paint
+        )
         canvas.save()
         canvas.restore()
         return bitmap

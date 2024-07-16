@@ -28,7 +28,11 @@ object QRCodeUtils {
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
         val luminanceSource = RGBLuminanceSource(bitmap.width, bitmap.height, pixels)
         val binaryBitmap = BinaryBitmap(HybridBinarizer(luminanceSource))
-        return QRCodeReader().decode(binaryBitmap).text
+        return try {
+            QRCodeReader().decode(binaryBitmap).text
+        } catch (e: Exception) {
+            ""
+        }
     }
 
     /**
