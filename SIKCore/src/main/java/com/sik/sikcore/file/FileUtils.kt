@@ -1,9 +1,14 @@
 package com.sik.sikcore.file
 
+import android.net.Uri
+import android.provider.OpenableColumns
+import com.sik.sikcore.SIKCore
 import java.io.BufferedReader
 import java.io.File
+import java.io.FileOutputStream
 import java.io.FileReader
 import java.io.IOException
+import java.io.InputStream
 
 /**
  * 文件相关
@@ -52,5 +57,48 @@ object FileUtils {
             tempFile.mkdirs()
             tempFile.createNewFile()
         }
+    }
+
+    /**
+     * 从uri中获取文件
+     * @param uri
+     */
+    fun getFileFromUri(uri: Uri): File? {
+        return try {
+            val inputStream: InputStream? =
+                SIKCore.getApplication().contentResolver.openInputStream(uri)
+            inputStream?.let {
+                val fileName = getFileName(uri) ?: "temp_audio_file"
+                val file = File(SIKCore.getApplication().cacheDir, fileName.replace(" ",""))
+                val outputStream = FileOutputStream(file)
+                val buffer = ByteArray(1024)
+                var length: Int
+                while (inputStream.read(buffer).also { length = it } > 0) {
+                    outputStream.write(buffer, 0, length)
+                }
+                outputStream.flush()
+                outputStream.close()
+                inputStream.close()
+                file
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * 从uri获取文件名
+     */
+    private fun getFileName(uri: Uri): String? {
+        var fileName: String? = null
+        val cursor = SIKCore.getApplication().contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                fileName =
+                    it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME).coerceAtLeast(0))
+            }
+        }
+        return fileName
     }
 }

@@ -4,6 +4,13 @@
 
 ## 使用方法：
 
+需要声明一下权限：
+
+```androidManifest
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+```
+
 ## 方法介绍：
 
 ### [音频帮助类](./src/main/java/com/sik/sikmedia/AudioHelper.kt)
