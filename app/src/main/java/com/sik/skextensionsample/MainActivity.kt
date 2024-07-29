@@ -6,13 +6,16 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.sik.sikcore.explain.LogInfo
@@ -25,22 +28,35 @@ import com.sik.sikmedia.audio_process.SimpleSnoreDetector
 @LogInfo(description = "进入主界面")
 class MainActivity : ComponentActivity() {
     private val audioProcessor = AudioProcessor()
-    private var snoreDetected by mutableStateOf(false)
+    private var errmsg = mutableStateOf("")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 添加打鼾检测器
-        val snoreDetector = SimpleSnoreDetector()
-        audioProcessor.addAnalyzer(snoreDetector)
-
         // 设置内容
         setContent {
+            val detectedStatus = remember { mutableStateOf("检测中") }
+            val detectedProgress = remember { mutableIntStateOf(0) }
             Scaffold { contentPadding ->
                 Column(
-                    modifier = Modifier.padding(contentPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier
+                        .padding(contentPadding)
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = if (snoreDetected) "Snore detected!" else "No snore detected.")
+                    Text(text = detectedStatus.value)
+                    Text(text = "${detectedProgress.value}%")
+                    Text(text = "错误:${errmsg.value}")
                 }
+            }
+            LaunchedEffect(key1 = Unit) {
+                // 添加打鼾检测器
+                val snoreDetector = SimpleSnoreDetector().apply {
+                    setOnDetectProgressListener { status, progress ->
+                        detectedStatus.value = status
+                        detectedProgress.intValue = progress
+                    }
+                }
+                audioProcessor.addAnalyzer(snoreDetector)
             }
         }
 
@@ -82,7 +98,6 @@ class MainActivity : ComponentActivity() {
             outputFilePath,
             object : AudioProcessor.AudioProcessorCallback {
                 override fun onSuccess(processedAudio: ProcessedAudio) {
-                    snoreDetected = true
                     runOnUiThread {
                         Toast.makeText(this@MainActivity, "Snore detected", Toast.LENGTH_SHORT)
                             .show()
@@ -90,8 +105,8 @@ class MainActivity : ComponentActivity() {
                 }
 
                 override fun onFailure(exception: AudioProcessException) {
-                    snoreDetected = false
                     runOnUiThread {
+                        errmsg.value = exception.message ?: ""
                         Toast.makeText(
                             this@MainActivity,
                             "Processing failed: ${exception.message}",

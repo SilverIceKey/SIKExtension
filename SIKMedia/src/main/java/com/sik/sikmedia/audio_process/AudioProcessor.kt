@@ -2,6 +2,8 @@ package com.sik.sikmedia.audio_process
 
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
+import com.sik.sikcore.extension.deleteIfExists
+import com.sik.sikcore.extension.exists
 import com.sik.sikcore.log.LogUtils
 import java.io.File
 import java.io.InputStream
@@ -58,11 +60,13 @@ class AudioProcessor {
                 try {
                     // 转换成功后，获取转换后的文件输入流
                     val outputFile = File(outputFilePath)
+                    val dataLength = outputFile.length()
                     val inputStream = outputFile.inputStream()
                     val processedAudioWithStream = ProcessedAudio(outputFilePath, inputStream)
                     logger.i("开始调用分析器")
                     // 调用所有添加的分析器
                     analyzers.forEach {
+                        it.setDataLength(dataLength)
                         it.analyze(inputStream) // 注意，这里需要重新打开流
                     }
                     // 调用成功回调
@@ -82,7 +86,8 @@ class AudioProcessor {
     // 使用 FFmpegKit 将输入文件转换为 WAV 格式
     private fun convertToWav(inputFilePath: String, outputFilePath: String, callback: AudioProcessorCallback) {
         val command = "-i $inputFilePath $outputFilePath" // 构建 FFmpeg 命令
-
+        outputFilePath.deleteIfExists()
+        logger.i(command)
         // 异步执行 FFmpeg 命令
         FFmpegKit.executeAsync(command) { session ->
             if (ReturnCode.isSuccess(session.returnCode)) {

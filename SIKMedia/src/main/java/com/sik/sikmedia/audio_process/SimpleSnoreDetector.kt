@@ -7,6 +7,20 @@ import kotlin.math.sqrt
 
 class SimpleSnoreDetector : AudioAnalyzer {
     private val logger = LogUtils.getLogger(SimpleSnoreDetector::class)
+
+    private var listener: (status: String, progress: Int) -> Unit = { _, _ -> }
+
+    private var fileSize = 0L
+
+    fun setOnDetectProgressListener(listener: (status: String, progress: Int) -> Unit) {
+        this.listener = listener
+    }
+
+    override fun setDataLength(dataLength: Long) {
+        fileSize = dataLength
+    }
+
+
     override fun analyze(input: InputStream) {
         try {
             val buffer = ByteArray(1024)
@@ -14,23 +28,27 @@ class SimpleSnoreDetector : AudioAnalyzer {
             val window = createHannWindow(buffer.size)
             var bytesRead: Int
             var snoreCount = 0
-
+            listener("检测中", 0)
+            var readLength = 0L
             while (input.read(buffer).also { bytesRead = it } != -1) {
                 for (i in buffer.indices) {
                     fftBuffer[i] = buffer[i].toDouble() * window[i]
                 }
-
+                readLength += bytesRead
                 val fftResult = FFT.fft(fftBuffer)
                 val magnitudes = fftResult.map { sqrt(it.re * it.re + it.im * it.im) }
                 val maxMagnitude = magnitudes.maxOrNull() ?: 0.0
-
-                logger.i("分贝数:${10 * log10(maxMagnitude)}")
-                if (10 * log10(maxMagnitude) > 40) { // 假设40dB以上为打鼾
-                    logger.i("检测到40db以上的分别是")
+                val db = if (maxMagnitude > 0.0) {
+                    10 * log10(maxMagnitude)
+                } else {
+                    Double.NEGATIVE_INFINITY // 或者其他处理方式，视情况而定
+                }
+                if (db > 40) { // 假设40dB以上为打鼾
                     snoreCount++
                 }
+                listener("检测中", (readLength * 1f / fileSize * 100).toInt())
             }
-
+            listener("检测完成", 100)
             if (snoreCount > 10) {
                 logger.i("检测到打鼾")
             } else {
