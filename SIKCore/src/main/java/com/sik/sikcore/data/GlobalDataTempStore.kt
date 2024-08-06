@@ -24,7 +24,7 @@ class GlobalDataTempStore private constructor() {
      * @param key
      * @param value
      */
-    external fun saveData(key: String, value: Any)
+    external fun saveData(key: String, value: Any):Boolean
 
     /**
      * Get data

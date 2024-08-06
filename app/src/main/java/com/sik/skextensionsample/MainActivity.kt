@@ -23,6 +23,7 @@ import com.sik.sikcore.data.GlobalDataTempStore
 import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.file.FileUtils
 import com.sik.sikcore.log.LogUtils
+import com.sik.sikcore.thread.ThreadUtils
 import com.sik.sikmedia.audio_process.AudioProcessException
 import com.sik.sikmedia.audio_process.AudioProcessor
 import com.sik.sikmedia.audio_process.ProcessedAudio
@@ -56,8 +57,15 @@ class MainActivity : ComponentActivity() {
                         Text(text = "保存数据")
                     }
                     Button(onClick = {
+                        ThreadUtils.runOnIO {
+                            stressTest()
+                        }
+                    }) {
+                        Text(text = "测试")
+                    }
+                    Button(onClick = {
                         logger.i("${GlobalDataTempStore.getInstance().hasData("123")}")
-                        logger.i("${GlobalDataTempStore.getInstance().getData("123",false)}")
+                        logger.i("${GlobalDataTempStore.getInstance().getData("123", false)}")
                         errmsg.value = (GlobalDataTempStore.getInstance().getData("123")
                             ?: "暂无数据").toString()
                     }) {
@@ -79,6 +87,31 @@ class MainActivity : ComponentActivity() {
 
         // 处理传入的Intent
         handleSendIntent(intent)
+    }
+
+    private fun stressTest() {
+        val store = GlobalDataTempStore.getInstance()
+        for (i in 0 until 100000) {
+            val key = "key_$i"
+            val value = "value_$i"
+            store.saveData(key, value)
+            if (i % 1000 == 0) {
+                runOnUiThread {
+                    errmsg.value = "Saved $i entries"
+                }
+            }
+        }
+
+        println("Starting to retrieve data")
+        for (i in 0 until 100000) {
+            val key = "key_$i"
+            store.getData(key)
+            if (i % 1000 == 0) {
+                runOnUiThread {
+                    errmsg.value = "Retrieved $i entries"
+                }
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
