@@ -47,4 +47,11 @@ class GlobalDataTempStore {
         }
         return data
     }
+
+    /**
+     * 是否有数据
+     */
+    fun hasData(key: String): Boolean {
+        return dataStore[key] != null
+    }
 }
