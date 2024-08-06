@@ -5,12 +5,7 @@ package com.sik.sikcore.data
  * 全局参数临时存储池
  * @constructor Create empty Global data temp store
  */
-class GlobalDataTempStore {
-    /**
-     * Data store
-     * 数据存储池
-     */
-    private val dataStore: HashMap<String, Any?> = hashMapOf()
+class GlobalDataTempStore private constructor() {
 
     companion object {
         private val INSTANCE by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -29,9 +24,7 @@ class GlobalDataTempStore {
      * @param key
      * @param value
      */
-    fun saveData(key: String, value: Any) {
-        dataStore[key] = value
-    }
+    external fun saveData(key: String, value: Any)
 
     /**
      * Get data
@@ -40,18 +33,10 @@ class GlobalDataTempStore {
      * @param isDeleteAfterGet
      */
     @JvmOverloads
-    fun getData(key: String, isDeleteAfterGet: Boolean = true): Any? {
-        val data = dataStore[key]
-        if (isDeleteAfterGet) {
-            dataStore[key] = null
-        }
-        return data
-    }
+    external fun getData(key: String, isDeleteAfterGet: Boolean = true): Any?
 
     /**
      * 是否有数据
      */
-    fun hasData(key: String): Boolean {
-        return dataStore[key] != null
-    }
+    external fun hasData(key: String): Boolean
 }

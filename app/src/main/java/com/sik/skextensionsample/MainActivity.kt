@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
@@ -18,8 +19,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.sik.sikcore.data.GlobalDataTempStore
 import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.file.FileUtils
+import com.sik.sikcore.log.LogUtils
 import com.sik.sikmedia.audio_process.AudioProcessException
 import com.sik.sikmedia.audio_process.AudioProcessor
 import com.sik.sikmedia.audio_process.ProcessedAudio
@@ -29,6 +32,7 @@ import com.sik.sikmedia.audio_process.SimpleSnoreDetector
 class MainActivity : ComponentActivity() {
     private val audioProcessor = AudioProcessor()
     private var errmsg = mutableStateOf("")
+    private val logger = LogUtils.getLogger(MainActivity::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 设置内容
@@ -46,6 +50,19 @@ class MainActivity : ComponentActivity() {
                     Text(text = detectedStatus.value)
                     Text(text = "${detectedProgress.value}%")
                     Text(text = "错误:${errmsg.value}")
+                    Button(onClick = {
+                        GlobalDataTempStore.getInstance().saveData("123", "1111")
+                    }) {
+                        Text(text = "保存数据")
+                    }
+                    Button(onClick = {
+                        logger.i("${GlobalDataTempStore.getInstance().hasData("123")}")
+                        logger.i("${GlobalDataTempStore.getInstance().getData("123",false)}")
+                        errmsg.value = (GlobalDataTempStore.getInstance().getData("123")
+                            ?: "暂无数据").toString()
+                    }) {
+                        Text(text = "获取数据")
+                    }
                 }
             }
             LaunchedEffect(key1 = Unit) {

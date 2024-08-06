@@ -18,6 +18,7 @@ object SIKCore {
         SIKCore.application = application
         application.registerActivityLifecycleCallbacks(ActivityTracker)
         MMKV.initialize(application)
+        System.loadLibrary("SIKCore")
     }
 
     /**
