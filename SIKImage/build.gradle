@@ -55,5 +55,6 @@ dependencies {
     //二维码相关
     api('com.google.zxing:core:3.4.0')
 
+
     compileOnly project(path: ':SIKCore')
 }

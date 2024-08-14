@@ -1,11 +1,14 @@
 package com.sik.skextensionsample
 
+import TiffPainter
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,9 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.sik.sikcore.data.GlobalDataTempStore
 import com.sik.sikcore.explain.LogInfo
+import com.sik.sikcore.extension.createNewFile
+import com.sik.sikcore.extension.file
 import com.sik.sikcore.file.FileUtils
 import com.sik.sikcore.log.LogUtils
 import com.sik.sikcore.thread.ThreadUtils
+import com.sik.sikimage.ImageConvertUtils
 import com.sik.sikmedia.audio_process.AudioProcessException
 import com.sik.sikmedia.audio_process.AudioProcessor
 import com.sik.sikmedia.audio_process.ProcessedAudio
@@ -48,6 +54,7 @@ class MainActivity : ComponentActivity() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
+                    Image(painter = TiffPainter("/sdcard/1.tiff"), contentDescription = "")
                     Text(text = detectedStatus.value)
                     Text(text = "${detectedProgress.value}%")
                     Text(text = "错误:${errmsg.value}")
@@ -82,6 +89,12 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 audioProcessor.addAnalyzer(snoreDetector)
+                "/sdcard/1.png".createNewFile()
+                ImageConvertUtils.tifToImage(
+                    "/sdcard/1.tiff".file(),
+                    "/sdcard/1.png".file(),
+                    Bitmap.CompressFormat.PNG
+                )
             }
         }
 

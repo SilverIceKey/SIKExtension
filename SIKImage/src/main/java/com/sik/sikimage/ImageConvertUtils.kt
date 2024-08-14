@@ -9,6 +9,7 @@ import android.graphics.YuvImage
 import android.media.Image
 import android.os.Environment
 import android.util.Base64
+import org.beyka.tiffbitmapfactory.TiffBitmapFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -334,6 +335,140 @@ object ImageConvertUtils {
         } else {
             currentQuality = quality
             jpegStream.toByteArray()
+        }
+    }
+
+    /**
+     * 将图片文件转换为指定格式的图片文件
+     *
+     * @param inputFile 输入文件
+     * @param outputFile 输出文件
+     * @param format 目标格式 (CompressFormat.JPEG, CompressFormat.PNG, etc.)
+     * @return 转换后的文件
+     */
+    fun convertImageFormat(
+        inputFile: File,
+        outputFile: File,
+        format: Bitmap.CompressFormat
+    ): File? {
+        return try {
+            val bitmap = BitmapFactory.decodeFile(inputFile.absolutePath)
+            val out = FileOutputStream(outputFile)
+            bitmap.compress(format, 100, out)
+            out.flush()
+            out.close()
+            outputFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * 将RAW文件转换为Bitmap
+     *
+     * @param inputFile 输入文件 (RAW文件)
+     * @param width 图像宽度
+     * @param height 图像高度
+     * @return Bitmap
+     */
+    fun rawToBitmap(inputFile: File, width: Int, height: Int): Bitmap? {
+        return try {
+            val inputStream = FileInputStream(inputFile)
+            val buffer = ByteArray(inputStream.available())
+            inputStream.read(buffer)
+            inputStream.close()
+
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(buffer))
+            bitmap
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * 将Bitmap保存为RAW文件
+     *
+     * @param bitmap Bitmap对象
+     * @param outputFile 输出文件 (RAW文件)
+     * @return 保存后的文件
+     */
+    fun bitmapToRaw(bitmap: Bitmap, outputFile: File): File? {
+        return try {
+            val buffer = ByteBuffer.allocate(bitmap.byteCount)
+            bitmap.copyPixelsToBuffer(buffer)
+            val rawBytes = buffer.array()
+
+            val out = FileOutputStream(outputFile)
+            out.write(rawBytes)
+            out.flush()
+            out.close()
+            outputFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * 将JPG文件转换为PNG文件
+     *
+     * @param inputFile 输入JPG文件
+     * @param outputFile 输出PNG文件
+     * @return 转换后的文件
+     */
+    fun jpgToPng(inputFile: File, outputFile: File): File? {
+        return convertImageFormat(inputFile, outputFile, Bitmap.CompressFormat.PNG)
+    }
+
+    /**
+     * 将PNG文件转换为JPG文件
+     *
+     * @param inputFile 输入PNG文件
+     * @param outputFile 输出JPG文件
+     * @return 转换后的文件
+     */
+    fun pngToJpg(inputFile: File, outputFile: File): File? {
+        return convertImageFormat(inputFile, outputFile, Bitmap.CompressFormat.JPEG)
+    }
+
+    /**
+     * 将TIF/TIFF文件转换为JPG或PNG
+     *
+     * @param inputFile 输入TIF/TIFF文件
+     * @param outputFile 输出JPG/PNG文件
+     * @param format 目标格式 (CompressFormat.JPEG, CompressFormat.PNG)
+     * @return 转换后的文件
+     */
+    fun tifToImage(inputFile: File, outputFile: File, format: Bitmap.CompressFormat): File? {
+        // 注意：TIF/TIFF格式在原生的Android API中不支持直接处理
+        // 需要使用第三方库如TiffBitmapFactory来处理
+        return try {
+            val bitmap = TiffBitmapFactory.decodePath(inputFile.absolutePath)
+            val out = FileOutputStream(outputFile)
+            bitmap.compress(format, 100, out)
+            out.flush()
+            out.close()
+            outputFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * 读取TIF/TIFF为Bitmap
+     */
+    fun tifToBitmap(filePath: String): Bitmap? {
+        // 注意：TIF/TIFF格式在原生的Android API中不支持直接处理
+        // 需要使用第三方库如TiffBitmapFactory来处理
+        return try {
+            TiffBitmapFactory.decodePath(filePath)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 }
