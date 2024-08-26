@@ -101,4 +101,18 @@ object FileUtils {
         }
         return fileName
     }
+
+    /**
+     * Format bytes
+     * 文件大小单位转换
+     * @param bytes
+     * @return
+     */
+    fun formatBytes(bytes: Long): String {
+        val unit = 1024
+        if (bytes < unit) return "$bytes B"
+        val exp = (Math.log(bytes.toDouble()) / Math.log(unit.toDouble())).toInt()
+        val pre = ("KMGTPE")[exp - 1] + "B"
+        return String.format("%.3f %s", bytes / Math.pow(unit.toDouble(), exp.toDouble()), pre)
+    }
 }
