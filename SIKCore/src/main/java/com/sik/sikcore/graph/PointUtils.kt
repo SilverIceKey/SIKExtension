@@ -20,29 +20,42 @@ object PointUtils {
         require(totalPoints >= 4) { "Total points must be at least 4." }
 
         // 计算矩形的另外两个顶点
-        val p3 = Pair(p1.first, p2.second)
-        val p4 = Pair(p2.first, p1.second)
+        val p3 = Pair(p1.first, p2.second) // (p1的x, p2的y)
+        val p4 = Pair(p2.first, p1.second) // (p2的x, p1的y)
 
-        // 添加四个顶点到列表中
-        val points = mutableListOf(p1, p3, p2, p4)
+        // 确定 p1 为基准点，按顺时针顺序排列顶点
+        val points = mutableListOf<Pair<Float, Float>>()
+        points.add(p1)
 
+        when {
+            p1.first <= p2.first && p1.second <= p2.second||p1.first > p2.first && p1.second <= p2.second  -> { // p1左上，p2右下 或者 p1右上，p2左下
+                points.add(p3)
+                points.add(p2)
+                points.add(p4)
+            }
+            else -> { // p1右下，p2左上 或者 p1左下，p2右上
+                points.add(p4)
+                points.add(p2)
+                points.add(p3)
+            }
+        }
+
+        // 如果需要补全点位，添加到主点列表中
         if (totalPoints > 4) {
             val extraPoints = totalPoints - 4
 
             // 在每条边上均匀分布额外的点
             val edgeMidpoints = listOf(
-                calculateIntermediatePoints(p1, p3, extraPoints / 4),
-                calculateIntermediatePoints(p3, p2, extraPoints / 4),
-                calculateIntermediatePoints(p2, p4, extraPoints / 4),
-                calculateIntermediatePoints(p4, p1, extraPoints / 4)
+                calculateIntermediatePoints(points[0], points[1], extraPoints / 4),
+                calculateIntermediatePoints(points[1], points[2], extraPoints / 4),
+                calculateIntermediatePoints(points[2], points[3], extraPoints / 4),
+                calculateIntermediatePoints(points[3], points[0], extraPoints / 4)
             )
 
             // 将计算出的中间点添加到主点列表中
-            edgeMidpoints.flatten().forEach { points.add(it) }
+            points += edgeMidpoints.flatten()
         }
-
-        // 按顺时针顺序对点进行排序
-        return points.sortedWith(compareBy({ it.first }, { it.second }))
+        return points.take(totalPoints)
     }
 
     /**
