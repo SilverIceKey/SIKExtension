@@ -1,5 +1,8 @@
 package com.sik.sikcore.graph
 
+/**
+ * 点位计算工具类
+ */
 object PointUtils {
     /**
      * 计算矩形的所有顶点和额外的点。
@@ -10,10 +13,10 @@ object PointUtils {
      * @return 返回包含所有点的列表。
      */
     fun calculateRectanglePoints(
-        p1: Pair<Int, Int>,
-        p2: Pair<Int, Int>,
+        p1: Pair<Float, Float>,
+        p2: Pair<Float, Float>,
         totalPoints: Int = 4
-    ): List<Pair<Int, Int>> {
+    ): List<Pair<Float, Float>> {
         require(totalPoints >= 4) { "Total points must be at least 4." }
 
         // 计算矩形的另外两个顶点
@@ -21,7 +24,7 @@ object PointUtils {
         val p4 = Pair(p2.first, p1.second)
 
         // 添加四个顶点到列表中
-        val points = mutableListOf(p1, p2, p3, p4)
+        val points = mutableListOf(p1, p3, p2, p4)
 
         if (totalPoints > 4) {
             val extraPoints = totalPoints - 4
@@ -38,8 +41,8 @@ object PointUtils {
             edgeMidpoints.flatten().forEach { points.add(it) }
         }
 
-        // 返回指定数量的点（不超过总数）
-        return points.take(totalPoints)
+        // 按顺时针顺序对点进行排序
+        return points.sortedWith(compareBy({ it.first }, { it.second }))
     }
 
     /**
@@ -51,17 +54,18 @@ object PointUtils {
      * @return 返回包含所有中间点的列表。
      */
     fun calculateIntermediatePoints(
-        start: Pair<Int, Int>,
-        end: Pair<Int, Int>,
+        start: Pair<Float, Float>,
+        end: Pair<Float, Float>,
         count: Int
-    ): List<Pair<Int, Int>> {
-        val points = mutableListOf<Pair<Int, Int>>()
+    ): List<Pair<Float, Float>> {
+        val points = mutableListOf<Pair<Float, Float>>()
         for (i in 1..count) {
-            val ratio = i.toDouble() / (count + 1)
-            val x = (start.first + ratio * (end.first - start.first)).toInt()
-            val y = (start.second + ratio * (end.second - start.second)).toInt()
+            val ratio = i.toFloat() / (count + 1)
+            val x = start.first + ratio * (end.first - start.first)
+            val y = start.second + ratio * (end.second - start.second)
             points.add(Pair(x, y))
         }
         return points
     }
+
 }
