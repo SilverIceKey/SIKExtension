@@ -105,6 +105,9 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
         FileInputStream(inputFile).use { fis ->
             FileOutputStream(outputFile).use { fos ->
+                if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
+                    fos.write(iEncryptConfig.iv())
+                }
                 CipherOutputStream(fos, cipher).use { cos ->
                     val buffer = ByteArray(1024)
                     var bytesRead: Int
@@ -142,6 +145,9 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
 
         FileInputStream(inputFile).use { fis ->
             FileOutputStream(outputFile).use { fos ->
+                if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
+                    fos.write(iEncryptConfig.iv())
+                }
                 CipherOutputStream(fos, cipher).use { cos ->
                     val buffer = ByteArray(1024)
                     var bytesRead: Int
@@ -229,6 +235,9 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                 CipherInputStream(fis, cipher).use { cis ->
                     val buffer = ByteArray(1024)
                     var bytesRead: Int
+                    if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
+                        fis.skip(iEncryptConfig.iv()?.size?.toLong() ?: 0L)
+                    }
                     while (cis.read(buffer).also { bytesRead = it } != -1) {
                         fos.write(buffer, 0, bytesRead)
                     }
@@ -266,6 +275,9 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                 CipherInputStream(fis, cipher).use { cis ->
                     val buffer = ByteArray(1024)
                     var bytesRead: Int
+                    if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
+                        fis.skip(iEncryptConfig.iv()?.size?.toLong() ?: 0L)
+                    }
                     while (cis.read(buffer).also { bytesRead = it } != -1) {
                         fos.write(buffer, 0, bytesRead)
                     }
