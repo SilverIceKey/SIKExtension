@@ -230,7 +230,6 @@ class DESedeEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     val fileIv = ByteArray(16)
                     fis.read(fileIv, 0, 16)
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
-                    fis.skip(iEncryptConfig.iv()?.size?.toLong() ?: 0L)
                 } else {
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
                 }
@@ -274,7 +273,6 @@ class DESedeEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     val fileIv = ByteArray(16)
                     fis.read(fileIv, 0, 16)
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
-                    fis.skip(iEncryptConfig.iv()?.size?.toLong() ?: 0L)
                 } else {
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
                 }
