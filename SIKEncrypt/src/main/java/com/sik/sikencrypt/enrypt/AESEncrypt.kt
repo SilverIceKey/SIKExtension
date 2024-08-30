@@ -222,21 +222,25 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
-        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
-        if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
-            cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
-        } else {
-            cipher.init(Cipher.DECRYPT_MODE, keySpec)
-        }
 
         FileInputStream(inputFile).use { fis ->
+            val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+            if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+                if (iEncryptConfig.composeIV) {
+                    val fileIv = ByteArray(16)
+                    fis.read(fileIv,0,16)
+                    cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
+                    fis.skip(iEncryptConfig.iv()?.size?.toLong() ?: 0L)
+                } else {
+                    cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+                }
+            } else {
+                cipher.init(Cipher.DECRYPT_MODE, keySpec)
+            }
             FileOutputStream(outputFile).use { fos ->
                 CipherInputStream(fis, cipher).use { cis ->
                     val buffer = ByteArray(1024)
                     var bytesRead: Int
-                    if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
-                        fis.skip(iEncryptConfig.iv()?.size?.toLong() ?: 0L)
-                    }
                     while (cis.read(buffer).also { bytesRead = it } != -1) {
                         fos.write(buffer, 0, bytesRead)
                     }
@@ -262,21 +266,25 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
-        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
-        if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
-            cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
-        } else {
-            cipher.init(Cipher.DECRYPT_MODE, keySpec)
-        }
 
         FileInputStream(inputFile).use { fis ->
+            val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+            if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+                if (iEncryptConfig.composeIV) {
+                    val fileIv = ByteArray(16)
+                    fis.read(fileIv,0,16)
+                    cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
+                    fis.skip(iEncryptConfig.iv()?.size?.toLong() ?: 0L)
+                } else {
+                    cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+                }
+            } else {
+                cipher.init(Cipher.DECRYPT_MODE, keySpec)
+            }
             FileOutputStream(outputFile).use { fos ->
                 CipherInputStream(fis, cipher).use { cis ->
                     val buffer = ByteArray(1024)
                     var bytesRead: Int
-                    if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
-                        fis.skip(iEncryptConfig.iv()?.size?.toLong() ?: 0L)
-                    }
                     while (cis.read(buffer).also { bytesRead = it } != -1) {
                         fos.write(buffer, 0, bytesRead)
                     }
