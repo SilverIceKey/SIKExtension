@@ -1,3 +1,0 @@
-[submodule "SIKImage/src/main/cpp/libyuv"]
-	path = SIKImage/src/main/cpp/libyuv
-	url = https://github.com/bilibili/libyuv.git

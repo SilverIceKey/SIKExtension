@@ -7,10 +7,6 @@ import kotlin.math.abs
  * 图像工具类
  */
 object ImageUtils {
-    init {
-        System.loadLibrary("SIKImage")
-    }
-
 
     /**
      * 获取画面平均亮度
@@ -58,7 +54,7 @@ object ImageUtils {
         val output = ByteArray(input.size)
         val swap = rotation == 90 || rotation == 270
         val yflip = rotation == 90 || rotation == 180
-        val xflip = rotation == 270 || rotation == 180
+        val xflip = rotation == 270 || rotation  == 180
         for (x in 0 until width) {
             for (y in 0 until height) {
                 var xo = x
