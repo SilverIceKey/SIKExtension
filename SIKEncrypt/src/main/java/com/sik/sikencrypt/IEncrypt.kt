@@ -1,5 +1,8 @@
 package com.sik.sikencrypt
 
+import java.io.InputStream
+import java.io.OutputStream
+
 /**
  * 加解密接口
  *
@@ -48,6 +51,12 @@ interface IEncrypt {
     fun encryptSelfFile(srcFile: String)
 
     /**
+     * 流加密
+     */
+    @Throws(EncryptException::class)
+    fun encryptStream(inputStream: InputStream, outputStream: OutputStream)
+
+    /**
      * 从十六进制解密
      *
      * @param dataStr
@@ -89,4 +98,10 @@ interface IEncrypt {
      */
     @Throws(EncryptException::class)
     fun decryptSelfFile(srcFile: String)
+
+    /**
+     * 流解密
+     */
+    @Throws(EncryptException::class)
+    fun decryptStream(inputStream: InputStream, outputStream: OutputStream)
 }

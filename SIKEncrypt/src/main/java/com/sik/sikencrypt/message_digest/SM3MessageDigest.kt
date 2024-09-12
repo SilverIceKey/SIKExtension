@@ -5,6 +5,7 @@ import com.sik.sikcore.extension.file
 import com.sik.sikencrypt.EncryptException
 import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.IMessageDigest
+import com.sik.sikencrypt.MessageDigestFileOutType
 import org.bouncycastle.crypto.digests.SM3Digest
 import java.io.ByteArrayInputStream
 import java.io.InputStream
@@ -36,12 +37,20 @@ class SM3MessageDigest : IMessageDigest {
         return ConvertUtils.bytesToBase64String(digest(ByteArrayInputStream(dataBytes)))
     }
 
-    override fun digestFile(srcFile: String): String {
+    override fun digestFile(srcFile: String, outType: MessageDigestFileOutType): String {
         val tempSrcFile = srcFile.file()
         if (!tempSrcFile.exists()) {
             throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
         } else {
-            return ConvertUtils.bytesToHex(digest(tempSrcFile.inputStream()))
+            return when (outType) {
+                MessageDigestFileOutType.HEX -> {
+                    ConvertUtils.bytesToHex(digest(tempSrcFile.inputStream()))
+                }
+
+                MessageDigestFileOutType.BASE64 -> {
+                    ConvertUtils.bytesToBase64String(digest(tempSrcFile.inputStream()))
+                }
+            }
         }
     }
 }

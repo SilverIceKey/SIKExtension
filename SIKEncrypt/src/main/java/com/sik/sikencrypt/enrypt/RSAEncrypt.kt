@@ -1,8 +1,12 @@
 package com.sik.sikencrypt.enrypt
 
 import com.sik.sikcore.data.ConvertUtils
+import com.sik.sikcore.extension.createNewFile
+import com.sik.sikcore.extension.file
+import com.sik.sikcore.io.IOUtils
 import com.sik.sikencrypt.EncryptException
 import com.sik.sikencrypt.EncryptExceptionEnums
+import com.sik.sikencrypt.EncryptPadding
 import com.sik.sikencrypt.IRSAEncrypt
 import com.sik.sikencrypt.IRSAEncryptConfig
 import java.io.*
@@ -15,13 +19,17 @@ import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
 
 class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
-    private val cipher: Cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
+    private val cipher: Cipher =
+        Cipher.getInstance("${config.algorithm()}/${config.mode()}/${config.padding()}")
     private var publicKey: ByteArray = byteArrayOf()
     private var privateKey: ByteArray = byteArrayOf()
 
     override fun generateKeyPair(): IRSAEncrypt {
+        if (config.publicKey().size !in arrayOf(1024, 2048, 4096)) {
+            throw EncryptException(EncryptExceptionEnums.PRIVATE_KEY_SIZE_SET_ERROR)
+        }
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
-        keyPairGenerator.initialize(2048)
+        keyPairGenerator.initialize(config.privateKeySize())
         val keyPair = keyPairGenerator.genKeyPair()
         publicKey = keyPair.public.encoded
         privateKey = keyPair.private.encoded
@@ -29,12 +37,19 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     }
 
     private fun getPublicKey(): PublicKey {
-        if ((config.publicKey().isEmpty() && config.privateKey()
-                .isEmpty()) && publicKey.isEmpty()
-        ) {
-            generateKeyPair()
-        } else if (config.publicKey().isEmpty()) {
-            throw EncryptException(EncryptExceptionEnums.PUBLIC_KEY_NOT_SET)
+        when {
+            (config.publicKey().isEmpty() && config.privateKey()
+                .isEmpty()) && publicKey.isEmpty() -> {
+                generateKeyPair()
+            }
+
+            config.publicKey().isEmpty() -> {
+                throw EncryptException(EncryptExceptionEnums.PUBLIC_KEY_NOT_SET)
+            }
+
+            config.privateKey().size != config.privateKeySize() -> {
+                throw EncryptException(EncryptExceptionEnums.PRIVATE_KEY_SIZE_ERROR)
+            }
         }
         val keySpec = X509EncodedKeySpec(publicKey)
         val keyFactory = KeyFactory.getInstance("RSA")
@@ -89,11 +104,37 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
 
     @Throws(EncryptException::class)
     override fun encryptFile(srcFile: String, destFile: String) {
-        throw EncryptException(EncryptExceptionEnums.FILE_ENCRYPT_NOT_SUPPORT)
+        val data = IOUtils.readFileAsString(srcFile.file())
+        val maxBlockSize = getMaxEncryptBlockSize()
+        if (data.length > maxBlockSize) {
+            throw EncryptException(EncryptExceptionEnums.ENCRYPT_BLOCK_SIZE_EXCEED)
+        }
+        val encryptedData = encrypt(data.toByteArray())
+        destFile.createNewFile()
+        IOUtils.writeBytesToFile(destFile.file(), encryptedData)
     }
 
     override fun encryptSelfFile(srcFile: String) {
-        throw EncryptException(EncryptExceptionEnums.FILE_ENCRYPT_NOT_SUPPORT)
+        val data = IOUtils.readFileAsString(srcFile.file())
+        val maxBlockSize = getMaxEncryptBlockSize()
+        if (data.length > maxBlockSize) {
+            throw EncryptException(EncryptExceptionEnums.ENCRYPT_BLOCK_SIZE_EXCEED)
+        }
+        val encryptedData = encrypt(data.toByteArray())
+        IOUtils.writeBytesToFile(srcFile.file(), encryptedData)
+    }
+
+    override fun encryptStream(inputStream: InputStream, outputStream: OutputStream) {
+        val maxBlockSize = getMaxEncryptBlockSize()
+        val buffer = ByteArray(maxBlockSize)
+        var bytesRead: Int
+        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+            if (bytesRead > maxBlockSize) {
+                throw EncryptException(EncryptExceptionEnums.ENCRYPT_BLOCK_SIZE_EXCEED)
+            }
+            val encryptedBlock = encrypt(buffer.copyOf(bytesRead))
+            outputStream.write(encryptedBlock)
+        }
     }
 
     @Throws(EncryptException::class)
@@ -119,11 +160,37 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
 
     @Throws(EncryptException::class)
     override fun decryptFromFile(srcFile: String, destFile: String) {
-        throw EncryptException(EncryptExceptionEnums.FILE_ENCRYPT_NOT_SUPPORT)
+        val data = IOUtils.readFileAsString(srcFile.file())
+        val maxBlockSize = getMaxDecryptBlockSize()
+        if (data.length > maxBlockSize) {
+            throw EncryptException(EncryptExceptionEnums.DECRYPT_BLOCK_SIZE_EXCEED)
+        }
+        val decryptedData = decrypt(data.toByteArray())
+        destFile.createNewFile()
+        IOUtils.writeBytesToFile(destFile.file(), decryptedData)
     }
 
     override fun decryptSelfFile(srcFile: String) {
-        throw EncryptException(EncryptExceptionEnums.FILE_ENCRYPT_NOT_SUPPORT)
+        val data = IOUtils.readFileAsString(srcFile.file())
+        val maxBlockSize = getMaxDecryptBlockSize()
+        if (data.length > maxBlockSize) {
+            throw EncryptException(EncryptExceptionEnums.DECRYPT_BLOCK_SIZE_EXCEED)
+        }
+        val decryptedData = decrypt(data.toByteArray())
+        IOUtils.writeBytesToFile(srcFile.file(), decryptedData)
+    }
+
+    override fun decryptStream(inputStream: InputStream, outputStream: OutputStream) {
+        val maxBlockSize = getMaxDecryptBlockSize()
+        val buffer = ByteArray(maxBlockSize)
+        var bytesRead: Int
+        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+            if (bytesRead > maxBlockSize) {
+                throw EncryptException(EncryptExceptionEnums.DECRYPT_BLOCK_SIZE_EXCEED)
+            }
+            val decryptedBlock = decrypt(buffer.copyOf(bytesRead))
+            outputStream.write(decryptedBlock)
+        }
     }
 
     private fun encrypt(dataBytes: ByteArray): ByteArray {
@@ -134,5 +201,24 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     private fun decrypt(dataBytes: ByteArray): ByteArray {
         cipher.init(Cipher.DECRYPT_MODE, getPrivateKey())
         return cipher.doFinal(dataBytes)
+    }
+
+    /**
+     * 根据填充获取最大加密的块长度
+     */
+    private fun getMaxEncryptBlockSize(): Int {
+        val keySizeInBytes = config.privateKeySize() / 8
+        return when (config.padding()) {
+            EncryptPadding.NoPadding -> keySizeInBytes
+            EncryptPadding.PKCS5Padding -> keySizeInBytes - 11
+            EncryptPadding.OAEPWithSHA256AndMGF1Padding -> keySizeInBytes - 42
+        }
+    }
+
+    /**
+     * 获取最大解密的块长度
+     */
+    private fun getMaxDecryptBlockSize(): Int {
+        return config.privateKeySize() / 8
     }
 }

@@ -22,10 +22,12 @@ interface IMessageDigest {
     fun digestToBase64(dataBytes: ByteArray): String
 
     /**
-     * 获取文件的信息摘要，使用十六进制输出
-     *
-     * @param srcFile
-     * @return
+     * 获取文件的信息摘要，选择输出类型，默认十六进制字符串
+     * @param srcFile 文件地址
+     * @param outType 输出文本类型
      */
-    fun digestFile(srcFile: String): String
+    fun digestFile(
+        srcFile: String,
+        outType: MessageDigestFileOutType = MessageDigestFileOutType.HEX
+    ): String
 }

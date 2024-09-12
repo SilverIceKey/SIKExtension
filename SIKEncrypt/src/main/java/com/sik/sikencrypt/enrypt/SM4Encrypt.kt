@@ -165,6 +165,38 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         }
     }
 
+    override fun encryptStream(inputStream: InputStream, outputStream: OutputStream) {
+        val cipher = try {
+            Cipher.getInstance(
+                "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
+                BouncyCastleProvider.PROVIDER_NAME
+            )
+        } catch (e: NoSuchAlgorithmException) {
+            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
+        }
+        val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+        } else {
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec)
+        }
+
+        inputStream.use { fis ->
+            outputStream.use { fos ->
+                if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
+                    fos.write(iEncryptConfig.iv())
+                }
+                CipherOutputStream(fos, cipher).use { cos ->
+                    val buffer = ByteArray(1024)
+                    var bytesRead: Int
+                    while (fis.read(buffer).also { bytesRead = it } != -1) {
+                        cos.write(buffer, 0, bytesRead)
+                    }
+                }
+            }
+        }
+    }
+
     @Throws(EncryptException::class)
     override fun decryptFromHex(dataStr: String): String {
         if (iEncryptConfig.padding() == EncryptPadding.NoPadding && ConvertUtils.hexToBytes(
@@ -229,7 +261,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
                 if (iEncryptConfig.composeIV) {
                     val fileIv = ByteArray(16)
-                    fis.read(fileIv,0,16)
+                    fis.read(fileIv, 0, 16)
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
                 } else {
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
@@ -272,7 +304,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
                 if (iEncryptConfig.composeIV) {
                     val fileIv = ByteArray(16)
-                    fis.read(fileIv,0,16)
+                    fis.read(fileIv, 0, 16)
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
                 } else {
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
@@ -295,6 +327,41 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             outputFile.renameTo(inputFile)
         } else {
             throw EncryptException(EncryptExceptionEnums.ENCRYPT_ERROR)
+        }
+    }
+
+    override fun decryptStream(inputStream: InputStream, outputStream: OutputStream) {
+        val cipher = try {
+            Cipher.getInstance(
+                "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
+                BouncyCastleProvider.PROVIDER_NAME
+            )
+        } catch (e: NoSuchAlgorithmException) {
+            throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
+        }
+
+        inputStream.use { fis ->
+            val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+            if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+                if (iEncryptConfig.composeIV) {
+                    val fileIv = ByteArray(16)
+                    fis.read(fileIv, 0, 16)
+                    cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
+                } else {
+                    cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+                }
+            } else {
+                cipher.init(Cipher.DECRYPT_MODE, keySpec)
+            }
+            outputStream.use { fos ->
+                CipherInputStream(fis, cipher).use { cis ->
+                    val buffer = ByteArray(1024)
+                    var bytesRead: Int
+                    while (cis.read(buffer).also { bytesRead = it } != -1) {
+                        fos.write(buffer, 0, bytesRead)
+                    }
+                }
+            }
         }
     }
 

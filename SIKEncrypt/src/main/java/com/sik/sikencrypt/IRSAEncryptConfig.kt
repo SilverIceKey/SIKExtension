@@ -19,6 +19,11 @@ abstract class IRSAEncryptConfig : IEncryptConfig {
      */
     abstract fun privateKey(): ByteArray
 
+    /**
+     * 密钥长度 有三种长度分别是:1024/2048/4096, 默认2048
+     */
+    fun privateKeySize(): Int = 2048
+
     override fun key(): ByteArray {
         return ByteArray(0)
     }
@@ -36,7 +41,7 @@ abstract class IRSAEncryptConfig : IEncryptConfig {
     }
 
     override fun padding(): EncryptPadding {
-        return EncryptPadding.PKCS5Padding
+        return EncryptPadding.OAEPWithSHA256AndMGF1Padding
     }
 
     override val composeIV: Boolean

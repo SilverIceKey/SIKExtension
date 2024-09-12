@@ -16,6 +16,9 @@ enum class EncryptExceptionEnums(val message: String) {
     CONFIG_ERROR("配置异常"),
     PUBLIC_KEY_NOT_SET("公钥未设置"),
     PRIVATE_KEY_NOT_SET("私钥未设置"),
+    PRIVATE_KEY_SIZE_ERROR("私钥长度错误"),
+    PRIVATE_KEY_SIZE_SET_ERROR("私钥长度设置错误"),
     FILE_NOT_FOUND("文件未找到"),
-    FILE_ENCRYPT_NOT_SUPPORT("不支持文件加解密"),
+    DECRYPT_BLOCK_SIZE_EXCEED("解密块超出长度限制"),
+    ENCRYPT_BLOCK_SIZE_EXCEED("加密块超出长度限制"),
 }
