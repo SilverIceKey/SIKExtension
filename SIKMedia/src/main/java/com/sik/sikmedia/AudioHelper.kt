@@ -1,247 +1,82 @@
 package com.sik.sikmedia
 
-import android.annotation.SuppressLint
-import android.media.AudioFormat
-import android.media.AudioRecord
-import android.media.MediaRecorder
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
-import com.sik.sikcore.SIKCore
-import com.sik.sikcore.date.TimeUtils
-import com.sik.sikcore.extension.createNewFile
-import com.sik.sikcore.extension.exists
-import com.sik.sikcore.extension.fileOutputStream
-import java.io.File
-import java.io.OutputStream
-import kotlin.concurrent.thread
-
 /**
- * 音频帮助文件
+ * 音频帮助类，提供录音功能的统一接口
  */
-class AudioHelper {
-    /**
-     * 保存路径
-     */
-    var savePath = ""
+class AudioHelper private constructor() {
     companion object {
-        val INSTANCE: AudioHelper by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        @JvmStatic
+        val instance: AudioHelper by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             AudioHelper()
         }
     }
 
-    init {
-        savePath = SIKCore.getApplication().externalCacheDir?.absolutePath?:"/sdcard/Audio/"
+    private var audioRecorder: AudioRecorderInterface? = null
+
+    /**
+     * 设置录音器类型，并初始化对应的实现
+     * @param type 音频录制类型
+     */
+    fun setRecorderType(type: AudioRecorderType) {
+        audioRecorder = when (type) {
+            AudioRecorderType.MEDIA_RECORDER -> MediaRecorderImpl()
+            AudioRecorderType.AUDIO_RECORD -> AudioRecordImpl()
+        }
     }
 
-    ////////////////////////////////使用MediaRecord//////////////////////////////////////////////
-    private var mediaRecorder: MediaRecorder? = null
-    private var isRecording = false
+    /**
+     * 设置保存路径
+     * @param path 音频文件保存路径
+     */
+    fun setSavePath(path: String) {
+        audioRecorder?.setSavePath(path)
+    }
+
+    /**
+     * 设置分块时长
+     * @param durationMs 每个音频块的时长，单位毫秒
+     */
+    fun setChunkDuration(durationMs: Long) {
+        audioRecorder?.setChunkDuration(durationMs)
+    }
+
+    /**
+     * 设置分块监听器
+     * @param listener 分块完成后的回调监听器
+     */
+    fun setChunkListener(listener: ChunkListener?) {
+        audioRecorder?.setChunkListener(listener)
+    }
 
     /**
      * 开始录音
+     * @param onSuccess 录音开始成功后的回调，返回文件路径
      */
     fun startRecord(onSuccess: (filePath: String) -> Unit = {}) {
-        if (isRecording) {
-            return
-        }
-        var filePath = savePath
-        if (!filePath.endsWith(File.separator)) {
-            filePath += File.separator
-        }
-        val fileName = "${TimeUtils.instance.nowString("yyyy-MM-dd-HH-mm-ss-SSS")}.mp3"
-        val file = filePath + fileName
-        mediaRecorder = MediaRecorder()
-        mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
-        mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-        mediaRecorder?.setOutputFile(filePath + fileName)
-        if (!filePath.exists()) {
-            File(filePath).mkdirs()
-        }
-        if (!file.exists()) {
-            file.createNewFile()
-        }
-        onSuccess(filePath + fileName)
-        mediaRecorder?.prepare()
-        mediaRecorder?.start()
-        isRecording = true
+        audioRecorder?.startRecord(onSuccess)
     }
 
     /**
      * 暂停录音
+     * @param onPaused 录音暂停后的回调
      */
     fun pauseRecord(onPaused: () -> Unit = {}) {
-        if (mediaRecorder == null) {
-            return
-        }
-        mediaRecorder?.pause()
-        onPaused()
+        audioRecorder?.pauseRecord(onPaused)
     }
 
     /**
      * 恢复录音
+     * @param onResumed 录音恢复后的回调
      */
     fun resumeRecord(onResumed: () -> Unit = {}) {
-        if (mediaRecorder == null) {
-            return
-        }
-        mediaRecorder?.resume()
-        onResumed()
+        audioRecorder?.resumeRecord(onResumed)
     }
 
     /**
      * 停止录音
+     * @param onStopped 录音停止后的回调
      */
-    fun stopRecord(onStoped: () -> Unit = {}) {
-        if (mediaRecorder == null) {
-            return
-        }
-        mediaRecorder?.stop()
-        mediaRecorder?.release()
-        mediaRecorder = null
-        isRecording = false
-        onStoped()
+    fun stopRecord(onStopped: () -> Unit = {}) {
+        audioRecorder?.stopRecord(onStopped)
     }
-    ////////////////////////////////使用MediaRecord//////////////////////////////////////////////
-
-    ////////////////////////////////使用AudioRecord//////////////////////////////////////////////
-    private var audioRecord: AudioRecord? = null
-    private var audioSize: Int? = null
-    private var audioRecordHandler: Handler? = null
-    private var fileOutputStream: OutputStream? = null
-    private var fileSavePath: String = ""
-    private val AUDIORECORD_START = 1
-    private val AUDIORECORD_PAUSE = 2
-    private val AUDIORECORD_RESUME = 3
-    private val AUDIORECORD_STOP = 4
-
-    /**
-     * 初始化Handler
-     */
-    private fun initHandler() {
-        thread {
-            Looper.prepare()
-            audioRecordHandler = @SuppressLint("HandlerLeak")
-            object : Handler() {
-                @SuppressLint("HandlerLeak")
-                override fun handleMessage(msg: Message) {
-                    super.handleMessage(msg)
-                    when (msg.what) {
-                        AUDIORECORD_START -> {
-                            audioRecord?.startRecording()
-                            fileOutputStream = fileSavePath.fileOutputStream()
-                            while (isRecording) {
-                                var data = ByteArray(audioSize!!)
-                                audioRecord?.read(data, 0, audioSize!!)
-                                fileOutputStream?.write(data)
-                            }
-                        }
-                        AUDIORECORD_PAUSE -> {
-                            //录音暂停
-                        }
-                        AUDIORECORD_RESUME -> {
-                            while (isRecording) {
-                                var data = ByteArray(audioSize!!)
-                                audioRecord?.read(data, 0, audioSize!!)
-                                fileOutputStream?.write(data)
-                            }
-                        }
-                        AUDIORECORD_STOP -> {
-                            fileOutputStream?.close()
-                            audioRecord?.stop()
-                            audioRecord?.release()
-                            audioRecord = null
-                            fileOutputStream = null
-                        }
-                    }
-                }
-            }
-            Looper.loop()
-        }
-
-    }
-
-    /**
-     * 开始录音
-     */
-    @SuppressLint("MissingPermission")
-    fun startRecordWithAudioRecord(onSuccess: (filePath: String) -> Unit = {}) {
-        if (isRecording) {
-            return
-        }
-        initHandler()
-        var filePath = savePath
-        if (!filePath.endsWith(File.separator)) {
-            filePath += File.separator
-        }
-        val fileName = "${TimeUtils.instance.nowString("yyyy-MM-dd-HH-mm-ss-SSS")}.pcm"
-        fileSavePath = filePath + fileName
-        audioSize = AudioRecord.getMinBufferSize(
-            44100,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT
-        )
-        audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.MIC, 44100,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
-            audioSize!!
-        )
-        if (!filePath.exists()) {
-            File(filePath).mkdirs()
-        }
-        if (!fileSavePath.exists()) {
-            fileSavePath.createNewFile()
-        }
-        onSuccess(filePath + fileName)
-        val message = Message()
-        message.what = AUDIORECORD_START
-        audioRecordHandler?.sendMessage(message)
-        isRecording = true
-    }
-
-    /**
-     * 暂停录音
-     */
-    fun pauseRecordWithAudioRecord(onPaused: () -> Unit = {}) {
-        if (audioRecord == null) {
-            return
-        }
-        isRecording = false
-        val message = Message()
-        message.what = AUDIORECORD_PAUSE
-        audioRecordHandler?.sendMessage(message)
-        onPaused()
-    }
-
-    /**
-     * 恢复录音
-     */
-    fun resumeRecordWithAudioRecord(onResumed: () -> Unit = {}) {
-        if (audioRecord == null) {
-            return
-        }
-        isRecording = true
-        val message = Message()
-        message.what = AUDIORECORD_RESUME
-        audioRecordHandler?.sendMessage(message)
-        onResumed()
-    }
-
-    /**
-     * 停止录音
-     */
-    fun stopRecordWithAudioRecord(onStoped: () -> Unit = {}) {
-        if (audioRecord == null) {
-            return
-        }
-        val message = Message()
-        message.what = AUDIORECORD_STOP
-        audioRecordHandler?.sendMessage(message)
-        isRecording = false
-        audioRecordHandler = null
-        onStoped()
-    }
-    ////////////////////////////////使用AudioRecord//////////////////////////////////////////////
 }
