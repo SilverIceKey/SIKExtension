@@ -2,6 +2,7 @@ package com.sik.sikcore.thread
 
 import android.os.Handler
 import android.os.Looper
+import com.sik.sikcore.SIKCore
 import kotlinx.coroutines.*
 
 /**
@@ -12,7 +13,7 @@ object ThreadUtils {
 
     // 主线程的Handler
     private val mainHandler: Handler by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        Handler(Looper.getMainLooper())
+        Handler(SIKCore.getApplication().mainLooper)
     }
 
     /**
