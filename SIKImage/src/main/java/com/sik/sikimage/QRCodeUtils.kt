@@ -10,29 +10,35 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.EncodeHintType
 import com.google.zxing.RGBLuminanceSource
+import com.google.zxing.Result
 import com.google.zxing.common.BitMatrix
 import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.qrcode.QRCodeReader
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import java.nio.charset.Charset
 
 /**
  * 二维码工具
  */
 object QRCodeUtils {
-    /*
-    * 根据bitmap读取二维码
-    */
-    fun readQRCode(bitmap: Bitmap): String {
+
+    /**
+     * 二维码解码为想要的字符格式
+     */
+    fun readQRCodeString(bitmap: Bitmap, charset: Charset = Charset.defaultCharset()): String {
+        return readQRCode(bitmap)?.rawBytes?.toString(charset) ?: ""
+    }
+
+    /**
+     * 根据bitmap读取二维码
+     */
+    fun readQRCode(bitmap: Bitmap): Result? {
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
         val luminanceSource = RGBLuminanceSource(bitmap.width, bitmap.height, pixels)
         val binaryBitmap = BinaryBitmap(HybridBinarizer(luminanceSource))
-        return try {
-            QRCodeReader().decode(binaryBitmap).text
-        } catch (e: Exception) {
-            ""
-        }
+        return QRCodeReader().decode(binaryBitmap)
     }
 
     /**
