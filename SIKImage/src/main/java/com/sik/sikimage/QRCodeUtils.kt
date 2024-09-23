@@ -65,8 +65,6 @@ object QRCodeUtils {
         // 设置解码 hints 参数
         val hints = mapOf(
             DecodeHintType.CHARACTER_SET to charset.name(),  // 明确设置字符集为 ISO-8859-1
-            DecodeHintType.TRY_HARDER to true,             // 尝试更复杂的解码
-            DecodeHintType.PURE_BARCODE to false,          // 非纯条形码
         )
         return try {
             QRCodeReader().decode(binaryBitmap, hints)
