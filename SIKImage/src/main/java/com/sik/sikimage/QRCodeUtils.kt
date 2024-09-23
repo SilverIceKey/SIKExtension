@@ -3,14 +3,15 @@ package com.sik.sikimage
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
 import com.google.zxing.EncodeHintType
+import com.google.zxing.NotFoundException
 import com.google.zxing.RGBLuminanceSource
+import com.google.zxing.Result
 import com.google.zxing.common.BitMatrix
 import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.qrcode.QRCodeReader
@@ -24,104 +25,140 @@ import java.nio.charset.Charset
 object QRCodeUtils {
 
     /**
-     * 二维码解码为想要的字符格式，并可选择转换为十六进制字符串
+     * 二维码解码为字符串或十六进制字符串
+     *
+     * @param bitmap 二维码图像
+     * @param charset 字符集，默认为 ISO-8859-1
+     * @param toHex 是否转换为十六进制字符串
+     * @return 解码后的字符串或十六进制字符串
      */
     fun readQRCodeString(
         bitmap: Bitmap,
-        charset: Charset = Charset.defaultCharset(),
-        toHex: Boolean = false // 添加参数决定是否转换为十六进制
+        charset: Charset = Charsets.ISO_8859_1,
+        toHex: Boolean = false
     ): String {
-        val rawBytes = readQRCode(bitmap, charset)?.rawBytes ?: return ""
+        val rawBytes = readQRCodeRawBytes(bitmap, charset)
         return if (toHex) {
-            // 转换为十六进制字符串
-            rawBytes.joinToString("") { byte -> String.format("%02X", byte) }
+            rawBytes.toHexString()
         } else {
-            // 转换为指定字符编码的字符串
             rawBytes.toString(charset)
         }
     }
 
     /**
-     * 二维码解码为想要的 byte 数组
+     * 二维码解码为字节数组
+     *
+     * @param bitmap 二维码图像
+     * @param charset 字符集，默认为 ISO-8859-1
+     * @return 解码后的字节数组
      */
     fun readQRCodeRawBytes(
         bitmap: Bitmap,
-        charset: Charset = Charset.defaultCharset()
+        charset: Charset = Charsets.ISO_8859_1
     ): ByteArray {
         return readQRCode(bitmap, charset)?.rawBytes ?: ByteArray(0)
     }
 
     /**
      * 根据 bitmap 读取二维码
+     *
+     * @param bitmap 二维码图像
+     * @param charset 字符集，默认为 ISO-8859-1
+     * @return 解码结果，可能为 null
      */
     fun readQRCode(
         bitmap: Bitmap,
-        charset: Charset = Charset.defaultCharset(),
-    ): com.google.zxing.Result? {
-        val pixels = IntArray(bitmap.width * bitmap.height)
-        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        charset: Charset = Charsets.ISO_8859_1
+    ): Result? {
+        val pixels = IntArray(bitmap.width * bitmap.height).apply {
+            bitmap.getPixels(this, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        }
         val luminanceSource = RGBLuminanceSource(bitmap.width, bitmap.height, pixels)
         val binaryBitmap = BinaryBitmap(HybridBinarizer(luminanceSource))
-        // 设置解码 hints 参数
         val hints = mapOf(
-            DecodeHintType.CHARACTER_SET to charset.name(),  // 明确设置字符集为 ISO-8859-1
+            DecodeHintType.CHARACTER_SET to charset.name(),
+            DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE)
         )
         return try {
             QRCodeReader().decode(binaryBitmap, hints)
+        } catch (e: NotFoundException) {
+            null
         } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
 
     /**
-     * 快捷创建二维码bitmap
+     * 创建二维码 bitmap
+     *
+     * @param info 要编码的信息
+     * @param size 二维码的宽高
+     * @param color 前景色，默认为黑色
+     * @param logo 可选的 logo 图像
+     * @param withInfo 是否在二维码下方添加信息文本
+     * @return 生成的二维码 Bitmap
      */
     @JvmOverloads
     fun createQRCode(
         info: String,
         size: Int,
-        color: Int = -1,
+        color: Int = Color.BLACK,
         logo: Bitmap? = null,
         withInfo: Boolean = false
     ): Bitmap {
-        val hint = HashMap<EncodeHintType, Any>()
-        hint[EncodeHintType.MARGIN] = 0
-        hint[EncodeHintType.ERROR_CORRECTION] = ErrorCorrectionLevel.H
-        return bitMatrixToBitmap(
-            QRCodeWriter().encode(
-                String(
-                    info.toByteArray(Charsets.UTF_8),
-                    Charsets.ISO_8859_1
-                ), BarcodeFormat.QR_CODE, size, size, hint
-            ), color, logo, withInfo, info
+        val hints = hashMapOf<EncodeHintType, Any>(
+            EncodeHintType.MARGIN to 0,
+            EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.H,
+            EncodeHintType.CHARACTER_SET to "ISO-8859-1"
         )
+        val encodedInfo = info.toByteArray(Charsets.ISO_8859_1).toString(Charsets.ISO_8859_1)
+        val bitMatrix = QRCodeWriter().encode(encodedInfo, BarcodeFormat.QR_CODE, size, size, hints)
+        return bitMatrixToBitmap(bitMatrix, color, logo, withInfo, info)
     }
 
     /**
-     * bitmap添加logo和信息文本
+     * 将 BitMatrix 转换为 Bitmap，并添加 logo 和信息文本
+     *
+     * @param bitMatrix 二维码的 BitMatrix
+     * @param color 前景色
+     * @param logo 可选的 logo 图像
+     * @param withInfo 是否添加信息文本
+     * @param info 信息文本内容
+     * @return 生成的二维码 Bitmap
      */
     private fun bitMatrixToBitmap(
-        bitMatrix: BitMatrix, color: Int, logo: Bitmap?,
-        withInfo: Boolean, info: String
+        bitMatrix: BitMatrix,
+        color: Int,
+        logo: Bitmap?,
+        withInfo: Boolean,
+        info: String
     ): Bitmap {
         val width = bitMatrix.width
         val height = bitMatrix.height
-
         val pixels = IntArray(width * height)
+
         for (y in 0 until height) {
             for (x in 0 until width) {
-                pixels[y * width + x] = if (bitMatrix.get(x, y)) {
-                    if (color == -1 || color == Color.parseColor("#ffffff")) Color.BLACK else color
-                } else Color.WHITE
+                pixels[y * width + x] = if (bitMatrix.get(x, y)) color else Color.WHITE
             }
         }
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
-        return addLogoAndInfoToQRCode(bitmap, logo, withInfo, info)
+
+        val qrBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
+            setPixels(pixels, 0, width, 0, 0, width, height)
+        }
+
+        return addLogoAndInfoToQRCode(qrBitmap, logo, withInfo, info)
     }
 
     /**
-     * 添加logo和信息文本到二维码图片上
+     * 在二维码上添加 logo 和信息文本
+     *
+     * @param src 源二维码 Bitmap
+     * @param logo logo 图像，可为 null
+     * @param withInfo 是否添加信息文本
+     * @param info 信息文本内容
+     * @return 处理后的二维码 Bitmap
      */
     private fun addLogoAndInfoToQRCode(
         src: Bitmap,
@@ -131,61 +168,72 @@ object QRCodeUtils {
     ): Bitmap {
         val srcWidth = src.width
         val srcHeight = src.height
-        var logoWidth = logo?.width ?: 0
-        var logoHeight = logo?.height ?: 0
+        val canvas = Canvas(src)
+        var finalBitmap = src
 
-        val resultWidth: Int
-        val resultHeight: Int
-        val bitmap: Bitmap
+        // 添加 logo
+        logo?.let {
+            val scaleFactor = calculateScaleFactor(srcWidth, it.width, it.height)
+            val scaledLogo =
+                Bitmap.createScaledBitmap(it, it.width * scaleFactor, it.height * scaleFactor, true)
+            val logoX = (srcWidth - scaledLogo.width) / 2f
+            val logoY = (srcHeight - scaledLogo.height) / 2f
+            canvas.drawBitmap(scaledLogo, logoX, logoY, null)
+        }
 
+        // 添加信息文本
         if (withInfo) {
-            val paint = Paint()
-            paint.textSize = srcHeight / 2 * 0.17f
-            paint.color = Color.BLACK
-            paint.isAntiAlias = true
-            val rect = Rect()
-            paint.getTextBounds(info, 0, info.length, rect)
-            resultWidth = Math.max(srcWidth, rect.width())
-            resultHeight = srcHeight + rect.height() + 20 // 调整文本和间距的高度
-            bitmap = Bitmap.createBitmap(resultWidth, resultHeight, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            canvas.drawBitmap(src, (resultWidth - srcWidth) / 2f, 0f, null)
-            canvas.drawText(
-                info,
-                (resultWidth - rect.width()) / 2f,
-                (srcHeight + rect.height() + 10).toFloat(),
-                paint
-            )
-        } else {
-            resultWidth = srcWidth
-            resultHeight = srcHeight
-            bitmap = Bitmap.createBitmap(resultWidth, resultHeight, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            canvas.drawBitmap(src, 0f, 0f, null)
-        }
-
-        if (logo != null) {
-            try {
-                val canvas = Canvas(bitmap)
-                val matrix = Matrix()
-                val max = Math.max(logoWidth, logoHeight)
-                var scale = 0f
-                if (max > srcWidth / 2.2f) {
-                    scale = srcWidth / 2.2f / logoWidth
-                    logoWidth = (logoWidth * scale).toInt()
-                    logoHeight = (logoHeight * scale).toInt()
-                }
-                matrix.postScale(scale, scale)
-                val centerLeftPosition = (srcWidth - logoWidth) / 2f
-                val centerTopPosition = (srcHeight - logoHeight) / 2f
-                matrix.postTranslate(centerLeftPosition, centerTopPosition)
-                canvas.drawBitmap(logo, matrix, null)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                return src
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                textSize = srcHeight * 0.05f
+                color = Color.BLACK
+                textAlign = Paint.Align.CENTER
             }
+            val textHeight = getTextHeight(paint, info)
+            val totalHeight = srcHeight + textHeight + 20
+            finalBitmap =
+                Bitmap.createBitmap(srcWidth, totalHeight, Bitmap.Config.ARGB_8888)
+            val finalCanvas = Canvas(finalBitmap)
+            finalCanvas.drawBitmap(src, 0f, 0f, null)
+            finalCanvas.drawText(info, srcWidth / 2f, srcHeight + textHeight + 10f, paint)
         }
 
-        return bitmap
+        return finalBitmap
     }
+
+    /**
+     * 计算 logo 的缩放因子，确保 logo 不超过二维码的1/2.2大小
+     *
+     * @param qrWidth 二维码宽度
+     * @param logoWidth logo 原始宽度
+     * @param logoHeight logo 原始高度
+     * @return 缩放因子
+     */
+    private fun calculateScaleFactor(qrWidth: Int, logoWidth: Int, logoHeight: Int): Int {
+        val maxLogoSize = qrWidth / 2.2f
+        return if (Math.max(logoWidth, logoHeight) > maxLogoSize) {
+            (maxLogoSize / Math.max(logoWidth, logoHeight)).toInt()
+        } else {
+            1
+        }
+    }
+
+    /**
+     * 获取文本高度
+     *
+     * @param paint Paint 对象
+     * @param text 文本内容
+     * @return 文本高度
+     */
+    private fun getTextHeight(paint: Paint, text: String): Int {
+        val bounds = Rect()
+        paint.getTextBounds(text, 0, text.length, bounds)
+        return bounds.height()
+    }
+
+    /**
+     * 将字节数组转换为十六进制字符串
+     *
+     * @return 十六进制字符串
+     */
+    private fun ByteArray.toHexString(): String = joinToString("") { "%02X".format(it) }
 }
