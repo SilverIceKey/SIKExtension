@@ -24,21 +24,43 @@ import java.nio.charset.Charset
 object QRCodeUtils {
 
     /**
-     * 二维码解码为想要的字符格式
+     * 二维码解码为想要的字符格式，并可选择转换为十六进制字符串
      */
-    fun readQRCodeString(bitmap: Bitmap, charset: Charset = Charset.defaultCharset()): String {
-        return readQRCode(bitmap)?.rawBytes?.toString(charset) ?: ""
+    fun readQRCodeString(
+        bitmap: Bitmap,
+        charset: Charset = Charset.defaultCharset(),
+        toHex: Boolean = false // 添加参数决定是否转换为十六进制
+    ): String {
+        val rawBytes = readQRCode(bitmap)?.rawBytes ?: return ""
+        return if (toHex) {
+            // 转换为十六进制字符串
+            rawBytes.joinToString("") { byte -> String.format("%02X", byte) }
+        } else {
+            // 转换为指定字符编码的字符串
+            rawBytes.toString(charset)
+        }
     }
 
     /**
-     * 根据bitmap读取二维码
+     * 二维码解码为想要的 byte 数组
      */
-    fun readQRCode(bitmap: Bitmap): Result? {
+    fun readQRCodeRawBytes(bitmap: Bitmap): ByteArray {
+        return readQRCode(bitmap)?.rawBytes ?: ByteArray(0)
+    }
+
+    /**
+     * 根据 bitmap 读取二维码
+     */
+    fun readQRCode(bitmap: Bitmap): com.google.zxing.Result? {
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
         val luminanceSource = RGBLuminanceSource(bitmap.width, bitmap.height, pixels)
         val binaryBitmap = BinaryBitmap(HybridBinarizer(luminanceSource))
-        return QRCodeReader().decode(binaryBitmap)
+        return try {
+            QRCodeReader().decode(binaryBitmap)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     /**
