@@ -3,7 +3,7 @@ name: Release on Tag
 on:
   push:
     tags:
-      - 'v*' # 匹配版本号的 Tag，例如 v1.0.0
+      - '*.*.*' # 匹配版本号的 Tag，例如 v1.0.0
 
 jobs:
   release:
@@ -17,10 +17,10 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu' # See 'Supported distributions' for available options
-          java-version: '21'
+          java-version: '17'
 
       - name: Build project
-        run: ./gradlew clean build # 你的构建命令，根据你的项目调整
+        run: ./gradlew clean publishToMavenLocal # 你的构建命令，根据你的项目调整
 
       - name: Create GitHub Release
         id: create_release
