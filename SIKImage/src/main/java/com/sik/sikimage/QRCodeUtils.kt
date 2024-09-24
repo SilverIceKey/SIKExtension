@@ -37,11 +37,11 @@ object QRCodeUtils {
         charset: Charset = Charsets.ISO_8859_1,
         toHex: Boolean = false
     ): String {
-        val rawBytes = readQRCodeRawBytes(bitmap, charset)
+        val text = readQRCode(bitmap, charset)?.text ?: ""
         return if (toHex) {
-            rawBytes.toHexString()
+            text.toByteArray(charset).toHexString()
         } else {
-            rawBytes.toString(charset)
+            text
         }
     }
 
@@ -76,8 +76,7 @@ object QRCodeUtils {
         val luminanceSource = RGBLuminanceSource(bitmap.width, bitmap.height, pixels)
         val binaryBitmap = BinaryBitmap(HybridBinarizer(luminanceSource))
         val hints = mapOf(
-            DecodeHintType.CHARACTER_SET to charset.name(),
-            DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE)
+            DecodeHintType.CHARACTER_SET to charset.name()
         )
         return try {
             QRCodeReader().decode(binaryBitmap, hints)

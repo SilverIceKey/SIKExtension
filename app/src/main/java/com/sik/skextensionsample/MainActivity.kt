@@ -1,11 +1,7 @@
 package com.sik.skextensionsample
 
-import TiffPainter
-import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
+import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -16,24 +12,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.sik.sikcore.data.GlobalDataTempStore
+import coil.compose.rememberAsyncImagePainter
 import com.sik.sikcore.explain.LogInfo
-import com.sik.sikcore.extension.createNewFile
-import com.sik.sikcore.extension.file
-import com.sik.sikcore.file.FileUtils
 import com.sik.sikcore.log.LogUtils
-import com.sik.sikcore.thread.ThreadUtils
-import com.sik.sikimage.ImageConvertUtils
-import com.sik.sikmedia.audio_process.AudioProcessException
+import com.sik.sikimage.QRCodeUtils
 import com.sik.sikmedia.audio_process.AudioProcessor
-import com.sik.sikmedia.audio_process.ProcessedAudio
-import com.sik.sikmedia.audio_process.SimpleSnoreDetector
+import java.io.File
 
 @LogInfo(description = "进入主界面")
 class MainActivity : ComponentActivity() {
@@ -44,8 +34,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // 设置内容
         setContent {
-            val detectedStatus = remember { mutableStateOf("检测中") }
-            val detectedProgress = remember { mutableIntStateOf(0) }
+            var decodeStr by remember { mutableStateOf("") }
             Scaffold { contentPadding ->
                 Column(
                     modifier = Modifier
@@ -54,136 +43,23 @@ class MainActivity : ComponentActivity() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Image(painter = TiffPainter("/sdcard/1.tiff"), contentDescription = "")
-                    Text(text = detectedStatus.value)
-                    Text(text = "${detectedProgress.value}%")
-                    Text(text = "错误:${errmsg.value}")
+                    Image(
+                        painter = rememberAsyncImagePainter(File("/sdcard/qrcode.png")),
+                        contentDescription = ""
+                    )
+                    Text(text = decodeStr)
                     Button(onClick = {
-                        GlobalDataTempStore.getInstance().saveData("123", "1111")
+                        decodeStr =
+                            QRCodeUtils.readQRCodeString(
+                                BitmapFactory.decodeFile("/sdcard/qrcode.png"),
+                                toHex = true
+                            )
+                        logger.i(decodeStr)
                     }) {
-                        Text(text = "保存数据")
-                    }
-                    Button(onClick = {
-                        ThreadUtils.runOnIO {
-                            stressTest()
-                        }
-                    }) {
-                        Text(text = "测试")
-                    }
-                    Button(onClick = {
-                        logger.i("${GlobalDataTempStore.getInstance().hasData("123")}")
-                        logger.i("${GlobalDataTempStore.getInstance().getData("123", false)}")
-                        errmsg.value = (GlobalDataTempStore.getInstance().getData("123")
-                            ?: "暂无数据").toString()
-                    }) {
-                        Text(text = "获取数据")
+                        Text(text = "解码")
                     }
                 }
             }
-            LaunchedEffect(key1 = Unit) {
-                // 添加打鼾检测器
-                val snoreDetector = SimpleSnoreDetector().apply {
-                    setOnDetectProgressListener { status, progress ->
-                        detectedStatus.value = status
-                        detectedProgress.intValue = progress
-                    }
-                }
-                audioProcessor.addAnalyzer(snoreDetector)
-                "/sdcard/1.png".createNewFile()
-                ImageConvertUtils.tifToImage(
-                    "/sdcard/1.tiff".file(),
-                    "/sdcard/1.png".file(),
-                    Bitmap.CompressFormat.PNG
-                )
-            }
-        }
-
-        // 处理传入的Intent
-        handleSendIntent(intent)
-    }
-
-    private fun stressTest() {
-        val store = GlobalDataTempStore.getInstance()
-        for (i in 0 until 100000) {
-            val key = "key_$i"
-            val value = "value_$i"
-            store.saveData(key, value)
-            if (i % 1000 == 0) {
-                runOnUiThread {
-                    errmsg.value = "Saved $i entries"
-                }
-            }
-        }
-
-        println("Starting to retrieve data")
-        for (i in 0 until 100000) {
-            val key = "key_$i"
-            store.getData(key)
-            if (i % 1000 == 0) {
-                runOnUiThread {
-                    errmsg.value = "Retrieved $i entries"
-                }
-            }
-        }
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        handleSendIntent(intent)
-    }
-
-
-    private fun handleSendIntent(intent: Intent?) {
-        if (intent == null) return
-
-        when (intent.action) {
-            Intent.ACTION_SEND -> {
-                intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { uri ->
-                    handleSendSingleFile(uri)
-                }
-            }
-
-            Intent.ACTION_SEND_MULTIPLE -> {
-                intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.let { uris ->
-                    handleSendMultipleFiles(uris)
-                }
-            }
-        }
-    }
-
-    private fun handleSendSingleFile(uri: Uri) {
-        // 处理单个音频文件
-        val inputStream = contentResolver.openInputStream(uri) ?: return
-        val outputFilePath = "${filesDir.absolutePath}/output.wav"
-
-        audioProcessor.processAudioFile(
-            FileUtils.getFileFromUri(uri)?.absolutePath ?: "",
-            outputFilePath,
-            object : AudioProcessor.AudioProcessorCallback {
-                override fun onSuccess(processedAudio: ProcessedAudio) {
-                    runOnUiThread {
-                        Toast.makeText(this@MainActivity, "Snore detected", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                }
-
-                override fun onFailure(exception: AudioProcessException) {
-                    runOnUiThread {
-                        errmsg.value = exception.message ?: ""
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Processing failed: ${exception.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            })
-    }
-
-    private fun handleSendMultipleFiles(uris: List<Uri>) {
-        // 处理多个音频文件
-        for (uri in uris) {
-            handleSendSingleFile(uri)
         }
     }
 }
