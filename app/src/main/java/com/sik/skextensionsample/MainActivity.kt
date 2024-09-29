@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import coil.compose.rememberAsyncImagePainter
+import com.sik.sikcore.activity.SecureActivity
 import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.log.LogUtils
 import com.sik.sikimage.QRCodeUtils
@@ -26,6 +27,7 @@ import com.sik.sikmedia.audio_process.AudioProcessor
 import java.io.File
 
 @LogInfo(description = "进入主界面")
+@SecureActivity
 class MainActivity : ComponentActivity() {
     private val audioProcessor = AudioProcessor()
     private var errmsg = mutableStateOf("")
