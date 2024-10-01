@@ -36,18 +36,20 @@ class SocketUtils(private val config: SocketConfig) {
      * 如果连接失败，将根据重连配置进行自动重连。
      */
     fun connect() {
-        try {
-            // 创建 Socket 并连接到目标地址
-            socket = Socket(config.ipAddress, config.port)
-            socket?.soTimeout = config.timeout  // 设置超时时间
+        ThreadUtils.runOnIO {
+            try {
+                // 创建 Socket 并连接到目标地址
+                socket = Socket(config.ipAddress, config.port)
+                socket?.soTimeout = config.timeout  // 设置超时时间
 
-            // 成功连接后，重连次数清零
-            reconnectAttempts = 0
-            logger.i("成功连接到 ${config.ipAddress}:${config.port}")
-        } catch (e: IOException) {
-            // 捕获连接异常并记录日志
-            logger.i("连接失败: ${e.message}")
-            attemptReconnect()  // 尝试重连
+                // 成功连接后，重连次数清零
+                reconnectAttempts = 0
+                logger.i("成功连接到 ${config.ipAddress}:${config.port}")
+            } catch (e: IOException) {
+                // 捕获连接异常并记录日志
+                logger.i("连接失败: ${e.message}")
+                attemptReconnect()  // 尝试重连
+            }
         }
     }
 
@@ -56,17 +58,19 @@ class SocketUtils(private val config: SocketConfig) {
      * 如果重连次数超过最大值，将停止重连。
      */
     private fun attemptReconnect() {
-        if (config.maxReconnectAttempts != -1 && reconnectAttempts < config.maxReconnectAttempts) {
-            reconnectAttempts++
-            logger.i("正在重连... 尝试次数 $reconnectAttempts")
+        ThreadUtils.runOnIO {
+            if (config.maxReconnectAttempts != -1 && reconnectAttempts < config.maxReconnectAttempts) {
+                reconnectAttempts++
+                logger.i("正在重连... 尝试次数 $reconnectAttempts")
 
-            // 等待指定的重连间隔时间后再进行重连
-            Thread.sleep(config.reconnectInterval)
-            connect()  // 再次尝试连接
-        } else {
-            // 达到最大重连次数时放弃重连，并调用连接超时处理方法
-            logger.i("已达到最大重连次数，放弃重连。")
-            config.onConnectionTimeout()
+                // 等待指定的重连间隔时间后再进行重连
+                Thread.sleep(config.reconnectInterval)
+                connect()  // 再次尝试连接
+            } else {
+                // 达到最大重连次数时放弃重连，并调用连接超时处理方法
+                logger.i("已达到最大重连次数，放弃重连。")
+                config.onConnectionTimeout()
+            }
         }
     }
 
@@ -76,12 +80,14 @@ class SocketUtils(private val config: SocketConfig) {
      * @param message 要发送的消息内容。
      */
     fun sendMessage(message: String) {
-        try {
-            socket?.getOutputStream()?.write(message.toByteArray())
-        } catch (e: IOException) {
-            // 捕获发送异常并记录日志，尝试重连
-            logger.i("消息发送失败，连接可能已断开: ${e.message}")
-            attemptReconnect()
+        ThreadUtils.runOnIO {
+            try {
+                socket?.getOutputStream()?.write(message.toByteArray())
+            } catch (e: IOException) {
+                // 捕获发送异常并记录日志，尝试重连
+                logger.i("消息发送失败，连接可能已断开: ${e.message}")
+                attemptReconnect()
+            }
         }
     }
 
@@ -112,7 +118,9 @@ class SocketUtils(private val config: SocketConfig) {
      * 断开 Socket 连接，并释放资源。
      */
     fun disconnect() {
-        socket?.close()
-        logger.i("已断开连接 ${config.ipAddress}:${config.port}")
+        ThreadUtils.runOnIO {
+            socket?.close()
+            logger.i("已断开连接 ${config.ipAddress}:${config.port}")
+        }
     }
 }
