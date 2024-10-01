@@ -4,6 +4,7 @@ import com.sik.sikcore.log.LogUtils
 import com.sik.sikcore.thread.ThreadUtils
 import java.io.IOException
 import java.net.Socket
+import java.net.SocketTimeoutException
 
 /**
  * Socket 工具类，负责管理 Socket 连接、发送和接收数据。
@@ -101,19 +102,26 @@ class SocketUtils(private val config: SocketConfig) {
             try {
                 val inputStream = socket?.getInputStream()?.bufferedReader()
                 while (socket != null && socket!!.isConnected) {
-                    val message = inputStream?.readLine() ?: ""
-                    if (message.isNotEmpty()) {
-                        // 通过监听器通知接收到的消息
-                        messageListener?.onMessageReceived(message)
-                        logger.i("接收到消息: $message")
+                    try {
+                        // 如果服务器没有发送消息，readLine 会阻塞直到有消息或者超时
+                        val message = inputStream?.readLine() ?: ""
+                        if (message.isNotEmpty()) {
+                            // 通过监听器通知接收到的消息
+                            messageListener?.onMessageReceived(message)
+                            logger.i("接收到消息: $message")
+                        }
+                    } catch (e: SocketTimeoutException) {
+                        // 处理超时异常，这里不需要重连，只是继续等待
+                        logger.i("读取消息时超时，没有数据到达。继续监听...")
                     }
                 }
             } catch (e: IOException) {
                 logger.i("接收消息时发生错误: ${e.message}")
-                attemptReconnect()
+                attemptReconnect() // 如果是其他IO错误，执行重连
             }
         }
     }
+
 
     /**
      * 断开 Socket 连接，并释放资源。
