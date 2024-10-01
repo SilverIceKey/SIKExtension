@@ -44,7 +44,8 @@ class SocketUtils(private val config: SocketConfig) {
 
                 // 成功连接后，重连次数清零
                 reconnectAttempts = 0
-                logger.i("成功连接到 ${config.ipAddress}:${config.port}")
+                logger.i("成功连接到 ${config.ipAddress}:${config.port},开始监听")
+                startListeningForMessages()
             } catch (e: IOException) {
                 // 捕获连接异常并记录日志
                 logger.i("连接失败: ${e.message}")
@@ -59,7 +60,7 @@ class SocketUtils(private val config: SocketConfig) {
      */
     private fun attemptReconnect() {
         ThreadUtils.runOnIO {
-            if (config.maxReconnectAttempts != -1 && reconnectAttempts < config.maxReconnectAttempts) {
+            if (config.maxReconnectAttempts == -1 || reconnectAttempts < config.maxReconnectAttempts) {
                 reconnectAttempts++
                 logger.i("正在重连... 尝试次数 $reconnectAttempts")
 
