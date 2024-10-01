@@ -3,7 +3,6 @@ package com.sik.sikmedia
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
-import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -190,7 +189,7 @@ object MediaPlayerUtils {
     /**
      * 设置媒体源
      */
-    @OptIn(UnstableApi::class)
+    @UnstableApi
     private fun setupExoPlayer(dataSource: String) {
         isPreparing = true
         releaseExoPlayer()
