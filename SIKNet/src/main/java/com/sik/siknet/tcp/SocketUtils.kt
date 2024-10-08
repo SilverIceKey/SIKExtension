@@ -90,7 +90,7 @@ class SocketUtils(private val config: SocketConfig) {
                 socket?.getOutputStream()?.write(message.toByteArray())
             } catch (e: IOException) {
                 // 捕获发送异常并记录日志，尝试重连
-                logger.i("消息发送失败，连接可能已断开: ${e.message}")
+                logger.d("消息发送失败，连接可能已断开: ${e.message}")
                 attemptReconnect()
             }
         }
@@ -119,7 +119,7 @@ class SocketUtils(private val config: SocketConfig) {
                             byteArrayOutputStream.write(buffer, 0, bytesRead)
                         } else if (bytesRead == -1) {
                             // 输入流已关闭，退出循环
-                            logger.i("输入流已关闭，停止监听")
+                            logger.d("输入流已关闭，停止监听")
                             break
                         }
                     } catch (e: SocketTimeoutException) {
@@ -129,7 +129,7 @@ class SocketUtils(private val config: SocketConfig) {
                             // 这里可以根据需要判断是文本还是二进制数据
                             // 目前直接将数据作为二进制处理
                             messageListener?.onMessageReceivedRawData(data)
-                            logger.i("接收到完整的消息，长度: ${data.size} 字节")
+                            logger.d("接收到完整的消息，长度: ${data.size} 字节")
 
                             // 清空缓冲区，准备接收下一条消息
                             byteArrayOutputStream.reset()
@@ -138,12 +138,12 @@ class SocketUtils(private val config: SocketConfig) {
                                 socket?.soTimeout = config.timeout
                             }
                         } else {
-                            logger.i("读取超时，但没有接收到任何数据，继续监听...")
+                            logger.d("读取超时，但没有接收到任何数据，继续监听...")
                         }
                     }
                 }
             } catch (e: IOException) {
-                logger.i("接收消息时发生错误: ${e.message}")
+                logger.d("接收消息时发生错误: ${e.message}")
                 attemptReconnect()
             }
         }
@@ -156,7 +156,7 @@ class SocketUtils(private val config: SocketConfig) {
     fun disconnect() {
         ThreadUtils.runOnIO {
             socket?.close()
-            logger.i("已断开连接 ${config.ipAddress}:${config.port}")
+            logger.d("已断开连接 ${config.ipAddress}:${config.port}")
         }
     }
 }
