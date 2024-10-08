@@ -106,10 +106,6 @@ class SocketUtils(private val config: SocketConfig) {
                 val inputStream = socket?.getInputStream()
                 val buffer = ByteArray(1024)  // 定义一个缓冲区大小
                 val byteArrayOutputStream = ByteArrayOutputStream()  // 用于累积接收到的字节数据
-                // 设置读取超时时间
-                if (config.readTimeout != -1) {
-                    socket?.soTimeout = config.readTimeout
-                }
 
                 while (socket != null && socket!!.isConnected) {
                     try {
@@ -133,10 +129,6 @@ class SocketUtils(private val config: SocketConfig) {
 
                             // 清空缓冲区，准备接收下一条消息
                             byteArrayOutputStream.reset()
-                            // 设置读取超时时间
-                            if (config.readTimeout != -1) {
-                                socket?.soTimeout = config.timeout
-                            }
                         } else {
                             logger.d("读取超时，但没有接收到任何数据，继续监听...")
                         }

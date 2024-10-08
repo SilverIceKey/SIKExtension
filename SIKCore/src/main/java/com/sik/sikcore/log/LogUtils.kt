@@ -26,6 +26,8 @@ import kotlin.reflect.KClass
 class LogUtils(private val clazz: KClass<*>) {
     companion object {
         private const val LOG_FILE_NAME_PATTERN = "log.%d{yyyy-MM-dd}.%i.log"
+
+        @JvmStatic
         var DEBUG: Boolean = true
 
         @JvmStatic
@@ -94,7 +96,12 @@ class LogUtils(private val clazz: KClass<*>) {
         }
     }
 
-    fun d(msg: String?) = msg?.let { logger.debug(it) }
+    fun d(msg: String?) = msg?.let {
+        if (DEBUG) {
+            logger.debug(it)
+        }
+    }
+
     fun i(msg: String?) = msg?.let {
         AnnotationScanner.getDescription(it)?.let {
             logger.info(it)
