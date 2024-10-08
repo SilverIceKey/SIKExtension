@@ -1,8 +1,8 @@
 package com.sik.siknet.tcp
 
-import com.sik.sikcore.extension.replaceLast
 import com.sik.sikcore.log.LogUtils
 import com.sik.sikcore.thread.ThreadUtils
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.Socket
 import java.net.SocketTimeoutException
@@ -105,38 +105,41 @@ class SocketUtils(private val config: SocketConfig) {
             try {
                 val inputStream = socket?.getInputStream()
                 val buffer = ByteArray(1024)  // 定义一个缓冲区大小
-                val messageBuilder = StringBuilder()  // 用于拼接读取到的消息
-                val endMark = config.endMark  // 从配置中获取自定义的结束符
-                val replaceAllEndMarks = config.replaceAllEndMarks  // 从配置中获取替换策略
+                val byteArrayOutputStream = ByteArrayOutputStream()  // 用于累积接收到的字节数据
+                // 设置读取超时时间
+                if (config.readTimeout != -1) {
+                    socket?.soTimeout = config.readTimeout
+                }
+
                 while (socket != null && socket!!.isConnected) {
                     try {
                         val bytesRead = inputStream?.read(buffer) ?: -1
                         if (bytesRead > 0) {
-                            // 将读取的字节数据转换为字符串，并拼接到 messageBuilder 中
-                            val part = String(buffer, 0, bytesRead)
-                            messageBuilder.append(part)
-
-                            // 检查是否包含自定义的结束符
-                            if (messageBuilder.contains(endMark)) {
-                                val message: String
-                                if (replaceAllEndMarks) {
-                                    // 替换所有的 endMark
-                                    message = messageBuilder.toString().replace(endMark, "")
-                                } else {
-                                    // 只替换最后一个 endMark
-                                    message = messageBuilder.toString().replaceLast(endMark, "")
-                                }
-
-                                messageListener?.onMessageReceived(message)
-                                logger.i("接收到完整消息: $message")
-
-                                // 清空 StringBuilder，准备处理下一条消息
-                                messageBuilder.setLength(0)
-                            }
+                            // 累积接收到的数据
+                            byteArrayOutputStream.write(buffer, 0, bytesRead)
+                        } else if (bytesRead == -1) {
+                            // 输入流已关闭，退出循环
+                            logger.i("输入流已关闭，停止监听")
+                            break
                         }
                     } catch (e: SocketTimeoutException) {
-                        // 处理超时异常，继续等待
-                        logger.i("读取消息时超时，没有数据到达。继续监听...")
+                        // 读取超时，认为消息接收完毕
+                        val data = byteArrayOutputStream.toByteArray()
+                        if (data.isNotEmpty()) {
+                            // 这里可以根据需要判断是文本还是二进制数据
+                            // 目前直接将数据作为二进制处理
+                            messageListener?.onMessageReceivedRawData(data)
+                            logger.i("接收到完整的消息，长度: ${data.size} 字节")
+
+                            // 清空缓冲区，准备接收下一条消息
+                            byteArrayOutputStream.reset()
+                            // 设置读取超时时间
+                            if (config.readTimeout != -1) {
+                                socket?.soTimeout = config.timeout
+                            }
+                        } else {
+                            logger.i("读取超时，但没有接收到任何数据，继续监听...")
+                        }
                     }
                 }
             } catch (e: IOException) {

@@ -8,6 +8,7 @@ package com.sik.siknet.tcp
  * @property ipAddress 目标服务器的 IP 地址。
  * @property port 目标服务器的端口号。
  * @property timeout 读取数据的超时时间，单位为毫秒。
+ * @property readTimeout 连续读取数据的超时时间，单位为毫秒。
  * @property maxReconnectAttempts 最大重连次数。
  * @property reconnectInterval 每次重连的间隔时间，单位为毫秒。
  * @property endMark 结尾标记
@@ -19,6 +20,7 @@ abstract class SocketConfig {
     abstract val ipAddress: String
     abstract val port: Int
     abstract val timeout: Int
+    open val readTimeout: Int = -1
     open val maxReconnectAttempts: Int = 3
     open val reconnectInterval: Long = 2000
     open val endMark: String = ""
