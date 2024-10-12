@@ -40,4 +40,16 @@ object RegexUtils {
         val matcher: Matcher = pattern.matcher(input)
         return matcher.replaceAll(replacement)
     }
+
+    /**
+     * 检查给定的字符串是否完全匹配指定的正则表达式。
+     *
+     * @param input 要检查的字符串
+     * @param pattern 正则表达式模式
+     * @return 如果字符串完全匹配正则表达式，则返回 true，否则返回 false
+     */
+    fun isMatch(input: String, pattern: String): Boolean {
+        val regex = Regex(pattern)
+        return regex.matches(input)
+    }
 }
