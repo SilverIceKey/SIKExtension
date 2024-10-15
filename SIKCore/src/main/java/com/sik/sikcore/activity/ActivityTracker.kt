@@ -2,15 +2,21 @@ package com.sik.sikcore.activity
 
 import android.app.Activity
 import android.app.Application
+import android.content.res.Configuration
 import android.os.Bundle
+import com.sik.sikcore.log.LogUtils
 import java.lang.ref.WeakReference
+import kotlin.reflect.KFunction
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.functions
 
 /**
  * Activity追踪
  */
 object ActivityTracker : Application.ActivityLifecycleCallbacks {
     private var currentActivity: WeakReference<Activity>? = null
+    private var lastNightMode = -1
+    private val logger = LogUtils.getLogger(ActivityTracker::class)
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         if (isSecureActivity(activity)) {
@@ -27,12 +33,29 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
         return secureActivity != null
     }
 
+    /**
+     * 获取夜间模式监听器
+     */
+    private fun getNightModeChangeListener(activity: Activity): KFunction<*>? {
+        return activity::class.functions.find { it.findAnnotation<NightModeChangeListener>() != null }
+    }
+
     override fun onActivityStarted(activity: Activity) {
         currentActivity = WeakReference(activity)
     }
 
     override fun onActivityResumed(activity: Activity) {
         currentActivity = WeakReference(activity)
+        val currentNightMode =
+            activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (currentNightMode != lastNightMode) {
+            lastNightMode = currentNightMode
+            if (lastNightMode == Configuration.UI_MODE_NIGHT_YES) {
+                getNightModeChangeListener(activity)?.call(activity,lastNightMode)
+            } else if (lastNightMode == Configuration.UI_MODE_NIGHT_NO) {
+                getNightModeChangeListener(activity)?.call(activity,lastNightMode)
+            }
+        }
     }
 
     override fun onActivityPaused(activity: Activity) {}

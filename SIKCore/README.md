@@ -366,6 +366,13 @@ fun requestAllFilesAccessPermission(
  * 获取当前的Activity
  */
 fun getCurrentActivity(): Activity? 
+
+可以在activity中增加下面的方法来监听是否开启夜间模式监听
+@NightModeChangeListener
+fun nightModeChangeListener(nightMode: Int) {}
+
+再Activity的Class上面增加
+@SecureActivity可以在进入Activity时自动启动安全模式，关闭是自动关闭安全模式
 ```
 
 ### [密码生成器](./src/main/java/com/sik/sikcore/generator/PasswordGenerator.kt)
