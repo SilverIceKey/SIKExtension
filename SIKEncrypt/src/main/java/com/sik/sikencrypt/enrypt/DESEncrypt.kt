@@ -96,8 +96,9 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
         val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        val iv = iEncryptConfig.iv()
         if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iv))
         } else {
             cipher.init(Cipher.ENCRYPT_MODE, keySpec)
         }
@@ -105,7 +106,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         FileInputStream(inputFile).use { fis ->
             FileOutputStream(outputFile).use { fos ->
                 if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
-                    fos.write(iEncryptConfig.iv())
+                    fos.write(iv)
                 }
                 CipherOutputStream(fos, cipher).use { cos ->
                     val buffer = ByteArray(1024)
@@ -136,8 +137,9 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
         val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
+        val iv = iEncryptConfig.iv()
         if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, IvParameterSpec(iv))
         } else {
             cipher.init(Cipher.ENCRYPT_MODE, keySpec)
         }
@@ -145,7 +147,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         FileInputStream(inputFile).use { fis ->
             FileOutputStream(outputFile).use { fos ->
                 if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
-                    fos.write(iEncryptConfig.iv())
+                    fos.write(iv)
                 }
                 CipherOutputStream(fos, cipher).use { cos ->
                     val buffer = ByteArray(1024)

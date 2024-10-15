@@ -22,6 +22,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.sik.sikcore.activity.SecureActivity
 import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.log.LogUtils
+import com.sik.sikencrypt.EncryptUtils
 import com.sik.sikimage.QRCodeUtils
 import com.sik.sikmedia.audio_process.AudioProcessor
 import java.io.File
@@ -46,19 +47,15 @@ class MainActivity : ComponentActivity() {
                     verticalArrangement = Arrangement.Center
                 ) {
                     Image(
-                        painter = rememberAsyncImagePainter(File("/sdcard/qrcode.png")),
+                        painter = rememberAsyncImagePainter(File("/sdcard/1.png")),
                         contentDescription = ""
                     )
                     Text(text = decodeStr)
                     Button(onClick = {
-                        decodeStr =
-                            QRCodeUtils.readQRCodeString(
-                                BitmapFactory.decodeFile("/sdcard/qrcode.png"),
-                                toHex = true
-                            )
-                        logger.i(decodeStr)
+                        EncryptUtils.getAlgorithm(EncryptorCBCConfig.encryptorConfig).encryptFile("/sdcard/1.pdf","/sdcard/1.yt")
+                        EncryptUtils.getAlgorithm(EncryptorCBCConfig.encryptorConfig).decryptFromFile("/sdcard/1.yt","/sdcard/2.pdf")
                     }) {
-                        Text(text = "解码")
+                        Text(text = "加解密")
                     }
                 }
             }
