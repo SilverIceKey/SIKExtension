@@ -1,5 +1,6 @@
 package com.sik.sikcore.extension
 
+import com.sik.sikcore.exception.FileExtensionException
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream

@@ -15,6 +15,8 @@ import com.sik.sikcore.SIKCore
 import com.sik.sikcore.explain.AnnotationScanner
 import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.extension.folder
+import com.sik.sikcore.zip.ZipListener
+import com.sik.sikcore.zip.ZipUtils
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.IOException
@@ -35,6 +37,9 @@ class LogUtils(private val clazz: KClass<*>) {
 
         @JvmStatic
         var MAX_LOG_FILE_SIZE = "10MB"
+
+        @JvmStatic
+        var LOG_LEVEL = Level.ALL
 
         fun getLogger(clazz: KClass<*>): LogUtils = LogUtils(clazz)
     }
@@ -89,7 +94,7 @@ class LogUtils(private val clazz: KClass<*>) {
         }
 
         logger.apply {
-            level = Level.ALL
+            level = LOG_LEVEL
             addAppender(fileAppender)
             addAppender(logcatAppender)
             isAdditive = false // 确保不继承父类的 Appender
@@ -103,8 +108,8 @@ class LogUtils(private val clazz: KClass<*>) {
     }
 
     fun i(msg: String?) = msg?.let {
-        AnnotationScanner.getDescription(it)?.let {
-            logger.info(it)
+        AnnotationScanner.getDescription(it)?.let { description ->
+            logger.info(description)
         }
         logger.info(it)
     }
@@ -144,5 +149,48 @@ class LogUtils(private val clazz: KClass<*>) {
     private fun getLogsDirPath(): String {
         val logsDirPath = "${SIKCore.getApplication().filesDir}/logs"
         return logsDirPath.folder().absolutePath
+    }
+
+    /**
+     * 根据日期获取日志压缩包
+     */
+    fun getLogFileByDate(date: String, zipListener: ZipListener) {
+        val logDir = File(getLogsDirPath())
+        if (!logDir.exists() || !logDir.isDirectory) {
+            logger.error("日志目录不存在")
+            zipListener.error("日志目录不存在")
+            return
+        }
+
+        // 日期格式：yyyy-MM-dd（需与日志文件命名格式一致）
+        val targetDate = "log.$date"
+        val matchingFiles = logDir.listFiles { _, name ->
+            name.contains(targetDate) && name.endsWith(".log")
+        }
+
+        if (matchingFiles.isNullOrEmpty()) {
+            logger.error("未找到指定日期的日志文件")
+            zipListener.error("未找到指定日期的日志文件")
+            return
+        }
+
+        createZipFromFiles(matchingFiles, "logs_$date.zip", zipListener)
+    }
+
+    /**
+     * 压缩日志文件
+     */
+    private fun createZipFromFiles(
+        files: Array<File>,
+        zipFileName: String,
+        zipListener: ZipListener
+    ) {
+        val zipFile = File(getLogsDirPath(), zipFileName)
+        try {
+            ZipUtils.zip(*files, destFile = zipFile, zipListener = zipListener)
+            logger.info("日志文件成功压缩为: ${zipFile.absolutePath}")
+        } catch (e: IOException) {
+            logger.error("压缩日志文件失败: ${e.message}")
+        }
     }
 }

@@ -19,7 +19,7 @@ abstract class BaseNettyManager protected constructor(protected val config: Nett
     protected var workerGroup: EventLoopGroup? = null
     protected var channel: Channel? = null
     protected var isManualDisconnect: Boolean = false // 标志主动断开连接
-    protected var executor: ExecutorService? = null // 用于线程管理
+    private var executor: ExecutorService? = null // 用于线程管理
 
     /**
      * 构造函数，初始化 Netty 配置和线程池。

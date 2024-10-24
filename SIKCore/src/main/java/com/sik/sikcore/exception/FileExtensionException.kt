@@ -1,4 +1,4 @@
-package com.sik.sikcore.extension
+package com.sik.sikcore.exception
 
 /**
  * File extension exception
