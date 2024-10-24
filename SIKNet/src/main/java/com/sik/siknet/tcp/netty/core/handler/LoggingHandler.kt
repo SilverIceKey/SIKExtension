@@ -6,6 +6,7 @@ import io.netty.channel.ChannelPromise
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+
 /**
  * 使用 SLF4J 实现的 Netty 日志处理器。
  * 记录连接的生命周期事件和异常信息。
@@ -80,4 +81,6 @@ class LoggingHandler : ChannelDuplexHandler() {
         private val logger: Logger = LoggerFactory.getLogger(LoggingHandler::class.java)
     }
 }
+
+
 

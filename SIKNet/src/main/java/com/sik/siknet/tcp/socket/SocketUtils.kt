@@ -1,7 +1,7 @@
 package com.sik.siknet.tcp.socket
 
-import com.sik.sikcore.log.LogUtils
 import com.sik.sikcore.thread.ThreadUtils
+import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.Socket
@@ -21,7 +21,7 @@ class SocketUtils(private val config: SocketConfig) {
     private var isMessageListener = false //消息监听是否开启
 
     // 日志工具类实例，用于记录日志
-    private val logger = LogUtils.getLogger(this::class)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     // 消息监听器
     private var messageListener: MessageListener? = null
@@ -48,11 +48,11 @@ class SocketUtils(private val config: SocketConfig) {
 
                 // 成功连接后，重连次数清零
                 reconnectAttempts = 0
-                logger.i("成功连接到 ${config.ipAddress}:${config.port},开始监听")
+                logger.info("成功连接到 ${config.ipAddress}:${config.port},开始监听")
                 startListeningForMessages()
             } catch (e: IOException) {
                 // 捕获连接异常并记录日志
-                logger.i("连接失败: ${e.message}")
+                logger.error("连接失败: ", e)
                 attemptReconnect()  // 尝试重连
             }
         }
@@ -66,14 +66,14 @@ class SocketUtils(private val config: SocketConfig) {
         ThreadUtils.runOnIO {
             if (config.maxReconnectAttempts == -1 || reconnectAttempts < config.maxReconnectAttempts) {
                 reconnectAttempts++
-                logger.i("正在重连... 尝试次数 $reconnectAttempts")
+                logger.info("正在重连... 尝试次数 $reconnectAttempts")
 
                 // 等待指定的重连间隔时间后再进行重连
                 Thread.sleep(config.reconnectInterval)
                 connect()  // 再次尝试连接
             } else {
                 // 达到最大重连次数时放弃重连，并调用连接超时处理方法
-                logger.i("已达到最大重连次数，放弃重连。")
+                logger.info("已达到最大重连次数，放弃重连。")
                 config.onConnectionTimeout()
             }
         }
@@ -90,7 +90,7 @@ class SocketUtils(private val config: SocketConfig) {
                 socket?.getOutputStream()?.write(message.toByteArray())
             } catch (e: IOException) {
                 // 捕获发送异常并记录日志，尝试重连
-                logger.d("消息发送失败，连接可能已断开: ${e.message}")
+                logger.debug("消息发送失败，连接可能已断开: ${e.message}")
                 attemptReconnect()
             }
         }
@@ -115,7 +115,7 @@ class SocketUtils(private val config: SocketConfig) {
                             byteArrayOutputStream.write(buffer, 0, bytesRead)
                         } else if (bytesRead == -1) {
                             // 输入流已关闭，退出循环
-                            logger.d("输入流已关闭，停止监听")
+                            logger.debug("输入流已关闭，停止监听")
                             break
                         }
                     } catch (e: SocketTimeoutException) {
@@ -125,17 +125,17 @@ class SocketUtils(private val config: SocketConfig) {
                             // 这里可以根据需要判断是文本还是二进制数据
                             // 目前直接将数据作为二进制处理
                             messageListener?.onMessageReceivedRawData(data)
-                            logger.d("接收到完整的消息，长度: ${data.size} 字节")
+                            logger.debug("接收到完整的消息，长度: ${data.size} 字节")
 
                             // 清空缓冲区，准备接收下一条消息
                             byteArrayOutputStream.reset()
                         } else {
-                            logger.d("读取超时，但没有接收到任何数据，继续监听...")
+                            logger.debug("读取超时，但没有接收到任何数据，继续监听...")
                         }
                     }
                 }
             } catch (e: IOException) {
-                logger.d("接收消息时发生错误: ${e.message}")
+                logger.debug("接收消息时发生错误: ${e.message}")
                 attemptReconnect()
             }
         }
@@ -148,7 +148,7 @@ class SocketUtils(private val config: SocketConfig) {
     fun disconnect() {
         ThreadUtils.runOnIO {
             socket?.close()
-            logger.d("已断开连接 ${config.ipAddress}:${config.port}")
+            logger.debug("已断开连接 ${config.ipAddress}:${config.port}")
         }
     }
 }

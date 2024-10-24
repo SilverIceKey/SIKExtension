@@ -1,11 +1,13 @@
 package com.sik.sikcore.date
 
 import android.annotation.SuppressLint
-import com.sik.sikcore.log.LogUtils
+import org.slf4j.LoggerFactory
 import java.text.DateFormat
 import java.text.ParsePosition
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 /**
  * 时间相关
@@ -59,7 +61,8 @@ class TimeUtils {
          * 日期转换器小时分钟秒
          */
         @JvmStatic
-        val simpleDateHourMinSecFormat = SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_SEC_FORMAT, Locale.CHINA)
+        val simpleDateHourMinSecFormat =
+            SimpleDateFormat(DEFAULT_DATE_HOUR_MIN_SEC_FORMAT, Locale.CHINA)
 
         /**
          * timeutil单例
@@ -70,7 +73,7 @@ class TimeUtils {
         }
     }
 
-    private val logger = LogUtils.getLogger(TimeUtils::class)
+    private val logger = LoggerFactory.getLogger(TimeUtils::class.java)
 
     /**
      * 计算到目前的时间
@@ -252,7 +255,7 @@ class TimeUtils {
                 simpleDateDayFormat.parse(afterDate)
             )
         } catch (e: Exception) {
-            logger.e("时间转换错误")
+            logger.error("时间转换错误", e)
             0
         }
     }

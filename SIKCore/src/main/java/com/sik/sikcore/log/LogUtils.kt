@@ -1,180 +1,171 @@
 package com.sik.sikcore.log
 
-import android.os.Environment
 import android.util.Log
 import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.android.BasicLogcatConfigurator
-import ch.qos.logback.classic.android.LogcatAppender
+import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.rolling.RollingFileAppender
-import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
-import ch.qos.logback.core.util.FileSize
+import ch.qos.logback.classic.joran.JoranConfigurator
+import ch.qos.logback.core.FileAppender
+import ch.qos.logback.core.joran.spi.JoranException
+import ch.qos.logback.core.util.StatusPrinter
 import com.sik.sikcore.SIKCore
-import com.sik.sikcore.explain.AnnotationScanner
-import com.sik.sikcore.explain.LogInfo
-import com.sik.sikcore.extension.folder
 import com.sik.sikcore.zip.ZipListener
 import com.sik.sikcore.zip.ZipUtils
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.IOException
-import kotlin.reflect.KClass
 
 /**
- * 日志工具类，支持通过实例化和注解的方式获取。
+ * 日志配置工具类，用于在运行时更新 logback 的配置，例如调整日志级别、修改输出模式等。
  */
-class LogUtils(private val clazz: KClass<*>) {
-    companion object {
-        private const val LOG_FILE_NAME_PATTERN = "log.%d{yyyy-MM-dd}.%i.log"
+object LogUtils {
 
-        @JvmStatic
-        var DEBUG: Boolean = true
+    private const val TAG = "LogUtils"
 
-        @JvmStatic
-        var LOG_BACKUP_INDEX = 7
-
-        @JvmStatic
-        var MAX_LOG_FILE_SIZE = "10MB"
-
-        @JvmStatic
-        var LOG_LEVEL = Level.ALL
-
-        fun getLogger(clazz: KClass<*>): LogUtils = LogUtils(clazz)
-    }
-
-    private val logger: Logger by lazy {
-        val logger = LoggerFactory.getLogger(clazz.java.simpleName) as Logger
-        configureLogger(logger)
-        logger
-    }
-
-    init {
-        if (DEBUG) {
-            BasicLogcatConfigurator.configureDefaultContext()
-        }
-    }
-
-    private fun configureLogger(logger: Logger) {
-        val lc = logger.loggerContext
-
-        val encoder = PatternLayoutEncoder().apply {
-            context = lc
-            pattern = "%date %level [%thread] %logger{10} [%file:%line] %msg%n"
-            start()
-        }
-
-        val fileAppender = RollingFileAppender<ILoggingEvent>().apply {
-            isAppend = true
-            context = lc
-            start()
-        }
-
-        val rollingPolicy = SizeAndTimeBasedRollingPolicy<ILoggingEvent>().apply {
-            context = lc
-            fileNamePattern = "${getLogsDirPath()}/$LOG_FILE_NAME_PATTERN"
-            maxHistory = LOG_BACKUP_INDEX
-            setParent(fileAppender)
-            isCleanHistoryOnStart = true
-            setMaxFileSize(FileSize.valueOf(MAX_LOG_FILE_SIZE))
-            start()
-        }
-
-        fileAppender.apply {
-            this.rollingPolicy = rollingPolicy
-            this.encoder = encoder
-            start()
-        }
-
-        val logcatAppender = LogcatAppender().apply {
-            context = lc
-            this.encoder = encoder
-            start()
-        }
-
-        logger.apply {
-            level = LOG_LEVEL
-            addAppender(fileAppender)
-            addAppender(logcatAppender)
-            isAdditive = false // 确保不继承父类的 Appender
-        }
-    }
-
-    fun d(msg: String?) = msg?.let {
-        if (DEBUG) {
-            logger.debug(it)
-        }
-    }
-
-    fun i(msg: String?) = msg?.let {
-        AnnotationScanner.getDescription(it)?.let { description ->
-            logger.info(description)
-        }
-        logger.info(it)
-    }
-
-    fun i(clazz: KClass<*>) {
-        clazz.annotations.find { it is LogInfo }?.let {
-            logger.info((it as LogInfo).description)
-        }
-    }
-
-    fun w(msg: String?) = msg?.let { logger.warn(it) }
-    fun e(msg: String?) = msg?.let { logger.error(it) }
-
-    fun copyLogFileToPublicStorage() {
-        try {
-            val sourceFolder = File(getLogsDirPath()) // 替换为实际日志文件名
-            val publicDirectory =
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath + File.separator + "log")
-            if (!publicDirectory.exists()) publicDirectory.mkdirs()
-            sourceFolder.listFiles()?.forEach {
-                val destinationFile = File(publicDirectory, it.name)
-                if (!destinationFile.exists()) {
-                    destinationFile.createNewFile()
-                }
-                it.inputStream().use { input ->
-                    destinationFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            }
-            Log.i("LogUtils", "日志文件夹下的日志已经复制到${sourceFolder.absolutePath}")
-        } catch (e: IOException) {
-            Log.e("LogUtils", "复制日志文件失败: ${e.message}")
-        }
-    }
-
-    private fun getLogsDirPath(): String {
-        val logsDirPath = "${SIKCore.getApplication().filesDir}/logs"
-        return logsDirPath.folder().absolutePath
+    /**
+     * 设置指定 logger 的日志级别
+     * @param loggerName 日志器名称，使用全限定类名，例如 "com.example.MainActivity"
+     * @param level 日志级别，例如 Level.DEBUG
+     */
+    fun setLogLevel(loggerName: String, level: Level) {
+        val context = LoggerFactory.getILoggerFactory() as LoggerContext
+        val logger = context.getLogger(loggerName)
+        logger.level = level
     }
 
     /**
-     * 根据日期获取日志压缩包
+     * 设置全局日志级别
+     * @param level 日志级别，例如 Level.DEBUG
+     */
+    fun setGlobalLogLevel(level: Level) {
+        val context = LoggerFactory.getILoggerFactory() as LoggerContext
+        val logger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
+        logger.level = level
+    }
+
+    /**
+     * 获取指定 logger 的当前日志级别
+     * @param loggerName 日志器名称
+     * @return 日志级别
+     */
+    fun getLogLevel(loggerName: String): Level? {
+        val context = LoggerFactory.getILoggerFactory() as LoggerContext
+        val logger = context.getLogger(loggerName)
+        return logger.level
+    }
+
+    /**
+     * 动态更新日志输出模式（Pattern）
+     * @param newPattern 新的日志输出模式，例如 "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+     */
+    fun setPattern(newPattern: String) {
+        val context = LoggerFactory.getILoggerFactory() as LoggerContext
+        val logger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
+        val appenders = logger.iteratorForAppenders()
+        while (appenders.hasNext()) {
+            val appender = appenders.next()
+            val encoder = when (appender) {
+                is FileAppender<*> -> appender.encoder
+                is ch.qos.logback.classic.android.LogcatAppender -> appender.encoder
+                else -> null
+            }
+            if (encoder is PatternLayoutEncoder) {
+                encoder.stop() // 先停止当前的 encoder
+                encoder.pattern = newPattern
+                encoder.context = context
+                encoder.start() // 重新启动 encoder 以应用新的模式
+            }
+        }
+    }
+
+    /**
+     * 动态更新日志输出路径
+     * @param newFilePath 新的日志文件路径
+     */
+    fun setLogFilePath(newFilePath: String) {
+        val context = LoggerFactory.getILoggerFactory() as LoggerContext
+        val logger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
+        val appenders = logger.iteratorForAppenders()
+        while (appenders.hasNext()) {
+            val appender = appenders.next()
+            if (appender is FileAppender<*>) {
+                appender.stop()
+                appender.file = newFilePath
+                appender.start()
+            }
+        }
+    }
+
+    /**
+     * 获取当前日志输出路径
+     * @return 日志文件路径，如果没有配置文件输出，返回 null
+     */
+    fun getLogFilePath(): String? {
+        val context = LoggerFactory.getILoggerFactory() as LoggerContext
+        val logger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
+        val appenders = logger.iteratorForAppenders()
+        while (appenders.hasNext()) {
+            val appender = appenders.next()
+            if (appender is FileAppender<*>) {
+                return appender.file
+            }
+        }
+        return null
+    }
+
+    /**
+     * 重新加载 logback.xml 配置文件
+     */
+    fun reloadConfiguration() {
+        val context = LoggerFactory.getILoggerFactory() as LoggerContext
+        val configurator = JoranConfigurator()
+        configurator.context = context
+        context.reset()
+        try {
+            val assetStream = SIKCore.getApplication().assets.open("logback.xml")
+            configurator.doConfigure(assetStream)
+            Log.i(TAG, "logback.xml 配置重新加载成功")
+        } catch (je: JoranException) {
+            Log.e(TAG, "加载 logback.xml 失败: ${je.message}")
+        } catch (e: IOException) {
+            Log.e(TAG, "读取 logback.xml 失败: ${e.message}")
+        }
+        StatusPrinter.printInCaseOfErrorsOrWarnings(context)
+    }
+
+    /**
+     * 获取指定日期的日志文件，并压缩成 zip 包
+     * @param date 日期字符串，格式需与日志文件名中的日期部分一致
+     * @param zipListener 压缩结果回调
      */
     fun getLogFileByDate(date: String, zipListener: ZipListener) {
-        val logDir = File(getLogsDirPath())
-        if (!logDir.exists() || !logDir.isDirectory) {
-            logger.error("日志目录不存在")
+        val logFilePath = getLogFilePath()
+        if (logFilePath == null) {
+            Log.e(TAG, "无法获取日志文件路径")
+            zipListener.error("无法获取日志文件路径")
+            return
+        }
+
+        val logDir = File(logFilePath).parentFile
+        if (logDir == null || !logDir.exists() || !logDir.isDirectory) {
+            Log.e(TAG, "日志目录不存在")
             zipListener.error("日志目录不存在")
             return
         }
 
-        // 日期格式：yyyy-MM-dd（需与日志文件命名格式一致）
-        val targetDate = "log.$date"
+        // 根据日志文件的命名格式匹配日期，例如 "app_log_2023-09-01.log"
         val matchingFiles = logDir.listFiles { _, name ->
-            name.contains(targetDate) && name.endsWith(".log")
+            name.contains(date) && name.endsWith(".log")
         }
 
         if (matchingFiles.isNullOrEmpty()) {
-            logger.error("未找到指定日期的日志文件")
+            Log.e(TAG, "未找到指定日期的日志文件")
             zipListener.error("未找到指定日期的日志文件")
             return
         }
 
-        createZipFromFiles(matchingFiles, "logs_$date.zip", zipListener)
+        val zipFileName = "logs_$date.zip"
+        createZipFromFiles(matchingFiles, zipFileName, zipListener)
     }
 
     /**
@@ -185,12 +176,13 @@ class LogUtils(private val clazz: KClass<*>) {
         zipFileName: String,
         zipListener: ZipListener
     ) {
-        val zipFile = File(getLogsDirPath(), zipFileName)
+        val zipFile = File(files[0].parentFile, zipFileName)
         try {
             ZipUtils.zip(*files, destFile = zipFile, zipListener = zipListener)
-            logger.info("日志文件成功压缩为: ${zipFile.absolutePath}")
+            Log.i(TAG, "日志文件成功压缩为: ${zipFile.absolutePath}")
         } catch (e: IOException) {
-            logger.error("压缩日志文件失败: ${e.message}")
+            Log.e(TAG, "压缩日志文件失败: ${e.message}")
+            zipListener.error("压缩日志文件失败: ${e.message}")
         }
     }
 }

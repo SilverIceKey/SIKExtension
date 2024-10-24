@@ -1,17 +1,16 @@
 package com.sik.siknet.udp
 
-import com.sik.sikcore.log.LogUtils
+import org.slf4j.LoggerFactory
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
-import kotlin.math.log
 
 
 /**
  * UDP帮助类
  */
 object UDPHelper {
-    private val logger = LogUtils.getLogger(UDPHelper::class)
+    private val logger = LoggerFactory.getLogger(UDPHelper::class.java)
 
     /**
      * 发送udp数据
@@ -28,7 +27,7 @@ object UDPHelper {
             val packet: DatagramPacket = DatagramPacket(data, data.size, serverAddress, port)
             // 发送数据
             socket.send(packet)
-            logger.d("数据发送成功")
+            logger.debug("数据发送成功")
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {

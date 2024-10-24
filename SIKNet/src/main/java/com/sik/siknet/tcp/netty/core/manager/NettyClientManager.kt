@@ -10,6 +10,7 @@ import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.handler.timeout.IdleStateHandler
 import java.util.concurrent.TimeUnit
 
 /**
@@ -39,6 +40,14 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
                     @Throws(Exception::class)
                     override fun initChannel(ch: SocketChannel) {
                         ch.pipeline().addLast(LoggingHandler())
+                        ch.pipeline().addLast(
+                            IdleStateHandler(
+                                config.heartbeatInterval,
+                                config.heartbeatInterval,
+                                config.heartbeatInterval,
+                                TimeUnit.SECONDS
+                            )
+                        )
                         config.channelInit(ch)
                     }
                 })
@@ -58,7 +67,7 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
         bootstrap.connect(config.host, config.port)
             .addListener(ChannelFutureListener { future: ChannelFuture ->
                 if (future.isSuccess) {
-                    logger.info("已连接到${config.host}:${config.port}")
+                    logger.info(" 已连接到 {}:{}", config.host, config.port)
                     channel = future.channel()
                     reconnectAttempts = 0
                     channel?.closeFuture()?.addListener {
@@ -69,7 +78,7 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
                         }
                     }
                 } else {
-                    logger.info("连接失败：${future.cause().message}")
+                    logger.info("连接失败：{}", future.cause().message)
                     reconnect(bootstrap)
                 }
             })
@@ -83,8 +92,8 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
     private fun reconnect(bootstrap: Bootstrap) {
         if (config.maxReconnectAttempts == -1 || reconnectAttempts < config.maxReconnectAttempts) {
             reconnectAttempts++
-            logger.info("尝试第 $reconnectAttempts 次重连...")
-            workerGroup?.schedule(
+            logger.info("尝试第 {} 次重连...", reconnectAttempts)
+            workerGroup!!.schedule(
                 { connect(bootstrap) },
                 config.reconnectInterval,
                 TimeUnit.SECONDS

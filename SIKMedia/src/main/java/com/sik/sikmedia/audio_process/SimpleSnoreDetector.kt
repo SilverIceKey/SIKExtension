@@ -1,12 +1,12 @@
 package com.sik.sikmedia.audio_process
 
-import com.sik.sikcore.log.LogUtils
+import org.slf4j.LoggerFactory
 import java.io.InputStream
 import kotlin.math.log10
 import kotlin.math.sqrt
 
 class SimpleSnoreDetector : AudioAnalyzer {
-    private val logger = LogUtils.getLogger(SimpleSnoreDetector::class)
+    private val logger = LoggerFactory.getLogger(SimpleSnoreDetector::class.java)
 
     private var listener: (status: String, progress: Int) -> Unit = { _, _ -> }
 
@@ -50,9 +50,9 @@ class SimpleSnoreDetector : AudioAnalyzer {
             }
             listener("检测完成", 100)
             if (snoreCount > 10) {
-                logger.i("检测到打鼾")
+                logger.info("检测到打鼾")
             } else {
-                logger.i("没有检测到打鼾")
+                logger.info("没有检测到打鼾")
             }
         } catch (e: Exception) {
             e.printStackTrace()

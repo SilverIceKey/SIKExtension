@@ -8,13 +8,12 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+
 /**
  * BaseNettyManager 是一个抽象类，提供了 Netty 客户端和服务器管理器的公共功能。
  */
-abstract class BaseNettyManager protected constructor(protected val config: NettyConfig) {
-    // 使用 SLF4J 获取日志记录器
-    protected val logger: Logger = LoggerFactory.getLogger(this::class.java)
-
+abstract class BaseNettyManager(protected val config: NettyConfig) {
+    protected val logger: Logger = LoggerFactory.getLogger(this.javaClass)
     protected var bossGroup: EventLoopGroup? = null
     protected var workerGroup: EventLoopGroup? = null
     protected var channel: Channel? = null
@@ -76,7 +75,7 @@ abstract class BaseNettyManager protected constructor(protected val config: Nett
 
             logger.info("Netty 已停止")
         } catch (e: InterruptedException) {
-            logger.error("停止时出错：" + e.message)
+            logger.error("停止时出错：{}", e.message)
             Thread.currentThread().interrupt()
         }
     }

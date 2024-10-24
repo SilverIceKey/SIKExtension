@@ -4,17 +4,20 @@ import com.sik.siknet.tcp.netty.core.common.BaseNettyManager
 import com.sik.siknet.tcp.netty.core.common.NettyConfig
 import com.sik.siknet.tcp.netty.core.handler.LoggingHandler
 import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.handler.timeout.IdleStateHandler
+import java.util.concurrent.TimeUnit
 
 /**
  * NettyServerManager 处理服务器特定的功能，如启动服务器和管理客户端通道。
  */
 class NettyServerManager(config: NettyConfig) : BaseNettyManager(config) {
-
+    /**
+     * 启动服务
+     */
     override fun startInternal() {
         startServer()
     }
@@ -33,15 +36,23 @@ class NettyServerManager(config: NettyConfig) : BaseNettyManager(config) {
                 .childHandler(object : ChannelInitializer<SocketChannel>() {
                     override fun initChannel(ch: SocketChannel) {
                         ch.pipeline().addLast(LoggingHandler())
+                        ch.pipeline().addLast(
+                            IdleStateHandler(
+                                config.heartbeatInterval,
+                                config.heartbeatInterval,
+                                config.heartbeatInterval,
+                                TimeUnit.SECONDS
+                            )
+                        )
                         config.channelInit(ch)
                     }
                 })
-            val future: ChannelFuture = bootstrap.bind(config.host, config.port).sync()
+            val future = bootstrap.bind(config.host, config.port).sync()
             channel = future.channel()
-            logger.info(" 服务端启动在 ${config.host}:${config.port}")
+            logger.info("服务端启动在 {}:{}", config.host, config.port)
             future.channel().closeFuture().sync()
         } catch (e: InterruptedException) {
-            logger.error("服务端启动失败：{}", e.message)
+            logger.info("服务端启动失败：{}", e.message)
             Thread.currentThread().interrupt()
         } finally {
             stop()

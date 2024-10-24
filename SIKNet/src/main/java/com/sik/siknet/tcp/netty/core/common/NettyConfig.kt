@@ -2,6 +2,7 @@ package com.sik.siknet.tcp.netty.core.common
 
 import io.netty.channel.socket.SocketChannel
 
+
 /**
  * Netty 配置抽象类
  */
@@ -42,7 +43,7 @@ abstract class NettyConfig {
         /**
          * 获取重连次数，默认 5 次
          */
-        get() = 5
+        get() = -1
 
     val reconnectInterval: Long
         /**

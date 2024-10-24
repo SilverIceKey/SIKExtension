@@ -1,0 +1,46 @@
+# LogBack配置样例
+
+```xml
+<configuration
+    xmlns="https://tony19.github.io/logback-android/xml"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://tony19.github.io/logback-android/xml https://cdn.jsdelivr.net/gh/tony19/logback-android/logback.xsd">
+
+    <!-- 文件日志输出，生成每日滚动日志 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 日志文件路径，在 Android 中存储在应用的 filesDir/logs 目录 -->
+        <file>${DATA_DIR}/logs/app.log</file>
+
+        <!-- 每日滚动日志策略 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${DATA_DIR}/logs/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>  <!-- 最大保留 7 天日志 -->
+            <totalSizeCap>100MB</totalSizeCap>  <!-- 总日志大小限制 -->
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{~36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logcat 输出，适用于 Android Studio 的调试 -->
+    <appender name="LOGCAT" class="ch.qos.logback.classic.android.LogcatAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{~36}.%M:%line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 日志级别配置 -->
+    <logger name="${PACKAGE_NAME}" level="DEBUG" additivity="false">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="LOGCAT" />
+    </logger>
+
+    <!-- 根日志器，默认级别为 INFO -->
+    <root level="INFO">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="LOGCAT" />
+    </root>
+
+</configuration>
+```

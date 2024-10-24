@@ -4,7 +4,8 @@ import android.app.Activity
 import android.app.Application
 import android.content.res.Configuration
 import android.os.Bundle
-import com.sik.sikcore.log.LogUtils
+import com.sik.sikcore.explain.LogInfo
+import org.slf4j.LoggerFactory
 import java.lang.ref.WeakReference
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.findAnnotation
@@ -16,7 +17,7 @@ import kotlin.reflect.full.functions
 object ActivityTracker : Application.ActivityLifecycleCallbacks {
     private var currentActivity: WeakReference<Activity>? = null
     private var lastNightMode = -1
-    private val logger = LogUtils.getLogger(ActivityTracker::class)
+    private val logger = LoggerFactory.getLogger(ActivityTracker::class.java)
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         if (isSecureActivity(activity)) {
@@ -51,11 +52,12 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
         if (currentNightMode != lastNightMode) {
             lastNightMode = currentNightMode
             if (lastNightMode == Configuration.UI_MODE_NIGHT_YES) {
-                getNightModeChangeListener(activity)?.call(activity,lastNightMode)
+                getNightModeChangeListener(activity)?.call(activity, lastNightMode)
             } else if (lastNightMode == Configuration.UI_MODE_NIGHT_NO) {
-                getNightModeChangeListener(activity)?.call(activity,lastNightMode)
+                getNightModeChangeListener(activity)?.call(activity, lastNightMode)
             }
         }
+        logActivityInfo()
     }
 
     override fun onActivityPaused(activity: Activity) {}
@@ -81,4 +83,18 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
     fun getCurrentActivity(): Activity? {
         return currentActivity?.get()
     }
+
+    /**
+     * Activity注解日志信息输出
+     */
+    private fun logActivityInfo() {
+        currentActivity?.get()?.let {
+            val activityClass = it::class
+            // 检查类上的注解
+            activityClass.findAnnotation<LogInfo>()?.let { logInfo ->
+                logger.info(logInfo.description)
+            }
+        }
+    }
+
 }

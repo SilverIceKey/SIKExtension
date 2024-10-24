@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit
 
 inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()): T {
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.i(this)
-        HttpUtils.logger.i(params.toJson())
+        HttpUtils.logger.info(this)
+        HttpUtils.logger.info(params.toJson())
     }
     // 构造带参数的URL
     val urlWithParams = buildString {
@@ -59,8 +59,8 @@ inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()):
 
 inline fun <reified T> String.httpPostForm(formParameters: Map<String, String>): T {
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.i(this)
-        HttpUtils.logger.i(formParameters.toJson())
+        HttpUtils.logger.info(this)
+        HttpUtils.logger.info(formParameters.toJson())
     }
     val formBodyBuilder = FormBody.Builder()
     for ((key, value) in formParameters) {
@@ -106,8 +106,8 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
         }
     }
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.i(this)
-        HttpUtils.logger.i(json)
+        HttpUtils.logger.info(this)
+        HttpUtils.logger.info(json)
     }
     val mediaType = "application/json; charset=utf-8".toMediaType()
     val requestBody: RequestBody = (json ?: "").toRequestBody(mediaType)
@@ -143,8 +143,8 @@ inline fun <reified T> String.httpUploadFile(
     fileParameterName: String, file: File, params: Map<String, String>
 ): T {
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.i(this)
-        HttpUtils.logger.i(params.toJson())
+        HttpUtils.logger.info(this)
+        HttpUtils.logger.info(params.toJson())
     }
     val fileBody = file.asRequestBody("application/octet-stream".toMediaType())
     val requestBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
@@ -198,8 +198,8 @@ fun String.httpDownloadFile(
         Gson().toJson(data)
     }
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.i(this)
-        HttpUtils.logger.i(json)
+        HttpUtils.logger.info(this)
+        HttpUtils.logger.info(json)
     }
     val mediaType = "application/json; charset=utf-8".toMediaType()
     val requestBody: RequestBody = (json ?: "").toRequestBody(mediaType)

@@ -2,58 +2,40 @@ package com.sik.skextensionsample
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.widget.Button
 import androidx.activity.ComponentActivity
-import androidx.compose.runtime.mutableStateOf
+import ch.qos.logback.classic.Level
 import com.sik.sikcore.activity.NightModeChangeListener
 import com.sik.sikcore.activity.SecureActivity
 import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.log.LogUtils
-import com.sik.sikmedia.audio_process.AudioProcessor
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 @LogInfo(description = "进入主界面")
 @SecureActivity
 class MainActivity : ComponentActivity() {
-    private val audioProcessor = AudioProcessor()
-    private var errmsg = mutableStateOf("")
-    private val logger = LogUtils.getLogger(MainActivity::class)
+    private val logger: Logger = LoggerFactory.getLogger(MainActivity::class.java)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 设置内容
         setContentView(R.layout.activity_main)
-//        setContent {
-//            var decodeStr by remember { mutableStateOf("") }
-//            Scaffold { contentPadding ->
-//                Column(
-//                    modifier = Modifier
-//                        .padding(contentPadding)
-//                        .fillMaxSize(),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    verticalArrangement = Arrangement.Center
-//                ) {
-//                    Image(
-//                        painter = rememberAsyncImagePainter(File("/sdcard/1.png")),
-//                        contentDescription = ""
-//                    )
-//                    Text(text = decodeStr)
-//                    Button(onClick = {
-//                        EncryptUtils.getAlgorithm(EncryptorCBCConfig.encryptorConfig)
-//                            .encryptFile("/sdcard/1.pdf", "/sdcard/1.yt")
-//                        EncryptUtils.getAlgorithm(EncryptorCBCConfig.encryptorConfig)
-//                            .decryptFromFile("/sdcard/1.yt", "/sdcard/2.pdf")
-//                    }) {
-//                        Text(text = "加解密")
-//                    }
-//                }
-//            }
-//        }
+        findViewById<Button>(R.id.generate_code).setOnClickListener {
+            if (LogUtils.getLogLevel(packageName) == Level.INFO) {
+                LogUtils.setLogLevel(packageName, Level.DEBUG)
+            } else {
+                LogUtils.setLogLevel(packageName, Level.INFO)
+            }
+            logger.debug("设置日志等级: {}", LogUtils.getLogLevel(packageName))
+        }
     }
 
     @NightModeChangeListener
     fun nightModeChangeListener(nightMode: Int) {
-        if (nightMode==Configuration.UI_MODE_NIGHT_YES){
-            logger.i("深色模式已启动")
-        }else if (nightMode==Configuration.UI_MODE_NIGHT_NO){
-            logger.i("深色模式已关闭")
+        if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            logger.info("深色模式已启动")
+        } else if (nightMode == Configuration.UI_MODE_NIGHT_NO) {
+            logger.debug("深色模式已关闭")
         }
     }
 }

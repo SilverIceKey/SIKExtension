@@ -1,7 +1,6 @@
 package com.sik.siksensors.fingerprints
 
 import android.os.Build
-import com.sik.sikcore.log.LogUtils
 import com.sik.siksensors.SensorErrorEnum
 import com.sik.siksensors.fingerprints.fingerprintsImpl.NewFingerPrintsPrintsAuth
 import com.sik.siksensors.fingerprints.fingerprintsImpl.OldFingerPrintsPrintsAuth

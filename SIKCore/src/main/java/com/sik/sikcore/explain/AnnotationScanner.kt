@@ -1,6 +1,7 @@
 package com.sik.sikcore.explain
 
-import com.sik.sikcore.log.LogUtils
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
@@ -13,17 +14,22 @@ import kotlin.reflect.typeOf
  * 属性类注解扫描
  */
 object AnnotationScanner {
+    private val logger: Logger = LoggerFactory.getLogger(AnnotationScanner::class.java)
+
     /**
      * 属性-描述存储
      */
     private val fieldMap = mutableMapOf<String, String>()
 
-    inline fun <reified T> KProperty1<*, *>.isTypeOf() = returnType == typeOf<T>()
+    private inline fun <reified T> KProperty1<*, *>.isTypeOf() = returnType == typeOf<T>()
 
+    /**
+     * 扫描类里面的注解进行保存
+     */
     fun scan(configClass: KClass<*>) {
         // 获取 ScanConfig 注解
         val scanConfig = configClass.findAnnotation<ScanConfig>()
-        LogUtils.getLogger(AnnotationScanner::class).i("${scanConfig?.classesToScan?.size}")
+        logger.info("${scanConfig?.classesToScan?.size}")
         scanConfig?.classesToScan?.forEach { clazz ->
             clazz.memberProperties.forEach { prop ->
                 if (prop.isTypeOf<String>()) {

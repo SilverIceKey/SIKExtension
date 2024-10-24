@@ -1,21 +1,23 @@
 package com.sik.siksensors.fingerprints.fingerprintsImpl
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.KeyguardManager
 import android.content.Context
 import android.hardware.fingerprint.FingerprintManager
 import android.os.CancellationSignal
 import com.sik.sikcore.SIKCore
-import com.sik.sikcore.log.LogUtils
 import com.sik.sikcore.permission.PermissionUtils
 import com.sik.siksensors.SensorErrorEnum
 import com.sik.siksensors.fingerprints.IFingerPrintsAuth
+import org.slf4j.LoggerFactory
 
 /**
  * 旧指纹认证
  */
+@SuppressLint("MissingPermission")
 class OldFingerPrintsPrintsAuth : IFingerPrintsAuth {
-    private val logger = LogUtils.getLogger(OldFingerPrintsPrintsAuth::class)
+    private val logger = LoggerFactory.getLogger(OldFingerPrintsPrintsAuth::class.java)
 
     /**
      * 指纹管理器-旧
@@ -68,16 +70,13 @@ class OldFingerPrintsPrintsAuth : IFingerPrintsAuth {
     private fun authenticateFingerprintOld(auth: (SensorErrorEnum) -> Unit) {
         cancellationSignal = CancellationSignal()
         fingerprintManager?.authenticate(
-            null,
-            cancellationSignal,
-            0,
-            object : FingerprintManager.AuthenticationCallback() {
+            null, cancellationSignal, 0, object : FingerprintManager.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    logger.i("onAuthenticationError:${errorCode},${errString}")
+                    logger.info("onAuthenticationError:${errorCode},${errString}")
                 }
 
                 override fun onAuthenticationHelp(helpCode: Int, helpString: CharSequence) {
-                    logger.i("onAuthenticationError:${helpCode},${helpString}")
+                    logger.info("onAuthenticationError:${helpCode},${helpString}")
 
                 }
 
@@ -88,8 +87,7 @@ class OldFingerPrintsPrintsAuth : IFingerPrintsAuth {
                 override fun onAuthenticationFailed() {
                     auth(SensorErrorEnum.AUTHENTICATION_FAILED)
                 }
-            },
-            null
+            }, null
         )
     }
 }
