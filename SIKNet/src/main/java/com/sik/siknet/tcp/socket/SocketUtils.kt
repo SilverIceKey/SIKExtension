@@ -1,4 +1,4 @@
-package com.sik.siknet.tcp
+package com.sik.siknet.tcp.socket
 
 import com.sik.sikcore.log.LogUtils
 import com.sik.sikcore.thread.ThreadUtils

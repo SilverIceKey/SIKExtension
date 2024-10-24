@@ -1,4 +1,4 @@
-package com.sik.siknet.tcp
+package com.sik.siknet.tcp.socket
 
 /**
  * 抽象类，表示 Socket 配置。

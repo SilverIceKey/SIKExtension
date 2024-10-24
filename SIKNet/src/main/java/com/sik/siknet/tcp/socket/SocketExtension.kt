@@ -1,4 +1,4 @@
-package com.sik.siknet.tcp
+package com.sik.siknet.tcp.socket
 
 /**
  * 建立连接

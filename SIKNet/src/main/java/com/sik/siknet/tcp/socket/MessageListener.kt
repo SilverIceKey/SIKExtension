@@ -1,4 +1,4 @@
-package com.sik.siknet.tcp
+package com.sik.siknet.tcp.socket
 
 /**
  * 消息监听器接口，用于处理异步接收到的消息。
