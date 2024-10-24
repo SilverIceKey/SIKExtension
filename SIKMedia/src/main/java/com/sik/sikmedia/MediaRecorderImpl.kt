@@ -127,7 +127,7 @@ class MediaRecorderImpl : AudioRecorderInterface {
      */
     private fun getChunkFilePath(index: Int): String {
         val filePath = if (savePath.endsWith(File.separator)) savePath else "$savePath${File.separator}"
-        val fileName = "${TimeUtils.instance.nowString("yyyy-MM-dd-HH-mm-ss-SSS")}_chunk_$index.mp3"
+        val fileName = "${TimeUtils.nowString("yyyy-MM-dd-HH-mm-ss-SSS")}_chunk_$index.mp3"
         return filePath + fileName
     }
 
