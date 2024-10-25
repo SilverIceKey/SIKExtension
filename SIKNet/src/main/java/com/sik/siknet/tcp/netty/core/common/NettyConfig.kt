@@ -31,39 +31,33 @@ abstract class NettyConfig {
      *
      * @param ch
      */
-    abstract fun channelInit(ch: SocketChannel?)
+    abstract fun channelInit(ch: SocketChannel)
 
-    val threadGroupSize: Int
+    open val threadGroupSize: Int
         /**
          * 获取线程池大小，默认使用 CPU 核心数的 2 倍
          */
         get() = Runtime.getRuntime().availableProcessors() * 2
 
-    val maxReconnectAttempts: Int
+    open val maxReconnectAttempts: Int
         /**
          * 获取重连次数，默认 5 次
          */
         get() = -1
 
-    val reconnectInterval: Long
+    open val reconnectInterval: Long
         /**
          * 获取重连间隔（秒），默认 5 秒
          */
         get() = 5
 
-    val heartbeatInterval: Long
+    open val heartbeatInterval: Long
         /**
          * 获取心跳间隔（秒），默认 30 秒
          */
         get() = 30
 
-    val isJsonSerializationEnabled: Boolean
-        /**
-         * 是否启用未识别类型的 JSON 序列化，默认 true
-         */
-        get() = true
-
-    val isAutoSwitchThread: Boolean
+    open val isAutoSwitchThread: Boolean
         /**
          * 是否启用自动线程切换，默认 true
          */
