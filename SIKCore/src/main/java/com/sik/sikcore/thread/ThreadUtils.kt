@@ -38,13 +38,12 @@ object ThreadUtils {
     }
 
     // 定义独立的 CoroutineScopes，分别用于 IO 和 Main 线程
-    private val ioScope: CoroutineScope by lazy {
-        CoroutineScope(SupervisorJob() + DispatcherProvider.io)
-    }
+    @Volatile
+    private var ioScope: CoroutineScope = CoroutineScope(SupervisorJob() + DispatcherProvider.io)
 
-    private val mainScope: CoroutineScope by lazy {
+    @Volatile
+    private var mainScope: CoroutineScope =
         CoroutineScope(SupervisorJob() + DispatcherProvider.main)
-    }
 
     /**
      * 在 IO 线程执行挂起函数。
@@ -144,5 +143,8 @@ object ThreadUtils {
     fun cancelAll() {
         ioScope.cancel()
         mainScope.cancel()
+        // 重新初始化 CoroutineScopes
+        ioScope = CoroutineScope(SupervisorJob() + DispatcherProvider.io)
+        mainScope = CoroutineScope(SupervisorJob() + DispatcherProvider.main)
     }
 }
