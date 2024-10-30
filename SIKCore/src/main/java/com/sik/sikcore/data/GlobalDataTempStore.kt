@@ -19,6 +19,20 @@ class GlobalDataTempStore private constructor() {
     }
 
     /**
+     * 安全的保存数据
+     * @param key
+     * @param value
+     */
+    fun saveDataSafely(key: String, value: Any?): Boolean {
+        return if (value != null) {
+            saveData(key, value)
+        } else {
+            false
+        }
+    }
+
+
+    /**
      * Save data
      * 保存数据
      * @param key
