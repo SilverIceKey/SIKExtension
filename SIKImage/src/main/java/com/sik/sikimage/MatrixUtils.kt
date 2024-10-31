@@ -2,6 +2,7 @@ package com.sik.sikimage
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import kotlin.math.atan2
 
 /**
  * 矩阵操作
@@ -55,6 +56,39 @@ object MatrixUtils {
         }
         return resultBitmap
     }
+
+    /**
+     * 从矩阵中获取旋转角度
+     */
+    fun getRotationAngleFromMatrix(matrix: Matrix): Float {
+        val values = FloatArray(9)
+        matrix.getValues(values)
+
+        // 计算旋转角度
+        val scaleX = values[Matrix.MSCALE_X]
+        val skewY = values[Matrix.MSKEW_Y]
+
+        // 使用反正切函数计算旋转角度（单位是弧度）
+        val rotation = Math.toDegrees(atan2(skewY.toDouble(), scaleX.toDouble())).toFloat()
+
+        // 确保角度在0到360之间
+        return (rotation + 360) % 360
+    }
+
+    /**
+     * 矩阵旋转到指定角度
+     */
+    fun rotateMatrixToAngle(matrix: Matrix, px: Float, py: Float, targetAngle: Float) {
+        // 获取当前旋转角度
+        val currentAngle = getRotationAngleFromMatrix(matrix)
+
+        // 计算旋转的角度
+        val deltaAngle = targetAngle - currentAngle
+
+        // 使用 postRotate 来旋转矩阵
+        matrix.postRotate(deltaAngle, px, py) // 使用中心点作为旋转中心
+    }
+
 }
 
 /**
