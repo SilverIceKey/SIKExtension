@@ -61,7 +61,7 @@ object NetUtil {
         val context = SIKCore.getApplication().applicationContext
         val scanReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                val scanResult = wifiManager.scanResults.singleOrNull { it.SSID == ssid }
+                val scanResult = wifiManager.scanResults.find { it.SSID == ssid }
                 if (scanResult == null) {
                     searchFailed("搜索wifi失败")
                     context?.unregisterReceiver(this) // 取消注册广播接收器
