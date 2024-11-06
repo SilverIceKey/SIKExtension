@@ -1,7 +1,10 @@
 package com.sik.siknet
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -19,32 +22,26 @@ import java.util.Locale
  * 网络工具类
  */
 object NetUtil {
-    private val wifiManager: WifiManager =
+    private val wifiManager: WifiManager by lazy {
         SIKCore.getApplication().applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+    }
 
     /**
      * 获取MAC地址（有网口的前提下）
      */
-    fun getMacAddress(): String? {
-        return try {
-            FileUtils.loadFileAsString("/sys/class/net/eth0/address")
-                .uppercase(Locale.ROOT).substring(0, 17)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
+    fun getMacAddress(): String? = try {
+        FileUtils.loadFileAsString("/sys/class/net/eth0/address")
+            .uppercase(Locale.ROOT).substring(0, 17)
+    } catch (e: IOException) {
+        e.printStackTrace()
+        null
     }
 
     /**
      * 获取当前wifi名称
      */
-    fun getWifiName(): String? {
-        val wifiInfo = wifiManager.connectionInfo
-        if (wifiInfo != null) {
-            return wifiInfo.ssid.replace("\"", "")
-        }
-        return null
-    }
+    fun getWifiName(): String? =
+        wifiManager.connectionInfo?.ssid?.replace("\"", "")
 
     /**
      * 连接到指定wifi
@@ -54,47 +51,64 @@ object NetUtil {
     fun connectToWifi(
         ssid: String, password: String = "",
         searchFailed: (String) -> Unit = {},
+        searchSuccess: () -> Unit = {},
         connectSuccess: (String) -> Unit = {},
-        connectFailed: (String) -> kotlin.Unit = {}
+        connectFailed: (String) -> Unit = {}
     ) {
-        if (!openWifi()) {
-            return
+        if (!openWifi()) return
+
+        // 注册广播接收器来监听扫描结果
+        val context = SIKCore.getApplication().applicationContext
+        val scanReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val scanResult = wifiManager.scanResults.singleOrNull { it.SSID == ssid }
+                if (scanResult == null) {
+                    searchFailed("搜索wifi失败")
+                    context?.unregisterReceiver(this) // 取消注册广播接收器
+                } else {
+                    searchSuccess()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        connectByP2P(ssid, password, connectSuccess, connectFailed)
+                    } else {
+                        connectToWifiLegacy(
+                            ssid,
+                            password,
+                            scanResult.capabilities,
+                            connectSuccess,
+                            connectFailed
+                        )
+                    }
+                    context?.unregisterReceiver(this) // 取消注册广播接收器
+                }
+            }
         }
 
-        val scanResult = wifiManager.scanResults.singleOrNull { it.SSID == ssid }
-        if (scanResult == null) {
-            searchFailed("搜索wifi失败")
-            return
-        } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                connectByP2P(ssid, password)
-                return
-            }
-            var isSuccess = false
-            //如果找到了wifi了，从配置表中搜索该wifi的配置config，也就是以前有没有连接过
-            //注意configuredNetworks中的ssid，系统源码中加上了双引号，这里比对的时候要去掉
-            val config =
-                wifiManager.configuredNetworks.singleOrNull { it.SSID.replace("\"", "") == ssid }
-            isSuccess = if (config != null) {
-                //如果找到了，那么直接连接，不要调用wifiManager.addNetwork  这个方法会更改config的！
-                wifiManager.enableNetwork(config.networkId, true)
-            } else {
-                // 没找到的话，就创建一个新的配置，然后正常的addNetWork、enableNetwork即可
-                val padWifiNetwork =
-                    createWifiConfig(
-                        scanResult?.SSID!!,
-                        password,
-                        getCipherType(scanResult.capabilities)
-                    )
-                val netId = wifiManager.addNetwork(padWifiNetwork)
-                wifiManager.enableNetwork(netId, true)
-            }
-            if (isSuccess) {
-                connectSuccess("连接成功")
-            } else {
-                connectFailed("连接失败")
-            }
-        }
+        context.registerReceiver(
+            scanReceiver,
+            IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
+        )
+
+        // 触发扫描
+        wifiManager.startScan()
+    }
+
+    /**
+     * 使用旧方法连接wifi (Android 10以下)
+     */
+    @SuppressLint("MissingPermission")
+    private fun connectToWifiLegacy(
+        ssid: String,
+        password: String,
+        capabilities: String,
+        connectSuccess: (String) -> Unit,
+        connectFailed: (String) -> Unit
+    ) {
+        val config =
+            wifiManager.configuredNetworks.singleOrNull { it.SSID.replace("\"", "") == ssid }
+                ?: createWifiConfig(ssid, password, getCipherType(capabilities))
+
+        val isSuccess = wifiManager.enableNetwork(config.networkId, true)
+        if (isSuccess) connectSuccess("连接成功") else connectFailed("连接失败")
     }
 
     /**
@@ -106,41 +120,42 @@ object NetUtil {
         password: String,
         type: WifiCapability
     ): WifiConfiguration {
-        //初始化WifiConfiguration
-        val config = WifiConfiguration()
-        config.allowedAuthAlgorithms.clear()
-        config.allowedGroupCiphers.clear()
-        config.allowedKeyManagement.clear()
-        config.allowedPairwiseCiphers.clear()
-        config.allowedProtocols.clear()
-        //指定对应的SSID
-        config.SSID = "\"" + ssid + "\""
-        //如果之前有类似的配置
-        val tempConfig = wifiManager.configuredNetworks.singleOrNull { it.SSID == "\"$ssid\"" }
-        if (tempConfig != null) {
-            //则清除旧有配置  不是自己创建的network 这里其实是删不掉的
-            wifiManager.removeNetwork(tempConfig.networkId)
-            wifiManager.saveConfiguration()
+        return WifiConfiguration().apply {
+            SSID = "\"$ssid\""
+            clearWifiConfiguration()
+            setSecurityType(this, password, type)
+            removeExistingConfig(ssid)
         }
-        //不需要密码的场景
-        when (type) {
-            WifiCapability.WIFI_CIPHER_NO_PASS -> config.allowedKeyManagement.set(
-                WifiConfiguration.KeyMgmt.NONE
-            )
+    }
 
-            //以WEP加密的场景
+    /**
+     * 清除旧有配置
+     */
+    private fun WifiConfiguration.clearWifiConfiguration() {
+        allowedAuthAlgorithms.clear()
+        allowedGroupCiphers.clear()
+        allowedKeyManagement.clear()
+        allowedPairwiseCiphers.clear()
+        allowedProtocols.clear()
+    }
+
+    /**
+     * 根据安全类型设置Wifi配置
+     */
+    private fun setSecurityType(config: WifiConfiguration, password: String, type: WifiCapability) {
+        when (type) {
+            WifiCapability.WIFI_CIPHER_NO_PASS -> config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE)
             WifiCapability.WIFI_CIPHER_WEP -> {
                 config.hiddenSSID = true
-                config.wepKeys[0] = "\"" + password + "\""
+                config.wepKeys[0] = "\"$password\""
                 config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN)
                 config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED)
                 config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE)
                 config.wepTxKeyIndex = 0
-                //以WPA加密的场景，自己测试时，发现热点以WPA2建立时，同样可以用这种配置连接
             }
 
-            WifiCapability.WIFI_CIPHER_WPA -> {
-                config.preSharedKey = "\"" + password + "\""
+            WifiCapability.WIFI_CIPHER_WPA, WifiCapability.WIFI_CIPHER_WPA2 -> {
+                config.preSharedKey = "\"$password\""
                 config.hiddenSSID = true
                 config.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN)
                 config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP)
@@ -150,12 +165,35 @@ object NetUtil {
                 config.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP)
                 config.status = WifiConfiguration.Status.ENABLED
             }
+
+            WifiCapability.WIFI_CIPHER_WPA3 -> {
+                // WPA3 configuration can vary by device
+                config.preSharedKey = "\"$password\""
+                config.hiddenSSID = true
+                config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.SAE)
+            }
+
+            WifiCapability.WIFI_CIPHER_EAP -> {
+                // Enterprise configuration might need additional setup
+            }
         }
-        return config
     }
 
+    /**
+     * 移除已存在的相同SSID配置
+     */
+    @SuppressLint("MissingPermission")
+    private fun removeExistingConfig(ssid: String) {
+        wifiManager.configuredNetworks.singleOrNull { it.SSID == "\"$ssid\"" }?.let {
+            wifiManager.removeNetwork(it.networkId)
+            wifiManager.saveConfiguration()
+        }
+    }
+
+    /**
+     * Android 10及以上通过P2P连接Wifi
+     */
     @JvmOverloads
-    //Android10以上 通过P2P连接Wifi
     private fun connectByP2P(
         ssid: String,
         password: String,
@@ -167,27 +205,20 @@ object NetUtil {
                 .setSsid(ssid)
                 .setWpa2Passphrase(password)
                 .build()
-            val request =
-                NetworkRequest.Builder()
-                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                    .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                    .setNetworkSpecifier(specifier)
-                    .build()
+            val request = NetworkRequest.Builder()
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .setNetworkSpecifier(specifier)
+                .build()
 
-            val connectivityManager =
-                SIKCore.getApplication()
-                    .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val networkCallback = object : ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: Network) {
-                    connectSuccess("连接成功")
-
-                }
-
-                override fun onUnavailable() {
-                    connectFailed("连接失败")
-                }
-            }
-            connectivityManager.requestNetwork(request, networkCallback)
+            val connectivityManager = SIKCore.getApplication()
+                .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            connectivityManager.requestNetwork(
+                request,
+                object : ConnectivityManager.NetworkCallback() {
+                    override fun onAvailable(network: Network) = connectSuccess("连接成功")
+                    override fun onUnavailable() = connectFailed("连接失败")
+                })
         }
     }
 
@@ -198,7 +229,6 @@ object NetUtil {
     private fun openWifi(openFailed: (String) -> Unit = {}): Boolean {
         if (!wifiManager.isWifiEnabled) {
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                //请用户手动打开wifi
                 openFailed("请前往设置打开wifi")
                 false
             } else {
@@ -212,27 +242,21 @@ object NetUtil {
     /**
      * 获取加密方法
      */
-    private fun getCipherType(capabilities: String): WifiCapability {
-        return when {
-            capabilities.contains("WEB") -> {
-                WifiCapability.WIFI_CIPHER_WEP
-            }
-
-            capabilities.contains("PSK") -> {
-                WifiCapability.WIFI_CIPHER_WPA
-            }
-
-            capabilities.contains("WPS") -> {
-                WifiCapability.WIFI_CIPHER_NO_PASS
-            }
-
-            else -> {
-                WifiCapability.WIFI_CIPHER_NO_PASS
-            }
-        }
+    private fun getCipherType(capabilities: String): WifiCapability = when {
+        "WEP" in capabilities -> WifiCapability.WIFI_CIPHER_WEP
+        "WPA3-SAE" in capabilities -> WifiCapability.WIFI_CIPHER_WPA3
+        "WPA2-PSK" in capabilities -> WifiCapability.WIFI_CIPHER_WPA2
+        "WPA-PSK" in capabilities -> WifiCapability.WIFI_CIPHER_WPA
+        "EAP" in capabilities -> WifiCapability.WIFI_CIPHER_EAP
+        else -> WifiCapability.WIFI_CIPHER_NO_PASS
     }
 
     enum class WifiCapability {
-        WIFI_CIPHER_WEP, WIFI_CIPHER_WPA, WIFI_CIPHER_NO_PASS
+        WIFI_CIPHER_WEP,
+        WIFI_CIPHER_WPA,
+        WIFI_CIPHER_WPA2,
+        WIFI_CIPHER_WPA3,
+        WIFI_CIPHER_EAP,
+        WIFI_CIPHER_NO_PASS
     }
 }
