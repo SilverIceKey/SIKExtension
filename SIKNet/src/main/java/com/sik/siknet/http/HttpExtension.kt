@@ -15,6 +15,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.full.memberProperties
 
 inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()): T {
     if (HttpUtils.isLoggerInRequest) {
@@ -57,14 +58,28 @@ inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()):
     }
 }
 
-inline fun <reified T> String.httpPostForm(formParameters: Map<String, String>): T {
+inline fun <reified T> String.httpPostForm(formParameters: Any?): T {
     if (HttpUtils.isLoggerInRequest) {
         HttpUtils.logger.info(this)
         HttpUtils.logger.info(formParameters.toJson())
     }
     val formBodyBuilder = FormBody.Builder()
-    for ((key, value) in formParameters) {
-        formBodyBuilder.add(key, value)
+    formParameters?.let {
+        when {
+            it is Map<*, *> -> {
+                for ((key, value) in it) {
+                    formBodyBuilder.add(key.toString(), value.toString())
+                }
+            }
+
+            else -> {
+                val params = it.toMap()
+                for ((key, value) in params) {
+                    formBodyBuilder.add(key, value)
+                }
+            }
+        }
+
     }
     val request = Request.Builder().url(this).post(formBodyBuilder.build()).build()
     return try {
@@ -241,5 +256,11 @@ fun String.httpDownloadFile(
         // 全局异常处理器，返回是否处理成功的布尔值
         HttpUtils.globalNetExceptionHandler(request, netException)
         false // 发生异常，下载失败
+    }
+}
+
+fun <T : Any> T.toMap(): Map<String, String> {
+    return this::class.memberProperties.associate { property ->
+        property.name to property.getter.call(this).toString()
     }
 }
