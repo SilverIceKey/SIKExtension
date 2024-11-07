@@ -1,11 +1,14 @@
 package com.sik.sikcore.date
 
-import android.annotation.SuppressLint
+import com.sik.sikcore.R
+import com.sik.sikcore.SIKCore
 import org.slf4j.LoggerFactory
 import java.text.DateFormat
 import java.text.ParsePosition
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 /**
  * 时间相关工具类
@@ -361,7 +364,8 @@ object TimeUtils {
     /**
      * 计算两个日期之间的秒差
      */
-    fun diffInSeconds(startDate: Date, endDate: Date): Long = diffInMillis(startDate, endDate) / 1000
+    fun diffInSeconds(startDate: Date, endDate: Date): Long =
+        diffInMillis(startDate, endDate) / 1000
 
     /**
      * 计算两个日期之间的分钟差
@@ -488,21 +492,24 @@ object TimeUtils {
         val minutes = durationMillis / (1000 * 60) % 60
         val hours = durationMillis / (1000 * 60 * 60) % 24
         val days = durationMillis / (1000 * 60 * 60 * 24)
-
+        val daysUnit = SIKCore.getApplication().getString(R.string.days_unit)
+        val hoursUnit = SIKCore.getApplication().getString(R.string.hours_unit)
+        val minutesUnit = SIKCore.getApplication().getString(R.string.mins_unit)
+        val secondsUnit = SIKCore.getApplication().getString(R.string.secs_unit)
         val builder = StringBuilder()
         if (days > 0) {
-            builder.append("${days}天")
+            builder.append("${days}${daysUnit}")
         }
         if (hours > 0) {
-            builder.append("${hours}小时")
+            builder.append("${hours}${hoursUnit}")
         }
         if (minutes > 0) {
-            builder.append("${minutes}分钟")
+            builder.append("${minutes}${minutesUnit}")
         }
         if (seconds > 0) {
-            builder.append("${seconds}秒")
+            builder.append("${seconds}${secondsUnit}")
         }
-        return if (builder.isNotEmpty()) builder.toString() else "0秒"
+        return if (builder.isNotEmpty()) builder.toString() else "0${secondsUnit}"
     }
 
     /**

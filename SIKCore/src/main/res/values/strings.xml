@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="day_unit">天</string>
+    <string name="hour_unit">小时</string>
+    <string name="min_unit">分钟</string>
+    <string name="sec_unit">秒</string>
+    <string name="days_unit">天</string>
+    <string name="hours_unit">小时</string>
+    <string name="mins_unit">分钟</string>
+    <string name="secs_unit">秒</string>
+</resources>

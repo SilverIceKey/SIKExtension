@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="day_unit">Day</string>
+    <string name="hour_unit">Hour</string>
+    <string name="min_unit">Minute</string>
+    <string name="sec_unit">Second</string>
+    <string name="days_unit">Days</string>
+    <string name="hours_unit">Hours</string>
+    <string name="mins_unit">Minutes</string>
+    <string name="secs_unit">Seconds</string>
+</resources>
