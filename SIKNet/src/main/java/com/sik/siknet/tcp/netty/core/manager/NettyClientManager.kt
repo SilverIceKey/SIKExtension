@@ -22,6 +22,11 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
      */
     private var reconnectAttempts = 0
 
+    /**
+     * 是否在重连
+     */
+    private var isInReconnect = false
+
     override fun startInternal() {
         startClient()
     }
@@ -90,15 +95,23 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
      * @param bootstrap Bootstrap 实例，用于客户端配置
      */
     private fun reconnect(bootstrap: Bootstrap) {
+        if (isInReconnect) {
+            return
+        }
+        isInReconnect = true
         if (config.maxReconnectAttempts == -1 || reconnectAttempts < config.maxReconnectAttempts) {
             reconnectAttempts++
             logger.info("尝试第 {} 次重连...", reconnectAttempts)
             workerGroup!!.schedule(
-                { connect(bootstrap) },
+                {
+                    isInReconnect = false
+                    connect(bootstrap)
+                },
                 config.reconnectInterval,
                 TimeUnit.SECONDS
             )
         } else {
+            isInReconnect = false
             logger.info("达到最大重连次数，停止重连。")
             stop()
         }
