@@ -19,3 +19,21 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# 保留 Gson 相关的类
+-keep class com.google.gson.** { *; }
+
+# 保留 TypeToken 类及其类型信息
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keepclassmembers class com.google.gson.reflect.TypeToken { <fields>; }
+
+# 保留反序列化所需的类型签名
+-keepclassmembers class * {
+    public void fromJson(java.lang.String, com.google.gson.reflect.TypeToken);
+}
+
+# 保留 Kotlin 的扩展函数（如 httpGet、httpPostForm 等）
+-keep class com.sik.siknet.http.** { *; }
+-keepclassmembers class com.sik.siknet.http.** {
+    public *;
+}
