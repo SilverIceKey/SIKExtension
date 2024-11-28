@@ -2,6 +2,7 @@ package com.sik.sikcore.extension
 
 import android.animation.ObjectAnimator
 import android.content.res.Resources
+import android.os.SystemClock
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewTreeObserver
@@ -65,5 +66,28 @@ fun ProgressBar.setProgressSmoothly(newProgress: Int, duration: Long = 500) {
         this.duration = duration
         interpolator = DecelerateInterpolator()
         start()
+    }
+}
+
+
+// 扩展函数：为 View 设置防抖的点击事件监听器
+fun View.setDebouncedClickListener(
+    debounceMillis: Long = 500L, // 防抖的时间间隔，默认为500毫秒
+    listener: View.OnClickListener
+) {
+    // 记录上次点击时间
+    var lastClickTime: Long = 0
+
+    // 设置点击事件监听器
+    this.setOnClickListener {
+        val currentTime = SystemClock.elapsedRealtime()
+
+        // 判断当前时间和上次点击时间的差值是否大于防抖间隔
+        if (currentTime - lastClickTime >= debounceMillis) {
+            // 更新上次点击时间
+            lastClickTime = currentTime
+            // 调用传入的监听器
+            listener.onClick(it)
+        }
     }
 }
