@@ -13,8 +13,8 @@ import android.view.View
  */
 fun View.anim(animConfig: AnimConfig, createStart: Boolean = true): ValueAnimator {
     val valueAnimator = ValueAnimator.ofFloat(
-        if (animConfig.isIn) 1.0f else 0.0f,
-        if (animConfig.isIn) 0.0f else 1.0f
+        if (animConfig.isIn) 0.0f else 1.0f,
+        if (animConfig.isIn) 1.0f else 0.0f
     ).apply {
         //设置动画时间
         duration = animConfig.duration
