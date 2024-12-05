@@ -702,4 +702,37 @@ object TimeUtils {
         return dates
     }
 
+    /**
+     * 获取最新的时间
+     */
+    fun getLatestDateTime(
+        vararg dateTime: String,
+        dateFormat: String = DEFAULT_DATE_HOUR_MIN_SEC_FORMAT // 默认时间格式
+    ): String {
+        // 创建 SimpleDateFormat 对象
+        val formatter = SimpleDateFormat(dateFormat, Locale.getDefault())
+
+        // 使用 TreeSet 存储时间，自动进行排序
+        val dateSet =
+            sortedSetOf<Date>({ date1, date2 -> date2.compareTo(date1) }) // 降序排序
+
+        // 将传入的时间字符串解析成 Date 对象并加入到集合中
+        dateTime.forEach {
+            try {
+                val date = formatter.parse(it)
+                if (date != null) {
+                    dateSet.add(date)
+                }
+            } catch (e: Exception) {
+                // 如果解析失败，可以处理异常或者忽略无效时间
+                e.printStackTrace()
+            }
+        }
+
+        // 获取集合中的最新时间
+        val latestDate = dateSet.firstOrNull()
+
+        // 如果有最新的时间，返回格式化后的字符串，否则返回空字符串
+        return latestDate?.let { formatter.format(it) } ?: ""
+    }
 }
