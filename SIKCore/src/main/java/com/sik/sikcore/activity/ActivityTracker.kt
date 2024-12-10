@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.res.Configuration
 import android.os.Bundle
+import androidx.lifecycle.LifecycleOwner
 import com.sik.sikcore.explain.LogInfo
 import org.slf4j.LoggerFactory
 import java.lang.ref.WeakReference
@@ -16,6 +17,7 @@ import kotlin.reflect.full.functions
  */
 object ActivityTracker : Application.ActivityLifecycleCallbacks {
     private var currentActivity: WeakReference<Activity>? = null
+    private var currentLifecycleOwner: WeakReference<LifecycleOwner>? = null  // 保存 LifecycleOwner
     private var lastNightMode = -1
     private val logger = LoggerFactory.getLogger(ActivityTracker::class.java)
 
@@ -24,6 +26,11 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
             ActivityUtil.setSecure(activity)
         }
         currentActivity = WeakReference(activity)
+
+        // 绑定 LifecycleOwner
+        if (activity is LifecycleOwner) {
+            currentLifecycleOwner = WeakReference(activity)
+        }
     }
 
     /**
@@ -43,10 +50,21 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
 
     override fun onActivityStarted(activity: Activity) {
         currentActivity = WeakReference(activity)
+
+        // 更新 LifecycleOwner
+        if (activity is LifecycleOwner) {
+            currentLifecycleOwner = WeakReference(activity)
+        }
     }
 
     override fun onActivityResumed(activity: Activity) {
         currentActivity = WeakReference(activity)
+
+        // 更新 LifecycleOwner
+        if (activity is LifecycleOwner) {
+            currentLifecycleOwner = WeakReference(activity)
+        }
+
         val currentNightMode =
             activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         if (currentNightMode != lastNightMode) {
@@ -75,13 +93,25 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
                 currentActivity = null
             }
         }
+
+        // 清除 LifecycleOwner 绑定
+        if (currentLifecycleOwner?.get() == activity) {
+            currentLifecycleOwner = null
+        }
     }
 
     /**
-     * 获取当前的Activity
+     * 获取当前的 Activity
      */
     fun getCurrentActivity(): Activity? {
         return currentActivity?.get()
+    }
+
+    /**
+     * 获取当前的 LifecycleOwner
+     */
+    fun getCurrentLifecycleOwner(): LifecycleOwner? {
+        return currentLifecycleOwner?.get()
     }
 
     /**
@@ -96,5 +126,4 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
             }
         }
     }
-
 }
