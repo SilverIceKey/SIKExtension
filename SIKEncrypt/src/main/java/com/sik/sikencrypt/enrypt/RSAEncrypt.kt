@@ -7,6 +7,8 @@ import com.sik.sikcore.io.IOUtils
 import com.sik.sikencrypt.EncryptException
 import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.EncryptPadding
+import com.sik.sikencrypt.EncryptProgressImpl
+import com.sik.sikencrypt.IEncryptProgressListener
 import com.sik.sikencrypt.IRSAEncrypt
 import com.sik.sikencrypt.IRSAEncryptConfig
 import java.io.*
@@ -23,6 +25,11 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
         Cipher.getInstance("${config.algorithm()}/${config.mode()}/${config.padding()}")
     private var publicKey: ByteArray = byteArrayOf()
     private var privateKey: ByteArray = byteArrayOf()
+
+    /**
+     * 加解密进度监听器
+     */
+    private var encryptProgressListener: IEncryptProgressListener = EncryptProgressImpl()
 
     override fun generateKeyPair(): IRSAEncrypt {
         if (config.publicKey().size !in arrayOf(1024, 2048, 4096)) {
@@ -192,7 +199,7 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
             outputStream.write(decryptedBlock)
         }
     }
-
+    
     private fun encrypt(dataBytes: ByteArray): ByteArray {
         cipher.init(Cipher.ENCRYPT_MODE, getPublicKey())
         return cipher.doFinal(dataBytes)
@@ -220,5 +227,9 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
      */
     private fun getMaxDecryptBlockSize(): Int {
         return config.privateKeySize() / 8
+    }
+
+    override fun addProgressListener(iEncryptProgressListener: IEncryptProgressListener) {
+        this.encryptProgressListener = iEncryptProgressListener
     }
 }

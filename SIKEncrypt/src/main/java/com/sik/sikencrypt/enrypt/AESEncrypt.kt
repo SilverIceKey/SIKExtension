@@ -7,8 +7,10 @@ import com.sik.sikencrypt.EncryptException
 import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.EncryptMode
 import com.sik.sikencrypt.EncryptPadding
+import com.sik.sikencrypt.EncryptProgressImpl
 import com.sik.sikencrypt.IEncrypt
 import com.sik.sikencrypt.IEncryptConfig
+import com.sik.sikencrypt.IEncryptProgressListener
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.*
 import java.nio.charset.Charset
@@ -30,6 +32,11 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
          */
         private const val BLOCK_SIZE = 16
     }
+
+    /**
+     * 加解密进度监听器
+     */
+    private var encryptProgressListener: IEncryptProgressListener = EncryptProgressImpl()
 
     init {
         if (iEncryptConfig.key().size != 16 && iEncryptConfig.key().size != 24 && iEncryptConfig.key().size != 32) {
@@ -103,6 +110,8 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             cipher.init(Cipher.ENCRYPT_MODE, keySpec)
         }
 
+        val encryptFileSize = inputFile.length()
+        var currentEncryptSize = 0
         FileInputStream(inputFile).use { fis ->
             FileOutputStream(outputFile).use { fos ->
                 if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
@@ -113,6 +122,8 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     var bytesRead: Int
                     while (fis.read(buffer).also { bytesRead = it } != -1) {
                         cos.write(buffer, 0, bytesRead)
+                        currentEncryptSize += bytesRead
+                        encryptProgressListener.encryptProgress((currentEncryptSize.toFloat() / encryptFileSize * 100).toInt())
                     }
                 }
             }
@@ -143,7 +154,8 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         } else {
             cipher.init(Cipher.ENCRYPT_MODE, keySpec)
         }
-
+        val encryptFileSize = inputFile.length()
+        var currentEncryptSize = 0
         FileInputStream(inputFile).use { fis ->
             FileOutputStream(outputFile).use { fos ->
                 if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
@@ -154,6 +166,8 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     var bytesRead: Int
                     while (fis.read(buffer).also { bytesRead = it } != -1) {
                         cos.write(buffer, 0, bytesRead)
+                        currentEncryptSize += bytesRead
+                        encryptProgressListener.encryptProgress((currentEncryptSize.toFloat() / encryptFileSize * 100).toInt())
                     }
                 }
             }
@@ -182,6 +196,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             cipher.init(Cipher.ENCRYPT_MODE, keySpec)
         }
 
+        var currentEncryptSize = 0
         inputStream.use { fis ->
             outputStream.use { fos ->
                 if (iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
@@ -192,6 +207,8 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     var bytesRead: Int
                     while (fis.read(buffer).also { bytesRead = it } != -1) {
                         cos.write(buffer, 0, bytesRead)
+                        currentEncryptSize += bytesRead
+                        encryptProgressListener.encryptBytes(currentEncryptSize)
                     }
                 }
             }
@@ -257,6 +274,8 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
 
+        val decryptFileSize = inputFile.length()
+        var currentDecryptSize = 0
         FileInputStream(inputFile).use { fis ->
             val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
             if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
@@ -264,8 +283,11 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     val fileIv = ByteArray(16)
                     fis.read(fileIv, 0, 16)
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
+                    currentDecryptSize = 16
+                    encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                 } else {
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+                    encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                 }
             } else {
                 cipher.init(Cipher.DECRYPT_MODE, keySpec)
@@ -276,6 +298,8 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     var bytesRead: Int
                     while (cis.read(buffer).also { bytesRead = it } != -1) {
                         fos.write(buffer, 0, bytesRead)
+                        currentDecryptSize += bytesRead
+                        encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                     }
                 }
             }
@@ -300,6 +324,8 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
 
+        val decryptFileSize = inputFile.length()
+        var currentDecryptSize = 0
         FileInputStream(inputFile).use { fis ->
             val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
             if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
@@ -307,8 +333,11 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     val fileIv = ByteArray(16)
                     fis.read(fileIv, 0, 16)
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
+                    currentDecryptSize = 16
+                    encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                 } else {
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
+                    encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                 }
             } else {
                 cipher.init(Cipher.DECRYPT_MODE, keySpec)
@@ -319,6 +348,8 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     var bytesRead: Int
                     while (cis.read(buffer).also { bytesRead = it } != -1) {
                         fos.write(buffer, 0, bytesRead)
+                        currentDecryptSize += bytesRead
+                        encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                     }
                 }
             }
@@ -341,6 +372,7 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
 
+        var currentDecryptBytes = 0
         inputStream.use { fis ->
             val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
             if (iEncryptConfig.iv() != null && iEncryptConfig.mode() != EncryptMode.ECB) {
@@ -351,8 +383,11 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                 } else {
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
                 }
+                currentDecryptBytes = 16
+                encryptProgressListener.encryptBytes(currentDecryptBytes)
             } else {
                 cipher.init(Cipher.DECRYPT_MODE, keySpec)
+                encryptProgressListener.encryptBytes(currentDecryptBytes)
             }
             outputStream.use { fos ->
                 CipherInputStream(fis, cipher).use { cis ->
@@ -360,6 +395,8 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     var bytesRead: Int
                     while (cis.read(buffer).also { bytesRead = it } != -1) {
                         fos.write(buffer, 0, bytesRead)
+                        currentDecryptBytes += bytesRead
+                        encryptProgressListener.encryptBytes(currentDecryptBytes)
                     }
                 }
             }
@@ -386,7 +423,9 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         } else {
             cipher.init(Cipher.ENCRYPT_MODE, keySpec)
         }
+        encryptProgressListener.encryptProgress(0)
         val encryptedData = cipher.doFinal(dataBytes)
+        encryptProgressListener.encryptProgress(100)
         return if (iv != null && iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
             iv + encryptedData
         } else {
@@ -409,17 +448,25 @@ class AESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
         val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
-        if (iv != null && iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
-            val actualIv = dataBytes.copyOfRange(0, iv.size)
-            val actualData = dataBytes.copyOfRange(iv.size, dataBytes.size)
-            cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(actualIv))
-            return cipher.doFinal(actualData)
-        } else if (iv != null && iEncryptConfig.mode() != EncryptMode.ECB) {
-            cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iv))
-            return cipher.doFinal(dataBytes)
-        } else {
-            cipher.init(Cipher.DECRYPT_MODE, keySpec)
-            return cipher.doFinal(dataBytes)
-        }
+        encryptProgressListener.decryptProgress(0)
+        val result =
+            if (iv != null && iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
+                val actualIv = dataBytes.copyOfRange(0, iv.size)
+                val actualData = dataBytes.copyOfRange(iv.size, dataBytes.size)
+                cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(actualIv))
+                cipher.doFinal(actualData)
+            } else if (iv != null && iEncryptConfig.mode() != EncryptMode.ECB) {
+                cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iv))
+                cipher.doFinal(dataBytes)
+            } else {
+                cipher.init(Cipher.DECRYPT_MODE, keySpec)
+                cipher.doFinal(dataBytes)
+            }
+        encryptProgressListener.decryptProgress(100)
+        return result
+    }
+
+    override fun addProgressListener(iEncryptProgressListener: IEncryptProgressListener) {
+        this.encryptProgressListener = iEncryptProgressListener
     }
 }

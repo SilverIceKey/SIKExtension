@@ -104,4 +104,9 @@ interface IEncrypt {
      */
     @Throws(EncryptException::class)
     fun decryptStream(inputStream: InputStream, outputStream: OutputStream)
+
+    /**
+     * 添加进度监听器
+     */
+    fun addProgressListener(iEncryptProgressListener: IEncryptProgressListener)
 }
