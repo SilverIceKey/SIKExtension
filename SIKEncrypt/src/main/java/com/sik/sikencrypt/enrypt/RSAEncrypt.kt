@@ -29,7 +29,7 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     /**
      * 加解密进度监听器
      */
-    private var encryptProgressListener: IEncryptProgressListener = EncryptProgressImpl()
+    private var encryptProgressListener: IEncryptProgressListener? = null
 
     override fun generateKeyPair(): IRSAEncrypt {
         if (config.publicKey().size !in arrayOf(1024, 2048, 4096)) {

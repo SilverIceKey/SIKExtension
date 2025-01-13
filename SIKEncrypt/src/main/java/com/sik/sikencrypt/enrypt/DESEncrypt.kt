@@ -36,7 +36,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
     /**
      * 加解密进度监听器
      */
-    private var encryptProgressListener: IEncryptProgressListener = EncryptProgressImpl()
+    private var encryptProgressListener: IEncryptProgressListener? = null
 
     init {
         if (iEncryptConfig.key().size != 8) {
@@ -123,7 +123,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     while (fis.read(buffer).also { bytesRead = it } != -1) {
                         cos.write(buffer, 0, bytesRead)
                         currentEncryptSize += bytesRead
-                        encryptProgressListener.encryptProgress((currentEncryptSize.toFloat() / encryptFileSize * 100).toInt())
+                        encryptProgressListener?.encryptProgress((currentEncryptSize.toFloat() / encryptFileSize * 100).toInt())
                     }
                 }
             }
@@ -168,7 +168,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     while (fis.read(buffer).also { bytesRead = it } != -1) {
                         cos.write(buffer, 0, bytesRead)
                         currentEncryptSize += bytesRead
-                        encryptProgressListener.encryptProgress((currentEncryptSize.toFloat() / encryptFileSize * 100).toInt())
+                        encryptProgressListener?.encryptProgress((currentEncryptSize.toFloat() / encryptFileSize * 100).toInt())
                     }
                 }
             }
@@ -209,7 +209,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     while (fis.read(buffer).also { bytesRead = it } != -1) {
                         cos.write(buffer, 0, bytesRead)
                         currentEncryptSize += bytesRead
-                        encryptProgressListener.encryptBytes(currentEncryptSize)
+                        encryptProgressListener?.encryptBytes(currentEncryptSize)
                     }
                 }
             }
@@ -284,10 +284,10 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     val fileIv = ByteArray(16)
                     fis.read(fileIv, 0, 16)
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
-                    encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
+                    encryptProgressListener?.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                 } else {
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
-                    encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
+                    encryptProgressListener?.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                 }
             } else {
                 cipher.init(Cipher.DECRYPT_MODE, keySpec)
@@ -299,7 +299,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     while (cis.read(buffer).also { bytesRead = it } != -1) {
                         fos.write(buffer, 0, bytesRead)
                         currentDecryptSize += bytesRead
-                        encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
+                        encryptProgressListener?.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                     }
                 }
             }
@@ -334,10 +334,10 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     fis.read(fileIv, 0, 16)
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(fileIv))
                     currentDecryptSize = 16
-                    encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
+                    encryptProgressListener?.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                 } else {
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
-                    encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
+                    encryptProgressListener?.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                 }
             } else {
                 cipher.init(Cipher.DECRYPT_MODE, keySpec)
@@ -349,7 +349,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     while (cis.read(buffer).also { bytesRead = it } != -1) {
                         fos.write(buffer, 0, bytesRead)
                         currentDecryptSize += bytesRead
-                        encryptProgressListener.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
+                        encryptProgressListener?.decryptProgress((currentDecryptSize.toFloat() / decryptFileSize * 100).toInt())
                     }
                 }
             }
@@ -384,10 +384,10 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     cipher.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(iEncryptConfig.iv()))
                 }
                 currentDecryptBytes = 16
-                encryptProgressListener.encryptBytes(currentDecryptBytes)
+                encryptProgressListener?.encryptBytes(currentDecryptBytes)
             } else {
                 cipher.init(Cipher.DECRYPT_MODE, keySpec)
-                encryptProgressListener.encryptBytes(currentDecryptBytes)
+                encryptProgressListener?.encryptBytes(currentDecryptBytes)
             }
             outputStream.use { fos ->
                 CipherInputStream(fis, cipher).use { cis ->
@@ -396,7 +396,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
                     while (cis.read(buffer).also { bytesRead = it } != -1) {
                         fos.write(buffer, 0, bytesRead)
                         currentDecryptBytes += bytesRead
-                        encryptProgressListener.encryptBytes(currentDecryptBytes)
+                        encryptProgressListener?.encryptBytes(currentDecryptBytes)
                     }
                 }
             }
@@ -423,9 +423,9 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         } else {
             cipher.init(Cipher.ENCRYPT_MODE, keySpec)
         }
-        encryptProgressListener.encryptProgress(0)
+        encryptProgressListener?.encryptProgress(0)
         val encryptedData = cipher.doFinal(dataBytes)
-        encryptProgressListener.encryptProgress(100)
+        encryptProgressListener?.encryptProgress(100)
         return if (iv != null && iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
             iv + encryptedData
         } else {
@@ -448,7 +448,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
         }
         val keySpec = SecretKeySpec(iEncryptConfig.key(), iEncryptConfig.algorithm().name)
-        encryptProgressListener.decryptProgress(0)
+        encryptProgressListener?.decryptProgress(0)
         val result = if (iv != null && iEncryptConfig.composeIV && iEncryptConfig.mode() != EncryptMode.ECB) {
             val actualIv = dataBytes.copyOfRange(0, iv.size)
             val actualData = dataBytes.copyOfRange(iv.size, dataBytes.size)
@@ -461,7 +461,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
             cipher.init(Cipher.DECRYPT_MODE, keySpec)
             cipher.doFinal(dataBytes)
         }
-        encryptProgressListener.decryptProgress(100)
+        encryptProgressListener?.decryptProgress(100)
         return result
     }
 
