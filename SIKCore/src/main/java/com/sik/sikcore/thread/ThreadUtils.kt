@@ -7,14 +7,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * 线程工具类，用于在主线程和IO线程执行任务。
  * 提供了多种方式来运行协程任务，包括延迟执行和周期性执行。
+ * 支持传入指定的 CoroutineScope，如果未传入则使用全局的 CoroutineScope。
+ * 每个运行的任务都会分配一个唯一的运行 ID，便于单独取消或取消所有任务。
  */
 object ThreadUtils {
 
@@ -31,42 +34,79 @@ object ThreadUtils {
     @JvmStatic
     fun mainHandler(): Handler = mainHandler
 
-    // 内部调度器提供者，集中管理调度器的使用
+    // 调度器提供者
     private object DispatcherProvider {
         val io: CoroutineDispatcher = Dispatchers.IO
         val main: CoroutineDispatcher = Dispatchers.Main
     }
 
-    // 定义独立的 CoroutineScopes，分别用于 IO 和 Main 线程
-    @Volatile
-    private var ioScope: CoroutineScope = CoroutineScope(SupervisorJob() + DispatcherProvider.io)
+    // 全局的 CoroutineScope，用于未指定 CoroutineScope 的情况
+    private val globalJob = SupervisorJob()
+    private val globalScope = CoroutineScope(DispatcherProvider.io + globalJob)
 
-    @Volatile
-    private var mainScope: CoroutineScope =
-        CoroutineScope(SupervisorJob() + DispatcherProvider.main)
+    // 运行 ID 生成器
+    private val runIdCounter = AtomicLong(0)
+
+    // 运行 ID 与 Job 的映射，线程安全
+    private val jobs = ConcurrentHashMap<String, Job>()
+
+    /**
+     * 生成唯一的运行 ID。
+     *
+     * @return 唯一的运行 ID
+     */
+    private fun generateRunId(): String {
+        return "run-${runIdCounter.incrementAndGet()}"
+    }
 
     /**
      * 在 IO 线程执行挂起函数。
      *
      * @param block 要执行的挂起函数
+     * @param scope 可选的 CoroutineScope，如果未传入则使用全局 CoroutineScope
+     * @return 运行 ID
      */
     @JvmStatic
-    fun runOnIO(block: suspend CoroutineScope.() -> Unit) {
-        ioScope.launch {
-            block()
+    fun runOnIO(
+        block: suspend CoroutineScope.() -> Unit,
+        scope: CoroutineScope? = null
+    ): String {
+        val actualScope = scope ?: globalScope
+        val runId = generateRunId()
+        val job = actualScope.launch(DispatcherProvider.io) {
+            try {
+                block()
+            } finally {
+                jobs.remove(runId)
+            }
         }
+        jobs[runId] = job
+        return runId
     }
 
     /**
      * 在主线程执行挂起函数。
      *
      * @param block 要执行的挂起函数
+     * @param scope 可选的 CoroutineScope，如果未传入则使用全局 CoroutineScope
+     * @return 运行 ID
      */
     @JvmStatic
-    fun runOnMain(block: suspend CoroutineScope.() -> Unit) {
-        mainScope.launch {
-            block()
+    fun runOnMain(
+        block: suspend CoroutineScope.() -> Unit,
+        scope: CoroutineScope? = null
+    ): String {
+        val actualScope = scope ?: globalScope
+        val runId = generateRunId()
+        val job = actualScope.launch(DispatcherProvider.main) {
+            try {
+                block()
+            } finally {
+                jobs.remove(runId)
+            }
         }
+        jobs[runId] = job
+        return runId
     }
 
     /**
@@ -74,13 +114,27 @@ object ThreadUtils {
      *
      * @param delayTimeMillis 延迟时间（毫秒）
      * @param block 要执行的挂起函数
+     * @param scope 可选的 CoroutineScope，如果未传入则使用全局 CoroutineScope
+     * @return 运行 ID
      */
     @JvmStatic
-    fun runOnIODelayed(delayTimeMillis: Long, block: suspend CoroutineScope.() -> Unit) {
-        ioScope.launch {
-            delay(delayTimeMillis)
-            block()
+    fun runOnIODelayed(
+        delayTimeMillis: Long,
+        block: suspend CoroutineScope.() -> Unit,
+        scope: CoroutineScope? = null
+    ): String {
+        val actualScope = scope ?: globalScope
+        val runId = generateRunId()
+        val job = actualScope.launch(DispatcherProvider.io) {
+            try {
+                delay(delayTimeMillis)
+                block()
+            } finally {
+                jobs.remove(runId)
+            }
         }
+        jobs[runId] = job
+        return runId
     }
 
     /**
@@ -88,13 +142,27 @@ object ThreadUtils {
      *
      * @param delayTimeMillis 延迟时间（毫秒）
      * @param block 要执行的挂起函数
+     * @param scope 可选的 CoroutineScope，如果未传入则使用全局 CoroutineScope
+     * @return 运行 ID
      */
     @JvmStatic
-    fun runOnMainDelayed(delayTimeMillis: Long, block: suspend CoroutineScope.() -> Unit) {
-        mainScope.launch {
-            delay(delayTimeMillis)
-            block()
+    fun runOnMainDelayed(
+        delayTimeMillis: Long,
+        block: suspend CoroutineScope.() -> Unit,
+        scope: CoroutineScope? = null
+    ): String {
+        val actualScope = scope ?: globalScope
+        val runId = generateRunId()
+        val job = actualScope.launch(DispatcherProvider.main) {
+            try {
+                delay(delayTimeMillis)
+                block()
+            } finally {
+                jobs.remove(runId)
+            }
         }
+        jobs[runId] = job
+        return runId
     }
 
     /**
@@ -102,18 +170,31 @@ object ThreadUtils {
      *
      * @param intervalMillis 执行间隔（毫秒）
      * @param action 每次执行的挂起函数，参数为执行次数
-     * @return 协程的 Job，可以用于取消
+     * @param scope 可选的 CoroutineScope，如果未传入则使用全局 CoroutineScope
+     * @return 运行 ID
      */
     @JvmStatic
-    fun runOnIODelayedFlow(intervalMillis: Long, action: suspend (Long) -> Unit): Job {
-        return ioScope.launch {
-            var count = 0L
-            while (isActive) {
-                action(count)
-                delay(intervalMillis)
-                count++
+    fun runOnIODelayedFlow(
+        intervalMillis: Long,
+        action: suspend (Long) -> Unit,
+        scope: CoroutineScope? = null
+    ): String {
+        val actualScope = scope ?: globalScope
+        val runId = generateRunId()
+        val job = actualScope.launch(DispatcherProvider.io) {
+            try {
+                var count = 0L
+                while (isActive) {
+                    action(count)
+                    delay(intervalMillis)
+                    count++
+                }
+            } finally {
+                jobs.remove(runId)
             }
         }
+        jobs[runId] = job
+        return runId
     }
 
     /**
@@ -121,17 +202,47 @@ object ThreadUtils {
      *
      * @param intervalMillis 执行间隔（毫秒）
      * @param action 每次执行的挂起函数，参数为执行次数
-     * @return 协程的 Job，可以用于取消
+     * @param scope 可选的 CoroutineScope，如果未传入则使用全局 CoroutineScope
+     * @return 运行 ID
      */
     @JvmStatic
-    fun runOnMainDelayedFlow(intervalMillis: Long, action: suspend (Long) -> Unit): Job {
-        return mainScope.launch {
-            var count = 0L
-            while (isActive) {
-                action(count)
-                delay(intervalMillis)
-                count++
+    fun runOnMainDelayedFlow(
+        intervalMillis: Long,
+        action: suspend (Long) -> Unit,
+        scope: CoroutineScope? = null
+    ): String {
+        val actualScope = scope ?: globalScope
+        val runId = generateRunId()
+        val job = actualScope.launch(DispatcherProvider.main) {
+            try {
+                var count = 0L
+                while (isActive) {
+                    action(count)
+                    delay(intervalMillis)
+                    count++
+                }
+            } finally {
+                jobs.remove(runId)
             }
+        }
+        jobs[runId] = job
+        return runId
+    }
+
+    /**
+     * 取消指定运行 ID 的协程。
+     *
+     * @param runId 需要取消的运行 ID
+     * @return 如果取消成功返回 true，否则返回 false
+     */
+    @JvmStatic
+    fun cancel(runId: String): Boolean {
+        val job = jobs.remove(runId)
+        return if (job != null) {
+            job.cancel()
+            true
+        } else {
+            false
         }
     }
 
@@ -141,10 +252,20 @@ object ThreadUtils {
      */
     @JvmStatic
     fun cancelAll() {
-        ioScope.cancel()
-        mainScope.cancel()
-        // 重新初始化 CoroutineScopes
-        ioScope = CoroutineScope(SupervisorJob() + DispatcherProvider.io)
-        mainScope = CoroutineScope(SupervisorJob() + DispatcherProvider.main)
+        // 创建一个快照以避免并发修改异常
+        val currentJobs = jobs.toMap()
+        currentJobs.forEach { (runId, job) ->
+            job.cancel()
+            jobs.remove(runId)
+        }
+    }
+
+    /**
+     * 取消全局的 CoroutineScope，停止所有未指定作用域的协程。
+     * 通常在应用程序退出时调用。
+     */
+    @JvmStatic
+    fun cancelGlobal() {
+        globalJob.cancel()
     }
 }
