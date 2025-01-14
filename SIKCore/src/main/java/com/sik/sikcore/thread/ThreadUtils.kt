@@ -68,8 +68,8 @@ object ThreadUtils {
      */
     @JvmStatic
     fun runOnIO(
-        block: suspend CoroutineScope.() -> Unit,
-        scope: CoroutineScope? = null
+        scope: CoroutineScope? = null,
+        block: suspend CoroutineScope.() -> Unit
     ): String {
         val actualScope = scope ?: globalScope
         val runId = generateRunId()
@@ -93,8 +93,8 @@ object ThreadUtils {
      */
     @JvmStatic
     fun runOnMain(
-        block: suspend CoroutineScope.() -> Unit,
-        scope: CoroutineScope? = null
+        scope: CoroutineScope? = null,
+        block: suspend CoroutineScope.() -> Unit
     ): String {
         val actualScope = scope ?: globalScope
         val runId = generateRunId()
@@ -120,8 +120,8 @@ object ThreadUtils {
     @JvmStatic
     fun runOnIODelayed(
         delayTimeMillis: Long,
-        block: suspend CoroutineScope.() -> Unit,
-        scope: CoroutineScope? = null
+        scope: CoroutineScope? = null,
+        block: suspend CoroutineScope.() -> Unit
     ): String {
         val actualScope = scope ?: globalScope
         val runId = generateRunId()
@@ -148,8 +148,8 @@ object ThreadUtils {
     @JvmStatic
     fun runOnMainDelayed(
         delayTimeMillis: Long,
-        block: suspend CoroutineScope.() -> Unit,
-        scope: CoroutineScope? = null
+        scope: CoroutineScope? = null,
+        block: suspend CoroutineScope.() -> Unit
     ): String {
         val actualScope = scope ?: globalScope
         val runId = generateRunId()
@@ -176,8 +176,8 @@ object ThreadUtils {
     @JvmStatic
     fun runOnIODelayedFlow(
         intervalMillis: Long,
-        action: suspend (Long) -> Unit,
-        scope: CoroutineScope? = null
+        scope: CoroutineScope? = null,
+        action: suspend (Long) -> Unit
     ): String {
         val actualScope = scope ?: globalScope
         val runId = generateRunId()
@@ -208,8 +208,8 @@ object ThreadUtils {
     @JvmStatic
     fun runOnMainDelayedFlow(
         intervalMillis: Long,
-        action: suspend (Long) -> Unit,
-        scope: CoroutineScope? = null
+        scope: CoroutineScope? = null,
+        action: suspend (Long) -> Unit
     ): String {
         val actualScope = scope ?: globalScope
         val runId = generateRunId()
