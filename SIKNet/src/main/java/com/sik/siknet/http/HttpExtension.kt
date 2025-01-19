@@ -34,6 +34,7 @@ inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()):
     return try {
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
+        response.close()
         Gson().fromJson(
             body, object : TypeToken<T>() {}.type
         )
@@ -85,6 +86,7 @@ inline fun <reified T> String.httpPostForm(formParameters: Any?): T {
     return try {
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
+        response.close()
         Gson().fromJson(
             body, object : TypeToken<T>() {}.type
         )
@@ -130,6 +132,7 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
     return try {
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
+        response.close()
         Gson().fromJson(
             body, object : TypeToken<T>() {}.type
         )
@@ -176,6 +179,7 @@ inline fun <reified T> String.httpUploadFile(
     return try {
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
+        response.close()
         Gson().fromJson<T>(
             body, object : TypeToken<T>() {}.type
         )
@@ -247,8 +251,10 @@ fun String.httpDownloadFile(
         if (!response.isSuccessful || (response.header("Content-Type")
                 ?: "").contains("text/plain")
         ) {
+            response.close()
             return false // 下载失败
         }
+        response.close()
         true // 下载成功
     } catch (e: IOException) {
         // 创建自定义异常 NetException
