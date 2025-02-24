@@ -83,9 +83,6 @@ class EMQXHelper {
                 emqxCallback?.deliveryComplete(token)
             }
         }
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this)
-        }
     }
 
     /**
@@ -156,9 +153,6 @@ class EMQXHelper {
      * 释放mqtt客户端
      */
     fun release() {
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this)
-        }
         mqttClient.disconnect()
         mqttClient.close()
     }
