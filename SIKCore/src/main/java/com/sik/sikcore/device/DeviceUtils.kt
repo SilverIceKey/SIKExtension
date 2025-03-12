@@ -2,10 +2,13 @@ package com.sik.sikcore.device
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.net.Proxy
 import android.os.Build
+import android.os.Debug
 import android.provider.Settings
 import com.sik.sikcore.SIKCore
 import com.sik.sikcore.shell.ShellUtils
+import java.io.File
 import java.security.MessageDigest
 import java.util.Locale
 import java.util.UUID
@@ -158,5 +161,82 @@ object DeviceUtils {
             sb.append(stmp)
         }
         return sb.toString().toUpperCase(Locale.CHINA)
+    }
+
+
+    /**
+     * 检测调试器是否已附着
+     *
+     * @return true 如果调试器已附着，否则false
+     */
+    fun isDebuggerAttached(): Boolean {
+        return Debug.isDebuggerConnected()
+    }
+
+    /**
+     * 检测设备是否已Root
+     *
+     * @return true 如果设备已Root，否则false
+     */
+    fun isDeviceRooted(): Boolean {
+        // 方式一：检查Build标签中是否包含test-keys
+        if (Build.TAGS?.contains("test-keys") == true) {
+            return true
+        }
+
+        // 方式二：检查常见的Root文件路径
+        val paths = arrayOf(
+            "/system/app/Superuser.apk",
+            "/sbin/su",
+            "/system/bin/su",
+            "/system/xbin/su",
+            "/data/local/xbin/su",
+            "/data/local/bin/su",
+            "/system/sd/xbin/su",
+            "/system/bin/failsafe/su",
+            "/data/local/su"
+        )
+        for (path in paths) {
+            if (File(path).exists()) {
+                return true
+            }
+        }
+
+        // 方式三：尝试通过Shell执行su命令检测（依赖ShellUtils工具类）
+        val result = ShellUtils.execCmd("which su", false)
+        return result.successMsg.isNotEmpty()
+    }
+
+
+    /**
+     * 检测设备是否配置了代理
+     *
+     * @param context 上下文
+     * @return true 如果设备配置了代理，否则false
+     */
+    @SuppressLint("NewApi")
+    fun isUsingProxy(context: Context = SIKCore.getApplication()): Boolean {
+        // 方法一：通过系统属性检测代理
+        val proxyHost = System.getProperty("http.proxyHost")
+        val proxyPort = System.getProperty("http.proxyPort")
+        if (!proxyHost.isNullOrEmpty() && !proxyPort.isNullOrEmpty()) {
+            return true
+        }
+
+        val httpsProxyHost = System.getProperty("https.proxyHost")
+        val httpsProxyPort = System.getProperty("https.proxyPort")
+        if (!httpsProxyHost.isNullOrEmpty() && !httpsProxyPort.isNullOrEmpty()) {
+            return true
+        }
+
+        // 方法二：针对Android 4.0及以上版本，使用android.net.Proxy检测（已弃用，但作为补充检测）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            val defaultProxy = Proxy.getDefaultHost()
+            if (!defaultProxy.isNullOrEmpty()) {
+                return true
+            }
+        }
+
+        return false
     }
 }
