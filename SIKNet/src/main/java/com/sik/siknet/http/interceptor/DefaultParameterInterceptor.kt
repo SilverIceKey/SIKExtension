@@ -7,6 +7,8 @@ import com.sik.siknet.http.HttpUtils.CLIENT_MEDIA_TYPE
 import okhttp3.FormBody
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.slf4j.LoggerFactory
@@ -23,124 +25,107 @@ class DefaultParameterInterceptor : Interceptor {
 
     private val gson = Gson()
 
-    private val logger = LoggerFactory.getLogger(this::class.java.simpleName)
-
     override fun intercept(chain: Interceptor.Chain): Response {
         var originalRequest = chain.request()
         val method = originalRequest.method
-        var originalHttpUrl = originalRequest.url
 
-        // 对于GET请求，添加查询参数
         if (method.equals("GET", ignoreCase = true)) {
-            originalHttpUrl = originalHttpUrl.newBuilder()
-                .apply {
-                    params.filter { it.value != null }.forEach {
-                        addQueryParameter(it.key, it.value)
-                    }
-                }
-                .build()
-            originalRequest = originalRequest.newBuilder().url(originalHttpUrl).build()
-        }
-        // 对于POST请求，检查Content-Type并相应地修改请求体
-        else if (method.equals("POST", ignoreCase = true) && originalRequest.body != null) {
-            originalRequest.body?.let {
-                if (it.contentType() == CLIENT_MEDIA_TYPE) {
-                    // JSON提交
-                    val buffer = okio.Buffer()
-                    originalRequest.body!!.writeTo(buffer)
-                    val originalRequestBody = buffer.readUtf8()
-                    try {
-                        val mergedParameters: JsonObject =
-                            gson.fromJson(originalRequestBody, JsonObject::class.java)
-                        params.filter { it.value != null }.forEach {
-                            mergedParameters.addProperty(it.key, it.value)
-                        }
-                        val newRequestBody =
-                            mergedParameters.toString().toRequestBody(CLIENT_MEDIA_TYPE)
-                        originalRequest = originalRequest.newBuilder().post(newRequestBody).build()
-                    } catch (e: Exception) {
-                        try {
-                            val mergedParameters: JsonArray =
-                                gson.fromJson(originalRequestBody, JsonArray::class.java)
-                            params.filter { it.value != null }.forEach {
-                                for (mergedParameter in mergedParameters) {
-                                    mergedParameter.asJsonObject.addProperty(it.key, it.value)
-                                }
-                            }
-                            val newRequestBody =
-                                mergedParameters.toString().toRequestBody(CLIENT_MEDIA_TYPE)
-                            originalRequest =
-                                originalRequest.newBuilder().post(newRequestBody).build()
-                        } catch (e: Exception) {
-                            logger.info("当前类型为非对象，无法放置参数")
-                        }
-                    }
-                } else if (it.contentType() == "application/x-www-form-urlencoded".toMediaTypeOrNull()) {
-                    // Form提交
-                    val formBodyBuilder = FormBody.Builder()
-                    params.filter { it.value != null }.filter { it.value != null }.forEach {
-                        formBodyBuilder.add(it.key, it.value ?: "")
-                    }
-                    if (originalRequest.body is FormBody) {
-                        val originalFormBody = originalRequest.body as FormBody
-                        for (i in 0 until originalFormBody.size) {
-                            formBodyBuilder.add(originalFormBody.name(i), originalFormBody.value(i))
-                        }
-                    }
-                    originalRequest =
-                        originalRequest.newBuilder().post(formBodyBuilder.build()).build()
-                }
-            }
-            originalRequest.header("Content-Type")?.let {
-                if (it.contains("application/json")) {
-                    // JSON提交
-                    val buffer = okio.Buffer()
-                    originalRequest.body!!.writeTo(buffer)
-                    val originalRequestBody = buffer.readUtf8()
-                    try {
-                        val mergedParameters: JsonObject =
-                            gson.fromJson(originalRequestBody, JsonObject::class.java)
-                        params.filter { it.value != null }.forEach {
-                            mergedParameters.addProperty(it.key, it.value)
-                        }
-                        val newRequestBody =
-                            mergedParameters.toString().toRequestBody(CLIENT_MEDIA_TYPE)
-                        originalRequest = originalRequest.newBuilder().post(newRequestBody).build()
-                    } catch (e: Exception) {
-                        try {
-                            val mergedParameters: JsonArray =
-                                gson.fromJson(originalRequestBody, JsonArray::class.java)
-                            params.filter { it.value != null }.forEach {
-                                for (mergedParameter in mergedParameters) {
-                                    mergedParameter.asJsonObject.addProperty(it.key, it.value)
-                                }
-                            }
-                            val newRequestBody =
-                                mergedParameters.toString().toRequestBody(CLIENT_MEDIA_TYPE)
-                            originalRequest =
-                                originalRequest.newBuilder().post(newRequestBody).build()
-                        } catch (e: Exception) {
-                            logger.info("当前类型为非对象，无法放置参数")
-                        }
-                    }
-                } else if (it.contains("application/x-www-form-urlencoded")) {
-                    // Form提交
-                    val formBodyBuilder = FormBody.Builder()
-                    params.filter { it.value != null }.forEach {
-                        formBodyBuilder.add(it.key, it.value ?: "")
-                    }
-                    if (originalRequest.body is FormBody) {
-                        val originalFormBody = originalRequest.body as FormBody
-                        for (i in 0 until originalFormBody.size) {
-                            formBodyBuilder.add(originalFormBody.name(i), originalFormBody.value(i))
-                        }
-                    }
-                    originalRequest =
-                        originalRequest.newBuilder().post(formBodyBuilder.build()).build()
-                }
-            }
+            // 处理 GET 请求，添加查询参数（仅当原请求中不存在该参数时）
+            originalRequest = handleGetRequest(originalRequest)
+        } else if (method.equals("POST", ignoreCase = true) && originalRequest.body != null) {
+            // 处理 POST 请求，修改请求体
+            originalRequest = handlePostRequest(originalRequest)
         }
 
         return chain.proceed(originalRequest)
+    }
+
+    private fun handleGetRequest(request: Request): Request {
+        val urlBuilder = request.url.newBuilder()
+        // 遍历预设参数，只有在原 URL 中不存在该参数时才添加
+        params.filter { it.value != null }.forEach { (key, value) ->
+            if (!request.url.queryParameterNames.contains(key)) {
+                urlBuilder.addQueryParameter(key, value)
+            }
+        }
+        return request.newBuilder().url(urlBuilder.build()).build()
+    }
+
+    private fun handlePostRequest(request: Request): Request {
+        val body = request.body ?: return request
+        val contentType = body.contentType()?.toString()
+
+        return when {
+            contentType == CLIENT_MEDIA_TYPE.toString() -> handleJsonPostRequest(request, body)
+            contentType == "application/x-www-form-urlencoded" -> handleFormPostRequest(request, body)
+            else -> request
+        }
+    }
+
+    private fun handleJsonPostRequest(request: Request, body: RequestBody): Request {
+        val buffer = okio.Buffer()
+        body.writeTo(buffer)
+        val requestBodyString = buffer.readUtf8()
+
+        return try {
+            val mergedBody = mergeJsonParameters(requestBodyString)
+            request.newBuilder().post(RequestBody.create(CLIENT_MEDIA_TYPE, mergedBody)).build()
+        } catch (e: Exception) {
+            LogUtils.i("当前类型为非对象，无法放置参数")
+            request
+        }
+    }
+
+    private fun handleFormPostRequest(request: Request, body: RequestBody): Request {
+        val formBodyBuilder = FormBody.Builder()
+        val existingParams = mutableSetOf<String>()
+
+        // 将原有的参数复制，并记录已有的参数名
+        if (body is FormBody) {
+            for (i in 0 until body.size) {
+                val key = body.name(i)
+                val value = body.value(i)
+                formBodyBuilder.add(key, value)
+                existingParams.add(key)
+            }
+        }
+
+        // 添加新的参数（仅当原请求中不存在该参数时）
+        params.filter { it.value != null }.forEach { (key, value) ->
+            if (!existingParams.contains(key)) {
+                formBodyBuilder.add(key, value ?: "")
+            }
+        }
+
+        return request.newBuilder().post(formBodyBuilder.build()).build()
+    }
+
+    private fun mergeJsonParameters(bodyString: String): String {
+        return try {
+            // 尝试解析为 JsonObject
+            val jsonObject = gson.fromJson(bodyString, JsonObject::class.java)
+            params.filter { it.value != null }.forEach { (key, value) ->
+                if (!jsonObject.has(key)) {
+                    jsonObject.addProperty(key, value)
+                }
+            }
+            jsonObject.toString()
+        } catch (e: Exception) {
+            try {
+                // 尝试解析为 JsonArray
+                val jsonArray = gson.fromJson(bodyString, JsonArray::class.java)
+                params.filter { it.value != null }.forEach { (key, value) ->
+                    jsonArray.forEach { element ->
+                        if (!element.asJsonObject.has(key)) {
+                            element.asJsonObject.addProperty(key, value)
+                        }
+                    }
+                }
+                jsonArray.toString()
+            } catch (e: Exception) {
+                LogUtils.i("解析JSON异常，无法合并参数")
+                bodyString // 无法解析时返回原始 body 字符串
+            }
+        }
     }
 }
