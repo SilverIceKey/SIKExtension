@@ -18,6 +18,8 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags ''
+                //支持 16 KB
+                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
             }
         }
     }
