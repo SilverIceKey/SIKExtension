@@ -1,19 +1,18 @@
 package com.sik.skextensionsample
 
-import android.Manifest
+import android.content.ComponentName
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.widget.Button
-import androidx.activity.ComponentActivity
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
+import androidx.window.embedding.SplitController
 import ch.qos.logback.classic.Level
 import com.sik.sikcore.activity.NightModeChangeListener
 import com.sik.sikcore.activity.SecureActivity
 import com.sik.sikcore.explain.LogInfo
 import com.sik.sikcore.log.LogUtils
-import com.sik.sikcore.permission.PermissionUtils
-import com.sik.siknet.NetUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -25,6 +24,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         // 设置内容
         setContentView(R.layout.activity_main)
+        logger.info("分屏支持:${SplitController.getInstance(this).splitSupportStatus == SplitController.SplitSupportStatus.SPLIT_AVAILABLE}")
         findViewById<Button>(R.id.generate_code).setOnClickListener {
             if (LogUtils.getLogLevel(packageName) == Level.INFO) {
                 LogUtils.setLogLevel(packageName, Level.DEBUG)
@@ -33,25 +33,38 @@ class MainActivity : AppCompatActivity() {
             }
             logger.debug("设置日志等级: {}", LogUtils.getLogLevel(packageName))
         }
-        PermissionUtils.checkAndRequestPermissions(
-            listOf(
-                Manifest.permission.ACCESS_WIFI_STATE,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ).toTypedArray()
-        ) {
-            if (it) {
-                NetUtil.connectToWifi("yangtian5G", "88921469") {
-                }
+        findViewById<Button>(R.id.split).setOnClickListener {
+            startActivity(Intent(this, SecActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            })
+        }
+        findViewById<Button>(R.id.split_another_app).setOnClickListener {
+            val intent = Intent().apply {
+//                setComponent(ComponentName("com.google.android.calculator", "com.android.calculator2.Calculator"))
+                setComponent(ComponentName("cn.wps.moffice_eng", "cn.wps.moffice.documentmanager.PreStartActivity2"))
+                addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+            }
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "文件管理器不可用", Toast.LENGTH_SHORT).show()
             }
         }
+    }
 
-        @NightModeChangeListener
-        fun nightModeChangeListener(nightMode: Int) {
-            if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
-                logger.info("深色模式已启动")
-            } else if (nightMode == Configuration.UI_MODE_NIGHT_NO) {
-                logger.debug("深色模式已关闭")
-            }
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        logger.info("配置转换")
+    }
+
+    @NightModeChangeListener
+    fun nightModeChangeListener(nightMode: Int) {
+        if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            logger.info("深色模式已启动")
+        } else if (nightMode == Configuration.UI_MODE_NIGHT_NO) {
+            logger.debug("深色模式已关闭")
         }
     }
 }

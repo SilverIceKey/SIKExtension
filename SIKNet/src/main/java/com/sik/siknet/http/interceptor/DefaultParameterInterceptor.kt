@@ -22,7 +22,7 @@ class DefaultParameterInterceptor : Interceptor {
     companion object {
         var params: HashMap<String, String?> = hashMapOf()
     }
-
+    private val logger = LoggerFactory.getLogger(DefaultParameterInterceptor::class.java)
     private val gson = Gson()
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -71,7 +71,7 @@ class DefaultParameterInterceptor : Interceptor {
             val mergedBody = mergeJsonParameters(requestBodyString)
             request.newBuilder().post(RequestBody.create(CLIENT_MEDIA_TYPE, mergedBody)).build()
         } catch (e: Exception) {
-            LogUtils.i("当前类型为非对象，无法放置参数")
+            logger.info("当前类型为非对象，无法放置参数")
             request
         }
     }
@@ -123,7 +123,7 @@ class DefaultParameterInterceptor : Interceptor {
                 }
                 jsonArray.toString()
             } catch (e: Exception) {
-                LogUtils.i("解析JSON异常，无法合并参数")
+                logger.info("解析JSON异常，无法合并参数")
                 bodyString // 无法解析时返回原始 body 字符串
             }
         }
