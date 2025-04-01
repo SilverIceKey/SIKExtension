@@ -1,5 +1,6 @@
 package com.sik.sikmedia
 
+import android.annotation.SuppressLint
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
@@ -108,6 +109,7 @@ object MediaPlayerUtils {
     /**
      * 播放下一个音频
      */
+    @SuppressLint("UnsafeOptInUsageError")
     private fun playNext() {
         if (currentIndex >= queue.size) {
             releaseMediaPlayer()
