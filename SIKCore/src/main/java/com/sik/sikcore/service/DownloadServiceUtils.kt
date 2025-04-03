@@ -126,6 +126,21 @@ object DownloadServiceUtils {
          * @param error 下载错误信息
          */
         fun onError(error: String)
+
+        /**
+         * 下载等待中回调
+         */
+        fun onPending()
+
+        /**
+         * 下载暂停回调
+         */
+        fun onPause()
+
+        /**
+         * 未知状态回调
+         */
+        fun unknownStatus()
     }
 
     /**
@@ -191,8 +206,22 @@ object DownloadServiceUtils {
                             break
                         }
 
+                        DownloadStatus.PENDING -> {
+                            withContext(Dispatchers.Main) {
+                                callback.onPending()
+                            }
+                        }
+
+                        DownloadStatus.PAUSED -> {
+                            withContext(Dispatchers.Main) {
+                                callback.onPause()
+                            }
+                        }
+
                         else -> {
-                            // PENDING 或 PAUSED 状态下可以选择继续轮询或通知用户
+                            withContext(Dispatchers.Main) {
+                                callback.unknownStatus()
+                            }
                         }
                     }
                     delay(pollingIntervalMillis)
