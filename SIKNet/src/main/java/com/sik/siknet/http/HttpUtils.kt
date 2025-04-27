@@ -1,5 +1,6 @@
 package com.sik.siknet.http
 
+import com.sik.siknet.http.dns.DefaultDns
 import com.sik.siknet.http.interceptor.AutoSaveCookieJar
 import com.sik.siknet.http.interceptor.DefaultHeaderInterceptor
 import com.sik.siknet.http.interceptor.DefaultParameterInterceptor
@@ -105,6 +106,7 @@ object HttpUtils {
                     }
                 }
             }
+            .dns(DefaultDns())
             .connectTimeout(timeoutTime, timeoutUnit)
             .readTimeout(timeoutTime, timeoutUnit)
             .writeTimeout(timeoutTime, timeoutUnit)
