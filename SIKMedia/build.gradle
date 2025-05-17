@@ -39,7 +39,6 @@ dependencies {
     api("androidx.media3:media3-exoplayer:$exoplayer")
     api("androidx.media3:media3-exoplayer-dash:$exoplayer")
     api("androidx.media3:media3-ui:$exoplayer")
-    api("com.arthenica:ffmpeg-kit-full:6.0-2")
     compileOnly 'androidx.core:core-ktx:1.8.0'
     compileOnly project(path: ':SIKCore')
 }
