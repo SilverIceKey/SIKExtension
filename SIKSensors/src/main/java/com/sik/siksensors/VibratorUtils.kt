@@ -1,11 +1,10 @@
-package com.sik.sikcore.device
+package com.sik.siksensors
 
 import android.Manifest
 import android.os.Build
-import com.sik.sikcore.device.vibrator.HighSDKVersionVibrator
-import com.sik.sikcore.device.vibrator.IVibrator
-import com.sik.sikcore.device.vibrator.LowSDKVersionVibrator
-import com.sik.sikcore.permission.PermissionUtils
+import com.sik.siksensors.vibrator.HighSDKVersionVibrator
+import com.sik.siksensors.vibrator.IVibrator
+import com.sik.siksensors.vibrator.LowSDKVersionVibrator
 
 /**
  * 震动马达工具
@@ -49,13 +48,6 @@ object VibratorUtils {
      */
     val amplitudes by lazy {
         mutableListOf<Int>()
-    }
-
-    /**
-     * 检查权限
-     */
-    fun checkPermission(callback: PermissionUtils.PermissionCallback) {
-        PermissionUtils.checkAndRequestPermissions(arrayOf(VIBRATE_PERMISSION), callback)
     }
 
     /**

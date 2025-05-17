@@ -1,11 +1,9 @@
 package com.sik.sikimage
 
-import android.Manifest
 import android.content.ContentUris
 import android.net.Uri
 import android.provider.MediaStore
 import com.sik.sikcore.SIKCore
-import com.sik.sikcore.permission.PermissionUtils
 
 /**
  * 系统媒体存储工具类

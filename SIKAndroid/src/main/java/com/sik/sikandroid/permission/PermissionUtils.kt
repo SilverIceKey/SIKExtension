@@ -1,4 +1,4 @@
-package com.sik.sikcore.permission
+package com.sik.sikandroid.permission
 
 import android.app.Activity
 import android.content.Intent
@@ -11,9 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
 import com.sik.sikcore.activity.ActivityTracker
 import androidx.core.content.ContextCompat

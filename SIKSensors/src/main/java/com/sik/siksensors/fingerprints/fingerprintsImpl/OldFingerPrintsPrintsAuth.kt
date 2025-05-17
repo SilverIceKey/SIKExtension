@@ -7,7 +7,7 @@ import android.content.Context
 import android.hardware.fingerprint.FingerprintManager
 import android.os.CancellationSignal
 import com.sik.sikcore.SIKCore
-import com.sik.sikcore.permission.PermissionUtils
+import com.sik.sikandroid.permission.PermissionUtils
 import com.sik.siksensors.SensorErrorEnum
 import com.sik.siksensors.fingerprints.IFingerPrintsAuth
 import org.slf4j.LoggerFactory

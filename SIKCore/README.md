@@ -340,26 +340,6 @@ fun getAudioVolume(volumeType: Int): Pair<Int, Int>
 fun getCurrentAudioVolume(volumeType: Int): Int
 ```
 
-
-### [权限工具](./src/main/java/com/sik/sikcore/permission/PermissionUtils.kt)
-
-```kotlin
-/**
- * 检查和请求权限。
- */
-fun checkAndRequestPermissions(
-    permissions: Array<String>,
-    callback: PermissionCallback = PermissionCallback { }
-)
-
-/**
- * 请求文件系统管理权限。
- */
-fun requestAllFilesAccessPermission(
-    callback: PermissionCallback = PermissionCallback { }
-)
-```
-
 ### [Activity追踪](./src/main/java/com/sik/sikcore/activity/ActivityTracker.kt)
 
 ```kotlin

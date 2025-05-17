@@ -1,4 +1,4 @@
-package com.sik.sikcore.device.vibrator
+package com.sik.siksensors.vibrator
 
 /**
  * 震动马达接口
