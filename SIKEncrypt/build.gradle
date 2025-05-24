@@ -30,9 +30,22 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    testOptions {
+        unitTests {
+            includeAndroidResources = false
+        }
+    }
 }
 
 dependencies {
     implementation project(path: ':SIKCore')
     implementation("org.bouncycastle:bcprov-lts8on:2.73.6")
+
+    // —— 加上你的测试框架 ——
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.20")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.8.20")
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    // 如果你需要 Mockito/MockK
+    testImplementation("io.mockk:mockk:1.13.5")
 }

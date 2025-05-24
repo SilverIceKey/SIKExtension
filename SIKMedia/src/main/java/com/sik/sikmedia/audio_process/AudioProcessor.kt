@@ -3,9 +3,6 @@ package com.sik.sikmedia.audio_process
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
-import com.sik.sikcore.extension.deleteIfExists
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileInputStream
