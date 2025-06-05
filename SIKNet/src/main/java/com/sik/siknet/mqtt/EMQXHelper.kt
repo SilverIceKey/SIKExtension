@@ -101,23 +101,28 @@ class EMQXHelper {
     /**
      * 初始化
      */
-    fun init(mqttConfig: EMQXConfig = emqxConfig) {
-        this.emqxConfig = mqttConfig
-        this.emqxCallback = mqttConfig.getMqttCallback()
+    fun init(mqttConfig: EMQXConfig? = null) {
+        if (mqttConfig != null) {
+            this.emqxConfig = mqttConfig
+            this.emqxCallback = mqttConfig.getMqttCallback()
+        } else if (!this::emqxConfig.isInitialized) {
+            throw IllegalStateException("EMQXConfig is not initialized")
+        }
         try {
+            val config = emqxConfig
             mqttClient = MqttAsyncClient(
-                mqttConfig.brokenUrl,
-                emqxConfig.clientId,
-                mqttConfig.getMemoryPersistence()
+                config.brokenUrl,
+                config.clientId,
+                config.getMemoryPersistence()
             )
             mqttClient.setCallback(mqttCallback)
             mqttClient.connect(
-                mqttConfig.getMqttConnectOptions(),
+                config.getMqttConnectOptions(),
                 this,
                 object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
-                        log.info("topic:${mqttConfig.topic},qos:${emqxConfig.qos()}")
-                        mqttClient.subscribe(mqttConfig.topic, mqttConfig.qos())
+                        log.info("topic:${config.topic},qos:${config.qos()}")
+                        mqttClient.subscribe(config.topic, config.qos())
                     }
 
                     override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {

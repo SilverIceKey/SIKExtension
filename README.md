@@ -53,5 +53,5 @@ implementation 'com.github.SilverIceKey.SIKExtension:模块名称:Tag'
 - #### 高耦合
 - #### 拎不清代码一堆
 
-
-
+### 更新日志
+- 2025-06：整理文档格式并补充说明。

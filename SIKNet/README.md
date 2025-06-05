@@ -79,3 +79,6 @@ fun main() {
     NettyClientUtils.instance.connect(config)
 }
 ```
+
+### 更新日志
+- 2025-06：整理文档格式并补充说明。
