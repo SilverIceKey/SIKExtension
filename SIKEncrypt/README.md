@@ -48,3 +48,6 @@ fun decryptFromBase64(dataStr: String): String
 fun decryptFromByteArray(dataBytes: ByteArray):ByteArray
 ```
 
+### 更新日志
+- 2025-06：整理文档格式并补充说明。
+
