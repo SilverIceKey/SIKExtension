@@ -12,6 +12,12 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.coroutines.suspendCancellableCoroutine
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -270,3 +276,107 @@ fun <T : Any> T.toMap(): Map<String, String> {
         property.name to property.getter.call(this).toString()
     }
 }
+
+// ---------------------------
+// 异步调用版本，基于协程
+// ---------------------------
+
+
+/**
+ * 异步 GET 请求
+ */
+suspend inline fun <reified T> String.httpGetAsync(
+    params: Map<String, String> = emptyMap()
+): T = suspendCancellableCoroutine { cont ->
+    if (HttpUtils.isLoggerInRequest) {
+        HttpUtils.logger.info(this)
+        HttpUtils.logger.info(params.toJson())
+    }
+    val urlWithParams = buildString {
+        append(this@httpGetAsync)
+        if (params.isNotEmpty()) {
+            append('?')
+            params.entries.joinTo(this, "&") { "${it.key}=${it.value}" }
+        }
+    }
+    val request = Request.Builder().url(urlWithParams).get().build()
+    val call = HttpUtils.createOkHttpClient().newCall(request)
+    cont.invokeOnCancellation { call.cancel() }
+    call.enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            val netException = NetException(request, e.message, e)
+            val handled = HttpUtils.globalNetExceptionHandler(request, netException)
+            if (handled) {
+                try {
+                    cont.resume(
+                        Gson().fromJson("{}", object : TypeToken<T>() {}.type)
+                    )
+                } catch (_: Exception) {
+                    cont.resume(
+                        Gson().fromJson("[]", object : TypeToken<T>() {}.type)
+                    )
+                }
+            } else {
+                cont.resumeWithException(netException)
+            }
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            response.use {
+                val body = it.body?.string() ?: ""
+                cont.resume(
+                    Gson().fromJson(body, object : TypeToken<T>() {}.type)
+                )
+            }
+        }
+    })
+}
+
+/**
+ * 异步 POST JSON 请求
+ */
+suspend inline fun <reified T> String.httpPostJsonAsync(data: Any? = null): T =
+    suspendCancellableCoroutine { cont ->
+        val json = if (data is String) {
+            data
+        } else {
+            if (data == null) "{}" else Gson().toJson(data)
+        }
+        if (HttpUtils.isLoggerInRequest) {
+            HttpUtils.logger.info(this)
+            HttpUtils.logger.info(json)
+        }
+        val mediaType = "application/json; charset=utf-8".toMediaType()
+        val requestBody = (json ?: "").toRequestBody(mediaType)
+        val request = Request.Builder().url(this).method("POST", requestBody).build()
+        val call = HttpUtils.createOkHttpClient().newCall(request)
+        cont.invokeOnCancellation { call.cancel() }
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                val netException = NetException(request, e.message, e)
+                val handled = HttpUtils.globalNetExceptionHandler(request, netException)
+                if (handled) {
+                    try {
+                        cont.resume(
+                            Gson().fromJson("{}", object : TypeToken<T>() {}.type)
+                        )
+                    } catch (_: Exception) {
+                        cont.resume(
+                            Gson().fromJson("[]", object : TypeToken<T>() {}.type)
+                        )
+                    }
+                } else {
+                    cont.resumeWithException(netException)
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    val body = it.body?.string() ?: ""
+                    cont.resume(
+                        Gson().fromJson(body, object : TypeToken<T>() {}.type)
+                    )
+                }
+            }
+        })
+    }
