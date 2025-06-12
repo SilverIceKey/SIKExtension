@@ -144,15 +144,6 @@ fun getMatches(regex: String, input: CharSequence?): List<String>
  * @return 替换后的字符串
  */
 fun replaceMatches(regex: String, input: CharSequence?, replacement: String): String
-/**
- * 使用正则表达式替换匹配的字符串。
- *
- * @param regex 正则表达式.
- * @param input 输入字符串.
- * @param replacement 替换内容.
- * @return 替换后的字符串
- */
-fun replaceMatches(regex: String, input: CharSequence?, replacement: String): String
 ```
 
 ### [字符串工具类](./src/main/java/com/sik/sikcore/string/StringUtils.kt)
