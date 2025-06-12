@@ -10,12 +10,14 @@ import com.tencent.mmkv.MMKV
  * @param value
  */
 inline fun <reified T> MMKV.saveMMKVData(key: String, value: T) {
-    when (T::class) {
-        Boolean::class -> this.encode(key, value as Boolean)
-        Float::class -> this.encode(key, value as Float)
-        Int::class -> this.encode(key, value as Int)
-        Long::class -> this.encode(key, value as Long)
-        String::class -> this.encode(key, value as String)
+    when (value) {
+        is Boolean -> this.encode(key, value)
+        is Float -> this.encode(key, value)
+        is Int -> this.encode(key, value)
+        is Long -> this.encode(key, value)
+        is String -> this.encode(key, value)
+        is ByteArray -> this.encode(key, value)
+        is Set<*> -> this.encode(key, value as Set<String>)
         else -> throw IllegalArgumentException("Unsupported type")
     }
 }
@@ -29,12 +31,14 @@ inline fun <reified T> MMKV.saveMMKVData(key: String, value: T) {
  * @return
  */
 inline fun <reified T> MMKV.getMMKVData(key: String, defaultValue: T): T {
-    return when (T::class) {
-        Boolean::class -> this.decodeBool(key, defaultValue as Boolean) as T
-        Float::class -> this.decodeFloat(key, defaultValue as Float) as T
-        Int::class -> this.decodeInt(key, defaultValue as Int) as T
-        Long::class -> this.decodeLong(key, defaultValue as Long) as T
-        String::class -> this.decodeString(key, defaultValue as String) as T
+    return when (defaultValue) {
+        is Boolean -> this.decodeBool(key, defaultValue) as T
+        is Float -> this.decodeFloat(key, defaultValue) as T
+        is Int -> this.decodeInt(key, defaultValue) as T
+        is Long -> this.decodeLong(key, defaultValue) as T
+        is String -> this.decodeString(key, defaultValue) as T
+        is ByteArray -> this.decodeBytes(key, defaultValue) as T
+        is Set<*> -> this.decodeStringSet(key, defaultValue as Set<String>) as T
         else -> throw IllegalArgumentException("Unsupported type")
     }
 }
