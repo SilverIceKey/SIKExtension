@@ -15,21 +15,10 @@
 | SIKMedia   | 媒体库-主要用于录音和媒体的编码                              | [媒体工具介绍](./SIKMedia/README.md)               |
 | SIKSensors | 传感器库-主要用于调用指纹验证以及获取一些传感器的数据        | [传感器工具介绍](./SIKSensors/README.md)           |
 
-### 集成方式：
+### 版本升级规则：
 
-在项目的setting.gradle或者root下的build.gradle中找到
+版本升级必须修改项目根目录下的gradle.properties文件中的VERSION,一般是第三位+1，百进位，除非有重大更新。
 
-```groovy
-repositories {
-	maven { url 'https://jitpack.io' }
-}
-```
+### 代码功能查看规则：
 
-在app的build.gradle中进行依赖,版本：[![](https://jitpack.io/v/SilverIceKey/SIKExtension.svg)](https://jitpack.io/#SilverIceKey/SIKExtension)所有模块版本相同
-
-```groovy
-//这样会集成所有模块
-implementation 'com.github.SilverIceKey:SIKExtension:Tag'
-//如果想集成单个模块
-implementation 'com.github.SilverIceKey.SIKExtension:模块名称:Tag'
-```
+如果模块下的README.md中没有查找到，到指定的文件夹下继续查找，如果还没有就是没有，但是README.md中可能会遗漏文件，可以额外搜索。
