@@ -285,6 +285,19 @@ fun saveData(key: String, value: Any)
 fun getData(key: String, isDeleteAfterGet: Boolean = true): Any?
 ```
 
+### [MMKV扩展函数](./src/main/java/com/sik/sikcore/extension/MMKVExtension.kt)
+
+```kotlin
+//保存数据，支持 Boolean、Float、Int、Long、String、ByteArray、Set<String>
+inline fun <reified T> MMKV.saveMMKVData(key: String, value: T)
+//获取数据
+inline fun <reified T> MMKV.getMMKVData(key: String, defaultValue: T): T
+//默认 mmkv 保存
+inline fun <reified T> String.saveMMKVData(value: T)
+//默认 mmkv 获取
+inline fun <reified T> String.getMMKVData(defaultValue: T): T
+```
+
 ### [日程管理工具类](https://github.com/SilverIceKey/SIKExtension/blob/master/SIKCore/src/main/java/com/sik/sikcore/date/ScheduleManagerUtils.kt)
 
 ```kotlin
