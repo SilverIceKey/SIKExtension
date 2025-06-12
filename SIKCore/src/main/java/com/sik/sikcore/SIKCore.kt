@@ -3,6 +3,7 @@ package com.sik.sikcore
 import android.app.Application
 import com.sik.sikcore.activity.ActivityTracker
 import com.tencent.mmkv.MMKV
+import org.slf4j.LoggerFactory
 
 /**
  * 扩展的初始化
@@ -10,6 +11,7 @@ import com.tencent.mmkv.MMKV
 object SIKCore {
     @Volatile
     private var application: Application? = null
+    private val logger = LoggerFactory.getLogger(SIKCore::class.java)
 
     /**
      * 初始化
@@ -18,7 +20,11 @@ object SIKCore {
         SIKCore.application = application
         application.registerActivityLifecycleCallbacks(ActivityTracker)
         MMKV.initialize(application)
-        System.loadLibrary("SIKCore")
+        try {
+            System.loadLibrary("SIKCore")
+        } catch (t: Throwable) {
+            logger.error("Failed to load native library SIKCore", t)
+        }
     }
 
     /**
