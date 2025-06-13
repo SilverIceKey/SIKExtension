@@ -1,6 +1,8 @@
 package com.sik.sikcore.data
 
+import java.beans.Introspector
 import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
@@ -27,9 +29,10 @@ object BeanUtils {
         var targetClass: Class<*> = T::class.java
         while (targetClass != Any::class.java) {
             targetClass.declaredFields.forEach { targetField ->
+                if (Modifier.isStatic(targetField.modifiers) || Modifier.isFinal(targetField.modifiers)) return@forEach
                 val sourceField = getField(sourceClass, targetField.name)
                 // 仅当源字段存在且类型一致时复制
-                if (sourceField != null && sourceField.type == targetField.type) {
+                if (sourceField != null && !Modifier.isStatic(sourceField.modifiers) && sourceField.type == targetField.type) {
                     try {
                         sourceField.isAccessible = true
                         targetField.isAccessible = true
@@ -59,8 +62,9 @@ object BeanUtils {
         var targetClass: Class<*> = target.javaClass
         while (targetClass != Any::class.java) {
             targetClass.declaredFields.forEach { targetField ->
+                if (Modifier.isStatic(targetField.modifiers) || Modifier.isFinal(targetField.modifiers)) return@forEach
                 val sourceField = getField(sourceClass, targetField.name)
-                if (sourceField != null && sourceField.type == targetField.type) {
+                if (sourceField != null && !Modifier.isStatic(sourceField.modifiers) && sourceField.type == targetField.type) {
                     try {
                         sourceField.isAccessible = true
                         targetField.isAccessible = true
@@ -74,6 +78,50 @@ object BeanUtils {
                 }
             }
             targetClass = targetClass.superclass
+        }
+    }
+
+    /**
+     * 属性复制：参考 Spring BeanUtils，根据 getter/setter 进行复制，可忽略空值和指定字段
+     *
+     * @param source 源对象
+     * @param target 目标对象
+     * @param ignoreNull 是否忽略 null 值
+     * @param ignoreProperties 需要忽略的字段名称
+     */
+    @JvmStatic
+    fun copyProperties(source: Any, target: Any, ignoreNull: Boolean = false, vararg ignoreProperties: String) {
+        val ignoreList = ignoreProperties.toSet()
+        val sourceInfo = Introspector.getBeanInfo(source.javaClass)
+        val targetInfo = Introspector.getBeanInfo(target.javaClass)
+        val sourcePdMap = sourceInfo.propertyDescriptors.associateBy { it.name }
+        targetInfo.propertyDescriptors.forEach { pd ->
+            if (pd.name == "class" || pd.name in ignoreList) return@forEach
+            val writeMethod = pd.writeMethod ?: return@forEach
+            val sourcePd = sourcePdMap[pd.name] ?: return@forEach
+            val readMethod = sourcePd.readMethod ?: return@forEach
+            if (!pd.propertyType.isAssignableFrom(sourcePd.propertyType)) return@forEach
+            readMethod.isAccessible = true
+            val value = readMethod.invoke(source)
+            if (ignoreNull && value == null) return@forEach
+            writeMethod.isAccessible = true
+            try {
+                writeMethod.invoke(target, value)
+            } catch (_: Exception) {
+                // ignore invoke error
+            }
+        }
+    }
+
+    /**
+     * 批量属性复制：为列表中的每个对象创建新的目标实例并复制属性
+     */
+    @JvmStatic
+    inline fun <reified T : Any> copyPropertiesList(sourceList: List<*>, ignoreNull: Boolean = false, vararg ignoreProperties: String): List<T> {
+        return sourceList.filterNotNull().map { source ->
+            val target = T::class.java.getDeclaredConstructor().newInstance()
+            copyProperties(source, target, ignoreNull, *ignoreProperties)
+            target
         }
     }
 

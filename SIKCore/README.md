@@ -252,6 +252,10 @@ fun colorIntToHex(@ColorInt colorInt: Int): String
 inline fun <reified T> copyData(source: Any, target: Any): T
 //使用反射进行相同字段的数据复制
 fun copyData(source: Any, target: Any)
+//根据getter/setter复制属性，可忽略null及指定字段
+fun copyProperties(source: Any, target: Any, ignoreNull: Boolean = false, vararg ignoreProperties: String)
+//批量复制属性到新的目标对象列表
+inline fun <reified T : Any> copyPropertiesList(sourceList: List<*>, ignoreNull: Boolean = false, vararg ignoreProperties: String): List<T>
 ```
 
 ### [转换工具类](https://github.com/SilverIceKey/SIKExtension/blob/master/SIKCore/src/main/java/com/sik/sikcore/data/ConvertUtils.kt)
