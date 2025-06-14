@@ -52,4 +52,10 @@ dependencies {
 
 
     compileOnly project(path: ':SIKCore')
+    // --- testing dependencies ---
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.20")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.8.20")
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("io.mockk:mockk:1.13.5")
 }

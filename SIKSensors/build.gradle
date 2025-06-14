@@ -36,4 +36,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation project(path: ':SIKCore')
     implementation project(path: ':SIKAndroid')
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.20")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.8.20")
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation("org.mockito:mockito-core:5.6.0")
 }
