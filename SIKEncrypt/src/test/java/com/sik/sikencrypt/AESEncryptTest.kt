@@ -7,15 +7,10 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.security.Security
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28], manifest = Config.NONE)
 class AESEncryptTest {
 
     private lateinit var config: IEncryptConfig
