@@ -10,7 +10,7 @@ import android.util.Log
 
 /**
  * BLEScanner 单例对象，用于执行蓝牙低功耗（BLE）扫描操作，
- * 支持可选扫描过滤规则和扫描设置。
+ * 支持按设备名称过滤，同时保留已知设备过滤、系统过滤和业务过滤。
  */
 object BLEScanner {
     private const val TAG = "BLEScanner"
@@ -19,7 +19,6 @@ object BLEScanner {
     private val bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner
     private var isScanning = false
 
-    // 扫描结果回调
     private var callback: IBluetoothScanCallback? = null
     // 过滤已有设备地址列表，可在多次调用间累加
     private val existingDevices = mutableSetOf<String>()
@@ -27,19 +26,27 @@ object BLEScanner {
     private val foundDevices = mutableSetOf<String>()
     // 是否首次发现即停
     private var stopOnFirstFound = false
+    // 按名称过滤关键字，忽略大小写，高优先级过滤
+    private var nameFilter: String? = null
 
     private val bleScanCallback = object : ScanCallback() {
         @SuppressLint("MissingPermission")
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             result?.device?.let { device ->
+                // 1. 名称过滤
+                nameFilter?.let { filter ->
+                    val advName = result.scanRecord?.deviceName
+                    val btName = device.name
+                    val name = advName ?: btName
+                    if (name == null || !name.equals(filter, ignoreCase = true)) return
+                }
                 val address = device.address
+                // 2. 业务过滤：过滤已知设备并去重
                 if (address !in existingDevices && address !in foundDevices) {
                     foundDevices.add(address)
                     Log.d(TAG, "BLE扫描发现新设备: ${device.name} - $address")
                     callback?.onDeviceFound(device)
-                    if (stopOnFirstFound) {
-                        stopScan()
-                    }
+                    if (stopOnFirstFound) stopScan()
                 }
             }
         }
@@ -55,7 +62,8 @@ object BLEScanner {
      * @param callback 扫描结果回调
      * @param knownDevices 已知设备地址列表，用于过滤，支持追加
      * @param stopFirst 是否首次发现新设备后立即停止扫描
-     * @param filters 可选 ScanFilter 列表，用于系统层面过滤（如 UUID、名称）
+     * @param nameFilter 设备名称过滤，忽略大小写
+     * @param filters 可选系统 ScanFilter 列表，用于广播包层面过滤
      * @param settings 可选 ScanSettings，用于自定义扫描模式
      */
     @SuppressLint("MissingPermission")
@@ -63,6 +71,7 @@ object BLEScanner {
         callback: IBluetoothScanCallback,
         knownDevices: Collection<String> = emptyList(),
         stopFirst: Boolean = false,
+        nameFilter: String? = null,
         filters: List<ScanFilter> = emptyList(),
         settings: ScanSettings? = null
     ) {
@@ -71,18 +80,17 @@ object BLEScanner {
             return
         }
         this.callback = callback
-        stopOnFirstFound = stopFirst
+        this.stopOnFirstFound = stopFirst
+        this.nameFilter = nameFilter
         existingDevices.addAll(knownDevices)
         foundDevices.clear()
 
         bluetoothLeScanner?.let { scanner ->
-            Log.d(TAG, "开始BLE扫描，过滤已知：$existingDevices，首次停止：$stopOnFirstFound，系统过滤：${filters.map { it.deviceName ?: it.serviceUuid }}")
-            if (filters.isEmpty() && settings == null) {
-                scanner.startScan(bleScanCallback)
-            } else if (settings == null) {
-                scanner.startScan(filters, ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build(), bleScanCallback)
-            } else {
-                scanner.startScan(filters, settings, bleScanCallback)
+            Log.d(TAG, "开始BLE扫描，名称过滤：$nameFilter，已知：$existingDevices，首次停止：$stopOnFirstFound，系统过滤：${filters.size} 条规则")
+            when {
+                filters.isEmpty() && settings == null -> scanner.startScan(bleScanCallback)
+                settings == null -> scanner.startScan(filters, ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build(), bleScanCallback)
+                else -> scanner.startScan(filters, settings, bleScanCallback)
             }
             isScanning = true
         } ?: run {
