@@ -7,57 +7,90 @@ import android.bluetooth.le.ScanResult
 import android.util.Log
 
 /**
- * BLEScanner 用于执行蓝牙低功耗（BLE）扫描操作，
+ * BLEScanner 单例对象，用于执行蓝牙低功耗（BLE）扫描操作，
  * 通过 BluetoothLeScanner API 获取扫描结果，并通过 IBluetoothScanCallback 通知外部。
  */
-class BLEScanner(private val callback: IBluetoothScanCallback) {
-
-    companion object {
-        private const val TAG = "BLEScanner"
-    }
+object BLEScanner {
+    private const val TAG = "BLEScanner"
 
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private val bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner
     private var isScanning = false
 
-    // BLE 扫描回调
+    // 扫描结果回调
+    private var callback: IBluetoothScanCallback? = null
+    // 过滤已有设备地址列表，可在多次调用间累加
+    private val existingDevices = mutableSetOf<String>()
+    // 扫描时已发现的新设备地址
+    private val foundDevices = mutableSetOf<String>()
+    // 是否首次发现即停
+    private var stopOnFirstFound = false
+
     private val bleScanCallback = object : ScanCallback() {
         @SuppressLint("MissingPermission")
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             result?.device?.let { device ->
-                Log.d(TAG, "BLE扫描发现设备: ${device.name} - ${device.address}")
-                callback.onDeviceFound(device)
+                val address = device.address
+                if (address !in existingDevices && address !in foundDevices) {
+                    foundDevices.add(address)
+                    Log.d(TAG, "BLE扫描发现新设备: ${device.name} - $address")
+                    callback?.onDeviceFound(device)
+                    if (stopOnFirstFound) {
+                        stopScan()
+                    }
+                }
             }
         }
 
         override fun onScanFailed(errorCode: Int) {
             Log.e(TAG, "BLE扫描失败，错误码: $errorCode")
+            if (isScanning) stopScan()
         }
     }
 
     /**
      * 开始 BLE 扫描
+     * @param callback 扫描结果回调
+     * @param knownDevices 已知设备地址列表，用于过滤，支持追加
+     * @param stopFirst 是否首次发现新设备后立即停止扫描
      */
     @SuppressLint("MissingPermission")
-    fun startScan() {
+    fun startScan(
+        callback: IBluetoothScanCallback,
+        knownDevices: Collection<String> = emptyList(),
+        stopFirst: Boolean = false
+    ) {
+        if (isScanning) {
+            Log.w(TAG, "扫描已在进行中，请先调用 stopScan()")
+            return
+        }
+        this.callback = callback
+        stopOnFirstFound = stopFirst
+        existingDevices.addAll(knownDevices)
+        foundDevices.clear()
+
         bluetoothLeScanner?.let { scanner ->
             scanner.startScan(bleScanCallback)
             isScanning = true
-            Log.d(TAG, "开始BLE扫描")
+            Log.d(TAG, "开始BLE扫描，已过滤设备：$existingDevices，首次停止：$stopOnFirstFound")
         } ?: run {
             Log.e(TAG, "BLE扫描不可用或蓝牙未开启")
+            callback.onScanFinished()
         }
     }
 
     /**
-     * 停止 BLE 扫描
+     * 停止 BLE 扫描，并通过回调通知扫描结束
      */
     @SuppressLint("MissingPermission")
     fun stopScan() {
         bluetoothLeScanner?.let { scanner ->
-            scanner.stopScan(bleScanCallback)
-            isScanning = false
-            Log.d(TAG, "停止BLE扫描")
+            if (isScanning) {
+                scanner.stopScan(bleScanCallback)
+                isScanning = false
+                Log.d(TAG, "停止BLE扫描")
+                callback?.onScanFinished()
+            }
         }
     }
 }
