@@ -1,4 +1,4 @@
-package com.sik.sikcore.activity
+package com.sik.sikandroid.activity
 
 @Target(
     AnnotationTarget.CLASS

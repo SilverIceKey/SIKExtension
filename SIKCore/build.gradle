@@ -73,6 +73,8 @@ dependencies {
     api("androidx.work:work-multiprocess:$work_version")
     //kotlin反射相关
     api("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
+    //动画
+    api("androidx.dynamicanimation:dynamicanimation:1.0.0")
 
     // --- testing dependencies ---
     testImplementation("junit:junit:4.13.2")

@@ -1,22 +1,16 @@
-package com.sik.skextensionsample
+package com.sik.skextensionsample.config
 
 import com.sik.sikencrypt.EncryptAlgorithm
 import com.sik.sikencrypt.EncryptMode
 import com.sik.sikencrypt.EncryptPadding
 import com.sik.sikencrypt.IEncryptConfig
 
-class EncryptorCBCConfig : IEncryptConfig {
+class EncryptorECBConfig : IEncryptConfig {
     companion object {
         @JvmStatic
-        val encryptorConfig: EncryptorCBCConfig by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-            EncryptorCBCConfig()
+        val encryptorConfig: EncryptorECBConfig by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+            EncryptorECBConfig()
         }
-    }
-
-    var iv: ByteArray = byteArrayOf()
-
-    override fun iv(): ByteArray? {
-        return if (iv.isEmpty()) super.iv() else iv
     }
 
     override fun algorithm(): EncryptAlgorithm {
@@ -24,11 +18,11 @@ class EncryptorCBCConfig : IEncryptConfig {
     }
 
     override fun key(): ByteArray {
-        return "02a32b6c1ab1fcda".toByteArray()
+        return "E4D96BE2A522589B".toByteArray()
     }
 
     override fun mode(): EncryptMode {
-        return EncryptMode.CBC
+        return EncryptMode.ECB
     }
 
     override fun padding(): EncryptPadding {
@@ -36,5 +30,5 @@ class EncryptorCBCConfig : IEncryptConfig {
     }
 
     override val composeIV: Boolean
-        get() = true
+        get() = false
 }

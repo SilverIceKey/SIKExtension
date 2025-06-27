@@ -12,7 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.fragment.app.FragmentActivity
-import com.sik.sikcore.activity.ActivityTracker
+import com.sik.sikandroid.activity.ActivityTracker
 import androidx.core.content.ContextCompat
 
 /**

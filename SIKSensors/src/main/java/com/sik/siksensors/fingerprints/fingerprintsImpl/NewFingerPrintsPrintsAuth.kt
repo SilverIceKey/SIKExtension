@@ -9,7 +9,7 @@ import android.os.Build
 import android.os.CancellationSignal
 import androidx.annotation.RequiresApi
 import com.sik.sikcore.SIKCore
-import com.sik.sikcore.activity.ActivityTracker
+import com.sik.sikandroid.activity.ActivityTracker
 import com.sik.sikcore.extension.toJson
 import com.sik.sikandroid.permission.PermissionUtils
 import com.sik.sikcore.thread.ThreadUtils

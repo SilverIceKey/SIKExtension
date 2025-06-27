@@ -99,7 +99,8 @@ object BeanUtils {
         }
         val sourceClass = source.javaClass
         var tempTargetClass: Class<*> = targetClass
-        val target = tempTargetClass.newInstance()
+        val ctor = tempTargetClass.getDeclaredConstructor().apply { isAccessible = true }
+        val target = ctor.newInstance()
         while (tempTargetClass != Any::class.java) {
             tempTargetClass.declaredFields.forEach { targetField ->
                 if (Modifier.isStatic(targetField.modifiers) || Modifier.isFinal(targetField.modifiers)) return@forEach

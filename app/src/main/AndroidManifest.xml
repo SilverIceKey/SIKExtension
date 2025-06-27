@@ -24,40 +24,19 @@
         android:theme="@style/Theme.SKExtensionSample"
         android:resizeableActivity="true"
         tools:targetApi="31">
-        <property
-            android:name="android.window.PROPERTY_ACTIVITY_EMBEDDING_SPLITS_ENABLED"
-            android:value="true" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".views.activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="audio/*" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="audio/*" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".SecActivity"
             android:exported="true" />
-        <provider android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge">
-            <!-- Make SplitInitializer discoverable by InitializationProvider. -->
-            <meta-data android:name="${applicationId}.SplitInitializer"
-                android:value="androidx.startup" />
-        </provider>
     </application>
 
 </manifest>
