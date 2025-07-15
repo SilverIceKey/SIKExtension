@@ -1,11 +1,11 @@
 package com.sik.sikcore.data
 
-/**
- * Global data temp store
- * 全局参数临时存储池
- * @constructor Create empty Global data temp store
- */
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+
 class GlobalDataTempStore private constructor() {
+
+    private val gson = Gson()
 
     companion object {
         private val INSTANCE by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -18,39 +18,27 @@ class GlobalDataTempStore private constructor() {
         }
     }
 
-    /**
-     * 安全的保存数据
-     * @param key
-     * @param value
-     */
-    fun saveDataSafely(key: String, value: Any?): Boolean {
-        return if (value != null) {
-            saveData(key, value)
-        } else {
-            false
+    external fun nativeSaveData(key: String, jsonValue: String): Boolean
+    external fun nativeGetData(key: String, isDeleteAfterGet: Boolean): String?
+    external fun nativeHasData(key: String): Boolean
+    external fun nativeClearData(key: String): Boolean
+    external fun nativeClearAll()
+
+    fun saveData(key: String, value: Any?): Boolean {
+        return value?.let {
+            val json = gson.toJson(it)
+            nativeSaveData(key, json)
+        } == true
+    }
+
+    internal inline fun <reified T> getData(key: String, isDeleteAfterGet: Boolean = true): T? {
+        val json = nativeGetData(key, isDeleteAfterGet)
+        return json?.let {
+            gson.fromJson(it, object : TypeToken<T>() {}.type)
         }
     }
 
-
-    /**
-     * Save data
-     * 保存数据
-     * @param key
-     * @param value
-     */
-    external fun saveData(key: String, value: Any):Boolean
-
-    /**
-     * Get data
-     * 获取数据，默认取出后删除数据
-     * @param key
-     * @param isDeleteAfterGet
-     */
-    @JvmOverloads
-    external fun getData(key: String, isDeleteAfterGet: Boolean = true): Any?
-
-    /**
-     * 是否有数据
-     */
-    external fun hasData(key: String): Boolean
+    fun hasData(key: String): Boolean = nativeHasData(key)
+    fun clearData(key: String): Boolean = nativeClearData(key)
+    fun clearAll() = nativeClearAll()
 }
