@@ -2,6 +2,7 @@ package com.sik.sikcore.data
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import java.lang.reflect.Type
 
 class GlobalDataTempStore private constructor() {
 
@@ -37,6 +38,14 @@ class GlobalDataTempStore private constructor() {
             gson.fromJson(it, object : TypeToken<T>() {}.type)
         }
     }
+
+    fun <T> getData(key: String, type: Type, isDeleteAfterGet: Boolean = true): T? {
+        val json = nativeGetData(key, isDeleteAfterGet)
+        return json?.let {
+            gson.fromJson<T>(it, type)
+        }
+    }
+
 
     fun hasData(key: String): Boolean = nativeHasData(key)
     fun clearData(key: String): Boolean = nativeClearData(key)
