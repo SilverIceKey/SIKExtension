@@ -5,7 +5,7 @@ import com.google.gson.reflect.TypeToken
 
 class GlobalDataTempStore private constructor() {
 
-    private val gson = Gson()
+    val gson = Gson()
 
     companion object {
         private val INSTANCE by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -31,7 +31,7 @@ class GlobalDataTempStore private constructor() {
         } == true
     }
 
-    internal inline fun <reified T> getData(key: String, isDeleteAfterGet: Boolean = true): T? {
+    inline fun <reified T> getData(key: String, isDeleteAfterGet: Boolean = true): T? {
         val json = nativeGetData(key, isDeleteAfterGet)
         return json?.let {
             gson.fromJson(it, object : TypeToken<T>() {}.type)
