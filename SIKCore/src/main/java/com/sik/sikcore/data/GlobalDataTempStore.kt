@@ -35,7 +35,7 @@ class GlobalDataTempStore private constructor() {
     inline fun <reified T> getData(key: String, isDeleteAfterGet: Boolean = true): T? {
         val json = nativeGetData(key, isDeleteAfterGet)
         return json?.let {
-            gson.fromJson(it, object : TypeToken<T>() {}.type)
+            gson.fromJson<T>(it, object : TypeToken<T>() {}.type)
         }
     }
 
