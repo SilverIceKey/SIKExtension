@@ -20,11 +20,11 @@ class EncryptorCBCConfig : IEncryptConfig {
     }
 
     override fun algorithm(): EncryptAlgorithm {
-        return EncryptAlgorithm.SM4
+        return EncryptAlgorithm.DESede
     }
 
     override fun key(): ByteArray {
-        return "02a32b6c1ab1fcda".toByteArray()
+        return "02a32b6c02a32b6c".toByteArray()
     }
 
     override fun mode(): EncryptMode {

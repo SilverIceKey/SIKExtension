@@ -20,7 +20,14 @@ interface IEncryptConfig {
      * @return
      */
     fun iv(): ByteArray? {
-        val iv = ByteArray(16) // 128-bit IV
+        val iv =
+            ByteArray(
+                if (algorithm() in listOf(
+                        EncryptAlgorithm.DES,
+                        EncryptAlgorithm.DESede
+                    )
+                ) 8 else 16
+            ) // 8-byte IV for DES, 16-byte IV for AES
         SecureRandom().nextBytes(iv)
         return iv
     }

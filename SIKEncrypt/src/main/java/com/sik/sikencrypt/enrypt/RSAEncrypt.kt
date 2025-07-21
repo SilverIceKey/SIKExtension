@@ -32,7 +32,12 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     private var encryptProgressListener: IEncryptProgressListener? = null
 
     override fun generateKeyPair(): IRSAEncrypt {
-        if (config.publicKey().size !in arrayOf(1024, 2048, 4096)) {
+        if (config.publicKey().isNotEmpty() && config.publicKey().size !in arrayOf(
+                1024,
+                2048,
+                4096
+            )
+        ) {
             throw EncryptException(EncryptExceptionEnums.PRIVATE_KEY_SIZE_SET_ERROR)
         }
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
@@ -68,7 +73,7 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
                 .isEmpty()) && privateKey.isEmpty()
         ) {
             generateKeyPair()
-        } else if (config.privateKey().isEmpty()) {
+        } else if (config.privateKey().isEmpty() && privateKey.isEmpty()) {
             throw EncryptException(EncryptExceptionEnums.PRIVATE_KEY_NOT_SET)
         }
         val keySpec = PKCS8EncodedKeySpec(privateKey)
@@ -199,7 +204,7 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
             outputStream.write(decryptedBlock)
         }
     }
-    
+
     private fun encrypt(dataBytes: ByteArray): ByteArray {
         cipher.init(Cipher.ENCRYPT_MODE, getPublicKey())
         return cipher.doFinal(dataBytes)
