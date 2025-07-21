@@ -31,10 +31,10 @@ class AnimConfig {
 
     /**
      * Gravity
-     * 从哪边进入或者从那边出去，默认左边<P>
+     * 从哪边进入或者从那边出去，默认不设置<P>
      * 只支持上下左右以及上下和左右拼接
      */
-    var gravity: Int = Gravity.LEFT
+    var gravity: Int = Gravity.NO_GRAVITY
         set(value) {
             field = value
             enableSlide = true

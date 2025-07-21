@@ -36,17 +36,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
             },
 
-            FeatureEntry("加解密实例", "展示加解密相关接口") {
-                startActivity(Intent(this, EncryptorActivity::class.java))
-            }
+            FeatureEntry(
+                "加解密实例", "展示加解密相关接口", listOf(
+                FeatureEntry("AES", "AES加解密") {
+                    startActivity(Intent(this, EncryptorActivity::class.java))
+                }
+            ))
             // 可继续添加
         )
 
-        adapter = FeatureAdapter(featureList)
+        adapter = FeatureAdapter()
         findViewById<RecyclerView>(R.id.featureList).apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = this@MainActivity.adapter
         }
+        adapter.setData(featureList)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
