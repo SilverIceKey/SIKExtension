@@ -224,6 +224,7 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
             EncryptPadding.NoPadding -> keySizeInBytes
             EncryptPadding.PKCS5Padding -> keySizeInBytes - 11
             EncryptPadding.OAEPWithSHA256AndMGF1Padding -> keySizeInBytes - 42
+            EncryptPadding.PKCS7Padding -> keySizeInBytes - 11
         }
     }
 
