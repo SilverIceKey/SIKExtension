@@ -735,4 +735,44 @@ object TimeUtils {
         // 如果有最新的时间，返回格式化后的字符串，否则返回空字符串
         return latestDate?.let { formatter.format(it) } ?: ""
     }
+
+    /* ──────────────────────────────────────────────────────
+     * ① 判断时间是否在 “最近 N 天” 内（含今天、含当前时刻）
+     * ────────────────────────────────────────────────────── */
+    @JvmOverloads
+    fun isWithinRecentDays(
+        dateStr: String,
+        recentDays: Int,
+        dateFormat: String = DEFAULT_DATE_HOUR_MIN_SEC_FORMAT   // "yyyy-MM-dd HH:mm:ss"
+    ): Boolean {
+        if (recentDays < 1) return false                      // 非法参数
+        val formatter = getDateFormat(dateFormat)
+        val target = formatter.parse(dateStr, ParsePosition(0)) ?: return false
+
+        val nowMillis = System.currentTimeMillis()
+        val thresholdMillis = nowMillis - recentDays * 24L * 60 * 60 * 1000    // 最近 N 天
+        return target.time in thresholdMillis..nowMillis                      // 闭区间
+    }
+
+    /* ──────────────────────────────────────────────────────
+     * ② 判断时间是否落在给定区间 [startStr, endStr]（闭区间）
+     * ────────────────────────────────────────────────────── */
+    @JvmOverloads
+    fun isWithinRange(
+        dateStr: String,
+        startStr: String,
+        endStr: String,
+        dateFormat: String = DEFAULT_DATE_HOUR_MIN_SEC_FORMAT
+    ): Boolean {
+        val formatter = getDateFormat(dateFormat)
+        val target = formatter.parse(dateStr, ParsePosition(0)) ?: return false
+        val start = formatter.parse(startStr, ParsePosition(0)) ?: return false
+        val end = formatter.parse(endStr, ParsePosition(0)) ?: return false
+
+        val t = target.time
+        val s = start.time
+        val e = end.time
+        return t in s..e                                    // 闭区间判断
+    }
+
 }
