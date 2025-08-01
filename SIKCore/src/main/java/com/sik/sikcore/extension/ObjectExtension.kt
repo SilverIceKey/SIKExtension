@@ -2,6 +2,11 @@ package com.sik.sikcore.extension
 
 import com.google.gson.Gson
 
+/**
+ * 全局的Gson实例
+ */
+val globalGson: Gson by lazy { Gson() }
+
 // 扩展Any?（任何可为空的类型）
 fun Any?.isNullOrEmpty(): Boolean = when (this) {
     null -> true
@@ -19,5 +24,5 @@ fun Any?.toJson(isJsonObject: Boolean = true): String = if (this == null) {
         "[]"
     }
 } else {
-    Gson().toJson(this)
+    globalGson.toJson(this)
 }

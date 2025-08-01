@@ -2,11 +2,10 @@ package com.sik.sikcore.data
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.sik.sikcore.extension.globalGson
 import java.lang.reflect.Type
 
 class GlobalDataTempStore private constructor() {
-
-    val gson = Gson()
 
     companion object {
         private val INSTANCE by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -27,7 +26,7 @@ class GlobalDataTempStore private constructor() {
 
     fun saveData(key: String, value: Any?): Boolean {
         return value?.let {
-            val json = gson.toJson(it)
+            val json = globalGson.toJson(it)
             nativeSaveData(key, json)
         } == true
     }
@@ -35,14 +34,14 @@ class GlobalDataTempStore private constructor() {
     inline fun <reified T> getData(key: String, isDeleteAfterGet: Boolean = true): T? {
         val json = nativeGetData(key, isDeleteAfterGet)
         return json?.let {
-            gson.fromJson<T>(it, object : TypeToken<T>() {}.type)
+            globalGson.fromJson<T>(it, object : TypeToken<T>() {}.type)
         }
     }
 
     fun <T> getData(key: String, type: Type, isDeleteAfterGet: Boolean = true): T? {
         val json = nativeGetData(key, isDeleteAfterGet)
         return json?.let {
-            gson.fromJson<T>(it, type)
+            globalGson.fromJson<T>(it, type)
         }
     }
 

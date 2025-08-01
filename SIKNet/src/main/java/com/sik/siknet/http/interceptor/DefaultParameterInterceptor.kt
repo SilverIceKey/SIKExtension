@@ -1,8 +1,8 @@
 package com.sik.siknet.http.interceptor
 
-import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.sik.sikcore.extension.globalGson
 import com.sik.siknet.http.HttpUtils.CLIENT_MEDIA_TYPE
 import okhttp3.FormBody
 import okhttp3.Interceptor
@@ -20,8 +20,8 @@ class DefaultParameterInterceptor : Interceptor {
     companion object {
         var params: HashMap<String, String?> = hashMapOf()
     }
+
     private val logger = LoggerFactory.getLogger(DefaultParameterInterceptor::class.java)
-    private val gson = Gson()
 
     override fun intercept(chain: Interceptor.Chain): Response {
         var originalRequest = chain.request()
@@ -55,7 +55,11 @@ class DefaultParameterInterceptor : Interceptor {
 
         return when {
             contentType == CLIENT_MEDIA_TYPE.toString() -> handleJsonPostRequest(request, body)
-            contentType == "application/x-www-form-urlencoded" -> handleFormPostRequest(request, body)
+            contentType == "application/x-www-form-urlencoded" -> handleFormPostRequest(
+                request,
+                body
+            )
+
             else -> request
         }
     }
@@ -101,7 +105,7 @@ class DefaultParameterInterceptor : Interceptor {
     private fun mergeJsonParameters(bodyString: String): String {
         return try {
             // 尝试解析为 JsonObject
-            val jsonObject = gson.fromJson(bodyString, JsonObject::class.java)
+            val jsonObject = globalGson.fromJson(bodyString, JsonObject::class.java)
             params.filter { it.value != null }.forEach { (key, value) ->
                 if (!jsonObject.has(key)) {
                     jsonObject.addProperty(key, value)
@@ -111,7 +115,7 @@ class DefaultParameterInterceptor : Interceptor {
         } catch (e: Exception) {
             try {
                 // 尝试解析为 JsonArray
-                val jsonArray = gson.fromJson(bodyString, JsonArray::class.java)
+                val jsonArray = globalGson.fromJson(bodyString, JsonArray::class.java)
                 params.filter { it.value != null }.forEach { (key, value) ->
                     jsonArray.forEach { element ->
                         if (!element.asJsonObject.has(key)) {

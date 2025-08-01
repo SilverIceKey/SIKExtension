@@ -2,6 +2,7 @@ package com.sik.siknet.http
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.sik.sikcore.extension.globalGson
 import com.sik.sikcore.extension.toJson
 import com.sik.siknet.http.interceptor.ProgressInterceptor
 import com.sik.siknet.http.interceptor.ProgressListener
@@ -41,7 +42,7 @@ inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()):
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
         response.close()
-        Gson().fromJson(
+        globalGson.fromJson(
             body, object : TypeToken<T>() {}.type
         )
     } catch (e: Exception) {
@@ -51,11 +52,11 @@ inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()):
         val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
         if (globalNetExceptionHandler) {
             try {
-                Gson().fromJson<T>(
+                globalGson.fromJson<T>(
                     "{}", object : TypeToken<T>() {}.type
                 )
             } catch (convertException: Exception) {
-                Gson().fromJson<T>(
+                globalGson.fromJson<T>(
                     "[]", object : TypeToken<T>() {}.type
                 )
             }
@@ -93,7 +94,7 @@ inline fun <reified T> String.httpPostForm(formParameters: Any?): T {
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
         response.close()
-        Gson().fromJson(
+        globalGson.fromJson(
             body, object : TypeToken<T>() {}.type
         )
     } catch (e: Exception) {
@@ -103,11 +104,11 @@ inline fun <reified T> String.httpPostForm(formParameters: Any?): T {
         val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
         if (globalNetExceptionHandler) {
             try {
-                Gson().fromJson<T>(
+                globalGson.fromJson<T>(
                     "{}", object : TypeToken<T>() {}.type
                 )
             } catch (convertException: Exception) {
-                Gson().fromJson<T>(
+                globalGson.fromJson<T>(
                     "[]", object : TypeToken<T>() {}.type
                 )
             }
@@ -125,7 +126,7 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
         if (data == null) {
             "{}"
         } else {
-            Gson().toJson(data)
+            globalGson.toJson(data)
         }
     }
     if (HttpUtils.isLoggerInRequest) {
@@ -139,7 +140,7 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
         response.close()
-        Gson().fromJson(
+        globalGson.fromJson(
             body, object : TypeToken<T>() {}.type
         )
     } catch (e: Exception) {
@@ -149,11 +150,11 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
         val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
         if (globalNetExceptionHandler) {
             try {
-                Gson().fromJson<T>(
+                globalGson.fromJson<T>(
                     "{}", object : TypeToken<T>() {}.type
                 )
             } catch (convertException: Exception) {
-                Gson().fromJson<T>(
+                globalGson.fromJson<T>(
                     "[]", object : TypeToken<T>() {}.type
                 )
             }
@@ -186,7 +187,7 @@ inline fun <reified T> String.httpUploadFile(
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
         response.close()
-        Gson().fromJson<T>(
+        globalGson.fromJson<T>(
             body, object : TypeToken<T>() {}.type
         )
     } catch (e: Exception) {
@@ -196,11 +197,11 @@ inline fun <reified T> String.httpUploadFile(
         val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
         if (globalNetExceptionHandler) {
             try {
-                Gson().fromJson<T>(
+                globalGson.fromJson<T>(
                     "{}", object : TypeToken<T>() {}.type
                 )
             } catch (convertException: Exception) {
-                Gson().fromJson<T>(
+                globalGson.fromJson<T>(
                     "[]", object : TypeToken<T>() {}.type
                 )
             }
@@ -220,7 +221,7 @@ fun String.httpDownloadFile(
     val json = if (data is String) {
         data
     } else {
-        Gson().toJson(data)
+        globalGson.toJson(data)
     }
     if (HttpUtils.isLoggerInRequest) {
         HttpUtils.logger.info(this)
@@ -309,11 +310,11 @@ suspend inline fun <reified T> String.httpGetAsync(
             if (handled) {
                 try {
                     cont.resume(
-                        Gson().fromJson("{}", object : TypeToken<T>() {}.type)
+                        globalGson.fromJson("{}", object : TypeToken<T>() {}.type)
                     )
                 } catch (_: Exception) {
                     cont.resume(
-                        Gson().fromJson("[]", object : TypeToken<T>() {}.type)
+                        globalGson.fromJson("[]", object : TypeToken<T>() {}.type)
                     )
                 }
             } else {
@@ -325,7 +326,7 @@ suspend inline fun <reified T> String.httpGetAsync(
             response.use {
                 val body = it.body?.string() ?: ""
                 cont.resume(
-                    Gson().fromJson(body, object : TypeToken<T>() {}.type)
+                    globalGson.fromJson(body, object : TypeToken<T>() {}.type)
                 )
             }
         }
@@ -340,7 +341,7 @@ suspend inline fun <reified T> String.httpPostJsonAsync(data: Any? = null): T =
         val json = if (data is String) {
             data
         } else {
-            if (data == null) "{}" else Gson().toJson(data)
+            if (data == null) "{}" else globalGson.toJson(data)
         }
         if (HttpUtils.isLoggerInRequest) {
             HttpUtils.logger.info(this)
@@ -358,11 +359,11 @@ suspend inline fun <reified T> String.httpPostJsonAsync(data: Any? = null): T =
                 if (handled) {
                     try {
                         cont.resume(
-                            Gson().fromJson("{}", object : TypeToken<T>() {}.type)
+                            globalGson.fromJson("{}", object : TypeToken<T>() {}.type)
                         )
                     } catch (_: Exception) {
                         cont.resume(
-                            Gson().fromJson("[]", object : TypeToken<T>() {}.type)
+                            globalGson.fromJson("[]", object : TypeToken<T>() {}.type)
                         )
                     }
                 } else {
@@ -374,7 +375,7 @@ suspend inline fun <reified T> String.httpPostJsonAsync(data: Any? = null): T =
                 response.use {
                     val body = it.body?.string() ?: ""
                     cont.resume(
-                        Gson().fromJson(body, object : TypeToken<T>() {}.type)
+                        globalGson.fromJson(body, object : TypeToken<T>() {}.type)
                     )
                 }
             }
