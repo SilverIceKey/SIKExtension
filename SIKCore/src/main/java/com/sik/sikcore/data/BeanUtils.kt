@@ -134,14 +134,16 @@ object BeanUtils {
      * @return 复制后的目标对象列表
      */
     @JvmStatic
-    inline fun <reified T> copyList(sourceList: List<Any?>?, targetClass: Class<T>): List<T?>? {
+    inline fun <reified T> copyList(sourceList: List<Any>?, targetClass: Class<T>): List<T> {
         if (sourceList == null) {
-            return null
+            return listOf()
         }
-        val targetList = mutableListOf<T?>()
+        val targetList = mutableListOf<T>()
         for (source in sourceList) {
             val copyResult = copyProperties(source, targetClass)
-            targetList.add(copyResult)
+            copyResult?.let {
+                targetList.add(it)
+            }
         }
         return targetList
     }
