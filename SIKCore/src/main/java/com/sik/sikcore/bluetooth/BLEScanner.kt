@@ -113,4 +113,11 @@ object BLEScanner {
             }
         }
     }
+
+    /**
+     * 重置已知设备
+     */
+    fun resetExistingDevices() {
+        existingDevices.clear()
+    }
 }
