@@ -1,11 +1,13 @@
 package com.sik.siknet.http
 
-import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.sik.sikcore.extension.globalGson
 import com.sik.sikcore.extension.toJson
 import com.sik.siknet.http.interceptor.ProgressInterceptor
 import com.sik.siknet.http.interceptor.ProgressListener
+import kotlinx.coroutines.suspendCancellableCoroutine
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -13,15 +15,13 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import kotlinx.coroutines.suspendCancellableCoroutine
-import okhttp3.Call
-import okhttp3.Callback
 import okhttp3.Response
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
 inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()): T {
@@ -30,14 +30,14 @@ inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()):
         HttpUtils.logger.info(params.toJson())
     }
     // 构造带参数的URL
-    val urlWithParams = buildString {
+    val urlWithParams = StringBuilder().apply {
         append(this@httpGet)
         if (params.isNotEmpty()) {
             append('?')
             params.entries.joinTo(this, "&") { "${it.key}=${it.value}" }
         }
     }
-    val request = Request.Builder().url(urlWithParams).get().build()
+    val request = Request.Builder().url(urlWithParams.toString()).get().build()
     return try {
         val response = HttpUtils.createOkHttpClient().newCall(request).execute()
         val body = response.body?.string() ?: ""
@@ -237,14 +237,14 @@ fun String.httpDownloadFile(
         if (methodStr == "GET") {
             if (data is Map<*, *>) {
                 // 构造带参数的URL
-                val urlWithParams = buildString {
+                val urlWithParams = StringBuilder().apply {
                     append(this@httpDownloadFile)
                     if (data.isNotEmpty()) {
                         append('?')
                         data.entries.joinTo(this, "&") { "${it.key}=${it.value}" }
                     }
                 }
-                url(urlWithParams)
+                url(urlWithParams.toString())
             }
             get()
         } else {
@@ -273,8 +273,11 @@ fun String.httpDownloadFile(
 }
 
 fun <T : Any> T.toMap(): Map<String, String> {
-    return this::class.memberProperties.associate { property ->
-        property.name to property.getter.call(this).toString()
+    return this::class.memberProperties.associate { p ->
+        @Suppress("UNCHECKED_CAST")
+        val k = p as KProperty1<T, *>
+        val v = k.get(this)
+        p.name to (v?.toString() ?: "")
     }
 }
 
@@ -293,14 +296,14 @@ suspend inline fun <reified T> String.httpGetAsync(
         HttpUtils.logger.info(this)
         HttpUtils.logger.info(params.toJson())
     }
-    val urlWithParams = buildString {
+    val urlWithParams = StringBuilder().apply {
         append(this@httpGetAsync)
         if (params.isNotEmpty()) {
             append('?')
             params.entries.joinTo(this, "&") { "${it.key}=${it.value}" }
         }
     }
-    val request = Request.Builder().url(urlWithParams).get().build()
+    val request = Request.Builder().url(urlWithParams.toString()).get().build()
     val call = HttpUtils.createOkHttpClient().newCall(request)
     cont.invokeOnCancellation { call.cancel() }
     call.enqueue(object : Callback {

@@ -54,6 +54,7 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
                             )
                         )
                         config.channelInit(ch)
+                        config.plugins.forEach { it.install(ch, this@NettyClientManager) }
                     }
                 })
 

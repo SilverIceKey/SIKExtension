@@ -45,6 +45,7 @@ class NettyServerManager(config: NettyConfig) : BaseNettyManager(config) {
                             )
                         )
                         config.channelInit(ch)
+                        config.plugins.forEach { it.install(ch, this@NettyServerManager) }
                     }
                 })
             val future = bootstrap.bind(config.host, config.port).sync()

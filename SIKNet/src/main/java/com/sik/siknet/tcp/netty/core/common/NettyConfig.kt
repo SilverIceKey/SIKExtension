@@ -1,5 +1,6 @@
 package com.sik.siknet.tcp.netty.core.common
 
+import com.sik.siknet.tcp.netty.core.plugin.NettyPlugin
 import io.netty.channel.socket.SocketChannel
 
 
@@ -62,4 +63,10 @@ abstract class NettyConfig {
          * 是否启用自动线程切换，默认 true
          */
         get() = true
+
+    /**
+     * 获取插件列表
+     */
+    open val plugins: List<NettyPlugin>
+        get() = emptyList()
 }

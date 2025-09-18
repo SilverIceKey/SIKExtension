@@ -38,8 +38,10 @@ abstract class BaseNettyManager(protected val config: NettyConfig) {
     fun start() {
         if (config.isAutoSwitchThread) {
             executor!!.submit { this.startInternal() }
+            config.plugins.forEach { it.onStarted(this@BaseNettyManager) }
         } else {
             startInternal()
+            config.plugins.forEach { it.onStarted(this@BaseNettyManager) }
         }
     }
 
@@ -54,6 +56,7 @@ abstract class BaseNettyManager(protected val config: NettyConfig) {
     fun stop() {
         try {
             isManualDisconnect = true
+            config.plugins.forEach { it.onStopping(this@BaseNettyManager) }
 
             if (executor != null && !executor!!.isShutdown) {
                 executor!!.shutdown()

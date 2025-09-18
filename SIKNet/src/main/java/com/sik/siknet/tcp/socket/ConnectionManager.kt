@@ -12,7 +12,6 @@ class ConnectionManager {
         /**
          * 单例
          */
-        @JvmStatic
         val instance: ConnectionManager by lazy {
             ConnectionManager()
         }
