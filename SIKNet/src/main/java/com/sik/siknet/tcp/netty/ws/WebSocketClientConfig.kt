@@ -7,6 +7,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator
 import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolConfig
 import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler
 import io.netty.handler.codec.http.websocketx.WebSocketVersion
+import io.netty.handler.ssl.SslContextBuilder
 import java.net.URI
 
 abstract class WebSocketClientConfig(
@@ -33,6 +34,10 @@ abstract class WebSocketClientConfig(
 
     override fun channelInit(ch: SocketChannel) {
         ch.pipeline().apply {
+            if (uri.scheme.equals("wss", ignoreCase = true)) {
+                val sslCtx = SslContextBuilder.forClient().build()
+                addLast(sslCtx.newHandler(ch.alloc(), host, port))
+            }
             addLast(HttpClientCodec())
             addLast(HttpObjectAggregator(64 * 1024))
             addLast(WebSocketClientProtocolHandler(wsConfig)) // 自动握手/close帧管理

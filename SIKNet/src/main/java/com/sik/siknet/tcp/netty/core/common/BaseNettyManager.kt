@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 /**
@@ -19,6 +20,8 @@ abstract class BaseNettyManager(protected val config: NettyConfig) {
     protected var channel: Channel? = null
     protected var isManualDisconnect: Boolean = false // 标志主动断开连接
     private var executor: ExecutorService? = null // 用于线程管理
+
+    private val started = AtomicBoolean(false) //用于标记是否已经启动
 
     /**
      * 构造函数，初始化 Netty 配置和线程池。
@@ -36,6 +39,10 @@ abstract class BaseNettyManager(protected val config: NettyConfig) {
      * 启动 Netty 客户端或服务器。
      */
     fun start() {
+        if (!started.compareAndSet(false, true)) {
+            logger.warn("Already started, ignore duplicate start()")
+            return
+        }
         if (config.isAutoSwitchThread) {
             executor!!.submit { this.startInternal() }
             config.plugins.forEach { it.onStarted(this@BaseNettyManager) }
@@ -80,6 +87,8 @@ abstract class BaseNettyManager(protected val config: NettyConfig) {
         } catch (e: InterruptedException) {
             logger.error("停止时出错：{}", e.message)
             Thread.currentThread().interrupt()
+        } finally {
+            started.set(false)
         }
     }
 }

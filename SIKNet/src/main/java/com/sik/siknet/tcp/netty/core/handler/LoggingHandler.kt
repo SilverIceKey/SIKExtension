@@ -20,7 +20,7 @@ class LoggingHandler : ChannelDuplexHandler() {
      */
     @Throws(Exception::class)
     override fun channelActive(ctx: ChannelHandlerContext) {
-        logger.info("连接已建立: {}", ctx.channel().remoteAddress())
+        logger.info("连接已建立: {} id={}", ctx.channel().remoteAddress(), ctx.channel().id().asShortText())
         super.channelActive(ctx)
     }
 
@@ -32,7 +32,7 @@ class LoggingHandler : ChannelDuplexHandler() {
      */
     @Throws(Exception::class)
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        logger.info("连接已关闭: {}", ctx.channel().remoteAddress())
+        logger.info("连接已关闭: {} id={}", ctx.channel().remoteAddress(), ctx.channel().id().asShortText())
         super.channelInactive(ctx)
     }
 

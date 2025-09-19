@@ -11,6 +11,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.timeout.IdleStateHandler
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 /**
@@ -26,6 +27,11 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
      * 是否在重连
      */
     private var isInReconnect = false
+
+    /**
+     * 重连任务句柄
+     */
+    private var reconnectFuture: ScheduledFuture<*>? = null
 
     override fun startInternal() {
         startClient()
@@ -96,21 +102,20 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
      * @param bootstrap Bootstrap 实例，用于客户端配置
      */
     private fun reconnect(bootstrap: Bootstrap) {
-        if (isInReconnect) {
-            return
-        }
+        if (isInReconnect) return
         isInReconnect = true
+
+        reconnectFuture?.cancel(false)
+        // 保险：确保旧 channel 不再占着
+        channel?.takeIf { it.isOpen }?.close()
+
         if (config.maxReconnectAttempts == -1 || reconnectAttempts < config.maxReconnectAttempts) {
             reconnectAttempts++
             logger.info("尝试第 {} 次重连...", reconnectAttempts)
-            workerGroup!!.schedule(
-                {
-                    isInReconnect = false
-                    connect(bootstrap)
-                },
-                config.reconnectInterval,
-                TimeUnit.SECONDS
-            )
+            reconnectFuture = workerGroup!!.schedule({
+                isInReconnect = false
+                connect(bootstrap)
+            }, config.reconnectInterval, TimeUnit.SECONDS)
         } else {
             isInReconnect = false
             logger.info("达到最大重连次数，停止重连。")
