@@ -9,7 +9,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler
 import io.netty.handler.codec.http.websocketx.WebSocketVersion
 import java.net.URI
 
-class WebSocketClientConfig(
+abstract class WebSocketClientConfig(
     wsUrl: String,
     override val heartbeatInterval: Long = 30,
     override val reconnectInterval: Long = 5,
