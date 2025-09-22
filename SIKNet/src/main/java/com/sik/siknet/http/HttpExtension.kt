@@ -476,45 +476,48 @@ suspend fun String.httpDownloadFile(
         if (!response.isSuccessful && code !in arrayOf(200, 206)) return@withContext null
         val body = response.body ?: return@withContext null
 
+        // 是否真正进入断点续传（服务端返回 206 才算）
+        val isResume = (existInfo.length > 0 && code == 206)
+
         // 6) 确定最终文件名 & MIME
         val mime = response.header("Content-Type")?.substringBefore(';')?.trim().orEmpty()
-        val nameFromHeader =
-            parseFilenameFromContentDisposition(response.header("Content-Disposition"))
+        val nameFromHeader = parseFilenameFromContentDisposition(response.header("Content-Disposition"))
         val finalName = nameFromHeader ?: guessedName ?: fallbackName(finalUrl.toString(), mime)
 
         // 7) 计算总量（用于更准确的进度）
         val contentLength = body.contentLength().takeIf { it > 0 } ?: -1L
-        val totalExpected = if (existInfo.length > 0 && code == 206) {
-            parseTotalFromContentRange(response.header("Content-Range"))
-                ?: (if (contentLength > 0) existInfo.length + contentLength else -1L)
-        } else if (code == 200) contentLength else -1L
+        val totalExpected = when {
+            isResume -> {
+                parseTotalFromContentRange(response.header("Content-Range"))
+                    ?: (if (contentLength > 0) existInfo.length + contentLength else -1L)
+            }
+            code == 200 -> contentLength
+            else -> -1L
+        }
 
         // 8) 打开输出（覆盖/追加）
         val out: OutputSink = when (target) {
             is DiskTarget.FilePath -> {
                 target.file.parentFile?.mkdirs()
-                val append = (code == 206)
                 OutputSink.FileStream(
-                    FileOutputStream(target.file, append),
+                    FileOutputStream(target.file, /* append = */ isResume),
                     file = target.file,
-                    append = append
+                    append = isResume
                 )
             }
-
             is DiskTarget.Downloads -> {
                 openDownloadsOutput(
                     target.ctx,
                     finalName,
                     mime,
                     existInfo,
-                    wantAppend = (code == 206)
-                )
-                    ?: return@withContext null
+                    wantAppend = isResume
+                ) ?: return@withContext null
             }
         }
 
         // 9) 写入 + 进度
-        var written = existInfo.length
+        var written = if (isResume) existInfo.length else 0L   // ← 修正点：200 时从 0 开始
         val buf = ByteArray(DEFAULT_BUFFER_SIZE)
         try {
             body.byteStream().use { input ->
@@ -524,28 +527,30 @@ suspend fun String.httpDownloadFile(
                         if (n <= 0) break
                         output.write(buf, 0, n)
                         written += n
-                        progressListener.update(written, totalExpected, false)
+
+                        // clamp，避免超过 100%
+                        val reported = if (totalExpected > 0) minOf(written, totalExpected) else written
+                        progressListener.update(reported, totalExpected, false)
                     }
                     output.flush()
                 }
             }
 
-            // Q+：新建的 MediaStore 条目，清理 IS_PENDING
             if (out is OutputSink.MediaStoreStream && out.newlyCreated) {
                 finalizePendingDownload(out.ctx, out.uri)
             }
 
-            progressListener.update(written, totalExpected, true)
+            // 完成强制到 100%
+            val finalReported = if (totalExpected > 0) totalExpected else written
+            progressListener.update(finalReported, totalExpected, true)
 
-            // 10) 返回可直接 adb pull 的 File
+            // 10) 返回文件路径...
             return@withContext when (out) {
                 is OutputSink.FileStream -> out.file
-                is OutputSink.MediaStoreStream -> {
-                    File(
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                        finalName
-                    )
-                }
+                is OutputSink.MediaStoreStream -> File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    finalName
+                )
             }
         } catch (e: Throwable) {
             if (out is OutputSink.MediaStoreStream && out.newlyCreated) {
