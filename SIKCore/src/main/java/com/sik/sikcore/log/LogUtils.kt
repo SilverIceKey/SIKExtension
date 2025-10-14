@@ -79,6 +79,19 @@ object LogUtils {
     }
 
     /**
+     * 设置日志输出目录 主要是注册logback.xml的LOG_DIR
+     * @param newLogDir 新的日志输出目录
+     */
+    fun setLogDir(newLogDir: String) {
+        val logDir = File(newLogDir)
+        if (!logDir.exists()) logDir.mkdirs()
+
+        // 把 LOG_DIR 注入给 logback.xml
+        val lc = LoggerFactory.getILoggerFactory() as LoggerContext
+        lc.putProperty("LOG_DIR", logDir.absolutePath)
+    }
+
+    /**
      * 动态更新日志输出路径
      * @param newFilePath 新的日志文件路径
      */
