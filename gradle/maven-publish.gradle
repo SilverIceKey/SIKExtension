@@ -71,6 +71,33 @@ afterEvaluate { project ->
                     artifact sourcesJar
                     artifact javadocJar
                 }
+                pom {
+                    name.set("SIKExtension")
+                    description.set("这个库原先为子模块类型，接下来将改为多模块jitpack选择集成类型。")
+                    url.set("https://github.com/SilverIceKey/SIKExtension")
+
+                    licenses {
+                        license {
+                            name.set("Apache License 2.0")
+                            url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                            distribution.set("repo")
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id.set("zheqian")
+                            name.set("折千")
+                            email.set("z516798599@gmail.com")
+                        }
+                    }
+
+                    scm {
+                        connection.set("scm:git:https://github.com/SilverIceKey/SIKExtension.git")
+                        developerConnection.set("scm:git:ssh://github.com/SilverIceKey/SIKExtension.git")
+                        url.set("https://github.com/SilverIceKey/SIKExtension")
+                    }
+                }
             }
 
         }
