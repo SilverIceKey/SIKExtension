@@ -55,3 +55,4 @@ implementation 'com.github.SilverIceKey.SIKExtension:模块名称:Tag'
 
 ### 更新日志
 - 2025-06：整理文档格式并补充说明。
+- 2025-10-20：发布最后一个MIT LICENSE版本 1.1.78，从1.1.79开始转为Apache 2.0
