@@ -75,8 +75,9 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
         if (currentNightMode != lastNightMode) {
             lastNightMode = currentNightMode
 
-            // 调用带注解的方法（@NightModeChangeListener）
-            getNightModeChangeListener(activity)?.call(activity, lastNightMode)
+            if (activity is NightModeAware) {
+                activity.onNightModeChanged(lastNightMode)
+            }
         }
 
         // 注解日志输出（@LogInfo）
@@ -118,17 +119,6 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
      */
     private fun isSecureActivity(activity: Activity): Boolean {
         return activity::class.findAnnotation<SecureActivity>() != null
-    }
-
-    /**
-     * 获取标注了 @NightModeChangeListener 的方法（必须带一个 Int 参数）
-     */
-    private fun getNightModeChangeListener(activity: Activity): KFunction<*>? {
-        return activity::class.functions.find {
-            it.findAnnotation<NightModeChangeListener>() != null &&
-                    it.parameters.size == 2 && // this + int
-                    it.parameters[1].type.classifier == Int::class
-        }
     }
 
     /**

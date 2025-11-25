@@ -2,12 +2,10 @@ package com.sik.skextensionsample.views.activity
 
 import android.content.Intent
 import android.content.res.Configuration
-import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.sik.sikandroid.activity.NightModeChangeListener
+import com.sik.sikandroid.activity.NightModeAware
 import com.sik.sikandroid.activity.SecureActivity
 import com.sik.sikcore.explain.LogInfo
 import com.sik.skextensionsample.R
@@ -17,7 +15,7 @@ import com.sik.skextensionsample.views.adapter.FeatureAdapter
 
 @LogInfo(description = "进入主界面")
 @SecureActivity
-class MainActivity : BaseActivity<ActivityMainBinding>() {
+class MainActivity : BaseActivity<ActivityMainBinding>(), NightModeAware {
 
     private lateinit var adapter: FeatureAdapter
 
@@ -57,11 +55,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         Log.i("MainActivity","配置转换")
     }
 
-    @NightModeChangeListener
-    fun nightModeChangeListener(nightMode: Int) {
-        if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
+    override fun onNightModeChanged(mode: Int) {
+        if (mode == Configuration.UI_MODE_NIGHT_YES) {
             Log.i("MainActivity","深色模式已启动")
-        } else if (nightMode == Configuration.UI_MODE_NIGHT_NO) {
+        } else if (mode == Configuration.UI_MODE_NIGHT_NO) {
             Log.i("MainActivity","深色模式已关闭")
         }
     }
