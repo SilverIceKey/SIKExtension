@@ -1,5 +1,6 @@
 package com.sik.siknet.tcp.netty.core.manager
 
+import android.util.Log
 import com.sik.siknet.tcp.netty.core.common.BaseNettyManager
 import com.sik.siknet.tcp.netty.core.common.NettyConfig
 import com.sik.siknet.tcp.netty.core.handler.LoggingHandler
@@ -66,7 +67,7 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
 
             connect(bootstrap)
         } catch (e: Exception) {
-            logger.error("客户端启动失败：{}", e.message)
+            Log.e("NettyClientManager", "客户端启动失败：${e.message}", e)
         }
     }
 
@@ -79,18 +80,22 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
         bootstrap.connect(config.host, config.port)
             .addListener(ChannelFutureListener { future: ChannelFuture ->
                 if (future.isSuccess) {
-                    logger.info(" 已连接到 {}:{}", config.host, config.port)
+                    Log.i("NettyClientManager", " 已连接到 ${config.host}:${config.port}")
                     channel = future.channel()
                     reconnectAttempts = 0
                     channel?.closeFuture()?.addListener {
                         if (!isManualDisconnect) {
                             reconnect(bootstrap)
                         } else {
-                            logger.info("客户端已主动断开连接，不进行重连。")
+                            Log.i("NettyClientManager", "客户端已主动断开连接，不进行重连。")
                         }
                     }
                 } else {
-                    logger.info("连接失败：{}", future.cause().message)
+                    Log.i(
+                        "NettyClientManager",
+                        "连接失败：${future.cause().message}",
+                        future.cause()
+                    )
                     reconnect(bootstrap)
                 }
             })
@@ -111,14 +116,14 @@ class NettyClientManager(config: NettyConfig) : BaseNettyManager(config) {
 
         if (config.maxReconnectAttempts == -1 || reconnectAttempts < config.maxReconnectAttempts) {
             reconnectAttempts++
-            logger.info("尝试第 {} 次重连...", reconnectAttempts)
+            Log.i("NettyClientManager", "尝试第 $reconnectAttempts 次重连...")
             reconnectFuture = workerGroup!!.schedule({
                 isInReconnect = false
                 connect(bootstrap)
             }, config.reconnectInterval, TimeUnit.SECONDS)
         } else {
             isInReconnect = false
-            logger.info("达到最大重连次数，停止重连。")
+            Log.i("NettyClientManager", "达到最大重连次数，停止重连。")
             stop()
         }
     }

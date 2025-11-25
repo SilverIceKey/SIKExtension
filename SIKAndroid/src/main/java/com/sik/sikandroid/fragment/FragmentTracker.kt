@@ -2,11 +2,11 @@ package com.sik.sikandroid.fragment
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import com.sik.sikcore.explain.LogInfo
-import org.slf4j.LoggerFactory
 import kotlin.reflect.full.findAnnotation
 
 /**
@@ -22,8 +22,6 @@ import kotlin.reflect.full.findAnnotation
  * 注意：本类依赖于 androidx.fragment 库，仅支持 FragmentActivity 及其派生类。
  */
 object FragmentTracker {
-
-    private val logger = LoggerFactory.getLogger(FragmentTracker::class.java)
 
     /**
      * 注册 Fragment 生命周期监听器。
@@ -67,7 +65,7 @@ object FragmentTracker {
          * Fragment 被销毁时调用（等价于 onDestroy）。
          */
         override fun onFragmentDestroyed(fm: FragmentManager, f: Fragment) {
-            logger.debug("Fragment Destroyed: ${f::class.simpleName}")
+            Log.d("FragmentTracker","Fragment Destroyed: ${f::class.simpleName}")
         }
 
         /**
@@ -75,7 +73,7 @@ object FragmentTracker {
          */
         private fun logFragmentInfo(fragment: Fragment) {
             fragment::class.findAnnotation<LogInfo>()?.let {
-                logger.info("Fragment [${fragment::class.simpleName}] - ${it.description}")
+                Log.i("FragmentTracker","Fragment [${fragment::class.simpleName}] - ${it.description}")
             }
         }
     }

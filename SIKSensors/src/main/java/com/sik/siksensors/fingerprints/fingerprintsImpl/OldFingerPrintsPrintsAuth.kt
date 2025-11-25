@@ -6,18 +6,17 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.hardware.fingerprint.FingerprintManager
 import android.os.CancellationSignal
-import com.sik.sikcore.SIKCore
+import android.util.Log
 import com.sik.sikandroid.permission.PermissionUtils
+import com.sik.sikcore.SIKCore
 import com.sik.siksensors.SensorErrorEnum
 import com.sik.siksensors.fingerprints.IFingerPrintsAuth
-import org.slf4j.LoggerFactory
 
 /**
  * 旧指纹认证
  */
 @SuppressLint("MissingPermission")
 class OldFingerPrintsPrintsAuth : IFingerPrintsAuth {
-    private val logger = LoggerFactory.getLogger(OldFingerPrintsPrintsAuth::class.java)
 
     /**
      * 指纹管理器-旧
@@ -72,11 +71,17 @@ class OldFingerPrintsPrintsAuth : IFingerPrintsAuth {
         fingerprintManager?.authenticate(
             null, cancellationSignal, 0, object : FingerprintManager.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    logger.info("onAuthenticationError:${errorCode},${errString}")
+                    Log.i(
+                        "OldFingerPrintsPrintsAuth",
+                        "onAuthenticationError:${errorCode},${errString}"
+                    )
                 }
 
                 override fun onAuthenticationHelp(helpCode: Int, helpString: CharSequence) {
-                    logger.info("onAuthenticationError:${helpCode},${helpString}")
+                    Log.i(
+                        "OldFingerPrintsPrintsAuth",
+                        "onAuthenticationError:${helpCode},${helpString}"
+                    )
 
                 }
 

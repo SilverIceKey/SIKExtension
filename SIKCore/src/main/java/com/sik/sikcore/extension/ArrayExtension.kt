@@ -61,3 +61,28 @@ fun Map<Int, Boolean>.toControlAndMaskBytes(
 
     return toBytes(state) to toBytes(mask)
 }
+
+/**
+ * ByteArray 转十六进制字符串
+ */
+fun ByteArray.toHex(
+    upperCase: Boolean = false,
+    separator: String = ""
+): String {
+    val hexChars = if (upperCase) "0123456789ABCDEF" else "0123456789abcdef"
+    val result = StringBuilder(this.size * (2 + separator.length))
+
+    for (byte in this) {
+        val v = byte.toInt() and 0xFF
+        result.append(hexChars[v ushr 4])
+        result.append(hexChars[v and 0x0F])
+        if (separator.isNotEmpty()) result.append(separator)
+    }
+
+    // 去掉最后一个分隔符
+    if (separator.isNotEmpty() && result.isNotEmpty()) {
+        result.setLength(result.length - separator.length)
+    }
+
+    return result.toString()
+}

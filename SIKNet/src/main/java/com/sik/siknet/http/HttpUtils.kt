@@ -10,8 +10,6 @@ import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.security.KeyStore
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
@@ -22,10 +20,6 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
 object HttpUtils {
-    /**
-     * 日志
-     */
-    val logger: Logger = LoggerFactory.getLogger(HttpUtils::class.java)
 
     /**
      * 请求头类型

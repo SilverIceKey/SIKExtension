@@ -1,6 +1,6 @@
 package com.sik.siknet.tcp.socket
 
-import org.slf4j.LoggerFactory
+import android.util.Log
 
 /**
  * 连接管理器类，负责管理多个 Socket 连接实例。
@@ -20,9 +20,6 @@ class ConnectionManager {
     // 存储连接实例的映射表，键为配置ID，值为 SocketUtils 实例
     private val connections = mutableMapOf<String, SocketUtils>()
 
-    // 日志工具类实例
-    private val logger = LoggerFactory.getLogger(this::class.java)
-
     /**
      * 根据给定的配置创建一个新的连接。
      *
@@ -32,7 +29,7 @@ class ConnectionManager {
     fun createConnection(config: SocketConfig): SocketUtils {
         val socketUtils = SocketUtils(config)
         connections[config.configId] = socketUtils  // 将连接保存到映射表中
-        logger.info("创建了新的连接，配置ID: ${config.configId}")
+        Log.i("ConnectionManager","创建了新的连接，配置ID: ${config.configId}")
         return socketUtils
     }
 
@@ -44,7 +41,7 @@ class ConnectionManager {
      */
     fun getConnection(configId: String): SocketUtils? {
         return connections[configId].also {
-            logger.info("获取了连接，配置ID: $configId")
+            Log.i("ConnectionManager","获取了连接，配置ID: $configId")
         }
     }
 
@@ -56,7 +53,7 @@ class ConnectionManager {
     fun closeConnection(configId: String) {
         connections[configId]?.disconnect()
         connections.remove(configId)
-        logger.info("关闭并移除了连接，配置ID: $configId")
+        Log.i("ConnectionManager","关闭并移除了连接，配置ID: $configId")
     }
 
     /**
@@ -65,9 +62,9 @@ class ConnectionManager {
     fun closeAllConnections() {
         connections.forEach { (configId, socket) ->
             socket.disconnect()
-            logger.info("关闭了连接，配置ID: $configId")
+            Log.i("ConnectionManager","关闭了连接，配置ID: $configId")
         }
         connections.clear()
-        logger.info("已关闭所有连接")
+        Log.i("ConnectionManager","已关闭所有连接")
     }
 }

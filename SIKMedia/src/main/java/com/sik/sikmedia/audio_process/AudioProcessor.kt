@@ -3,7 +3,7 @@ package com.sik.sikmedia.audio_process
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
-import org.slf4j.LoggerFactory
+import android.util.Log
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -19,7 +19,6 @@ private const val TIMEOUT_US = 10_000L
 
 // 定义一个音频处理类，包含音频文件处理的逻辑
 class AudioProcessor {
-    private val logger = LoggerFactory.getLogger(AudioProcessor::class.java)
 
     // 定义回调接口，用于处理音频处理成功或失败的回调
     interface AudioProcessorCallback {
@@ -48,7 +47,7 @@ class AudioProcessor {
     ) {
         val file = File(inputFilePath)
         if (!file.exists()) {
-            logger.info("文件不存在")
+            Log.i("AudioProcessor","文件不存在")
             // 如果文件不存在，调用失败回调
             callback.onFailure(
                 AudioProcessException(
@@ -64,7 +63,7 @@ class AudioProcessor {
         val fileExtension = file.extension.lowercase() // 获取文件后缀
         if (fileExtension !in validExtensions) {
             // 如果文件格式无效，调用失败回调
-            logger.info("文件格式不支持")
+            Log.i("AudioProcessor","文件格式不支持")
             callback.onFailure(
                 AudioProcessException(
                     AudioProcessError.INVALID_FILE_FORMAT,
@@ -83,7 +82,7 @@ class AudioProcessor {
                     val dataLength = outputFile.length()
                     val inputStream = outputFile.inputStream()
                     val processedAudioWithStream = ProcessedAudio(outputFilePath, inputStream)
-                    logger.info("开始调用分析器")
+                    Log.i("AudioProcessor","开始调用分析器")
                     // 调用所有添加的分析器
                     analyzers.forEach {
                         it.setDataLength(dataLength)

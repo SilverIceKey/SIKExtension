@@ -1,9 +1,8 @@
 package com.sik.siknet.tcp.netty.core.common
 
+import android.util.Log
 import io.netty.channel.Channel
 import io.netty.channel.EventLoopGroup
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -14,7 +13,6 @@ import java.util.concurrent.atomic.AtomicBoolean
  * BaseNettyManager 是一个抽象类，提供了 Netty 客户端和服务器管理器的公共功能。
  */
 abstract class BaseNettyManager(protected val config: NettyConfig) {
-    protected val logger: Logger = LoggerFactory.getLogger(this.javaClass)
     protected var bossGroup: EventLoopGroup? = null
     protected var workerGroup: EventLoopGroup? = null
     protected var channel: Channel? = null
@@ -40,7 +38,7 @@ abstract class BaseNettyManager(protected val config: NettyConfig) {
      */
     fun start() {
         if (!started.compareAndSet(false, true)) {
-            logger.warn("Already started, ignore duplicate start()")
+            Log.w("BaseNettyManager", "Already started, ignore duplicate start()")
             return
         }
         if (config.isAutoSwitchThread) {
@@ -83,9 +81,9 @@ abstract class BaseNettyManager(protected val config: NettyConfig) {
                 workerGroup!!.shutdownGracefully().sync()
             }
 
-            logger.info("Netty 已停止")
+            Log.i("BaseNettyManager", "Netty 已停止")
         } catch (e: InterruptedException) {
-            logger.error("停止时出错：{}", e.message)
+            Log.e("BaseNettyManager", "停止时出错：${e.message}", e)
             Thread.currentThread().interrupt()
         } finally {
             started.set(false)

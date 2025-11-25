@@ -1,5 +1,6 @@
 package com.sik.siknet.mqtt
 
+import android.util.Log
 import com.sik.sikcore.eventbus.DefaultBusModel
 import com.sik.sikcore.receivers.ScreenStatusReceiver
 import org.eclipse.paho.client.mqttv3.IMqttActionListener
@@ -9,10 +10,7 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.eclipse.paho.client.mqttv3.MqttCallback
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
-import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 /**
  * Mqtt帮助类
@@ -39,11 +37,6 @@ class EMQXHelper {
     var emqxCallback: EMQXCallback? = null
 
     /**
-     * 日志工具
-     */
-    var log: Logger
-
-    /**
      * mqtt连接状态
      */
     var isMqttConnect: Boolean = false
@@ -55,17 +48,16 @@ class EMQXHelper {
     }
 
     init {
-        log = LoggerFactory.getLogger(this::class.java)
         mqttCallback = object : MqttCallback {
             override fun connectionLost(cause: Throwable?) {
-                log.info("mqtt连接丢失开始重连")
+                Log.i("EMQXHelper", "mqtt连接丢失开始重连")
                 emqxCallback?.connectionLost(cause)
                 try {
                     mqttClient.reconnect()
                     while (!mqttClient.isConnected) {
                         continue
                     }
-                    log.info("qos:${emqxConfig.qos()}")
+                    Log.i("EMQXHelper", "qos:${emqxConfig.qos()}")
                     mqttClient.subscribe(emqxConfig.topic, emqxConfig.qos())
                 } catch (e: MqttException) {
                     //重连异常
@@ -73,13 +65,16 @@ class EMQXHelper {
             }
 
             override fun messageArrived(topic: String?, message: MqttMessage?) {
-                log.info("收到消息:主题:${topic},Qos:${message?.qos},内容:${message?.toString()}")
+                Log.i(
+                    "EMQXHelper",
+                    "收到消息:主题:${topic},Qos:${message?.qos},内容:${message?.toString()}"
+                )
                 mqttClient.messageArrivedComplete(message?.id!!, emqxConfig.qos())
                 emqxCallback?.messageArrived(topic, message)
             }
 
             override fun deliveryComplete(token: IMqttDeliveryToken?) {
-                log.info("收到确认消息")
+                Log.i("EMQXHelper", "收到确认消息")
                 emqxCallback?.deliveryComplete(token)
             }
         }
@@ -121,7 +116,7 @@ class EMQXHelper {
                 this,
                 object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
-                        log.info("topic:${config.topic},qos:${config.qos()}")
+                        Log.i("EMQXHelper","topic:${config.topic},qos:${config.qos()}")
                         mqttClient.subscribe(config.topic, config.qos())
                     }
 
@@ -131,11 +126,11 @@ class EMQXHelper {
 
                 })
         } catch (me: MqttException) {
-            log.error("reason:${me.getReasonCode()}")
-            log.error("msg:${me.message}")
-            log.error("loc:${me.getLocalizedMessage()}")
-            log.error("cause:${me.cause}")
-            log.error("excep:${me}")
+            Log.e("EMQXHelper", "reason:${me.getReasonCode()}")
+            Log.e("EMQXHelper", "msg:${me.message}")
+            Log.e("EMQXHelper", "loc:${me.getLocalizedMessage()}")
+            Log.e("EMQXHelper", "cause:${me.cause}")
+            Log.e("EMQXHelper", "excep:${me}")
             me.printStackTrace()
         }
     }

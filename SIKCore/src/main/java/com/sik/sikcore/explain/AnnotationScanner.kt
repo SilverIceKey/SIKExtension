@@ -1,7 +1,6 @@
 package com.sik.sikcore.explain
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import android.util.Log
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
@@ -14,8 +13,6 @@ import kotlin.reflect.typeOf
  * 属性类注解扫描
  */
 object AnnotationScanner {
-    private val logger: Logger = LoggerFactory.getLogger(AnnotationScanner::class.java)
-
     /**
      * 属性-描述存储
      */
@@ -29,7 +26,7 @@ object AnnotationScanner {
     fun scan(configClass: KClass<*>) {
         // 获取 ScanConfig 注解
         val scanConfig = configClass.findAnnotation<ScanConfig>()
-        logger.info("${scanConfig?.classesToScan?.size}")
+        Log.i("AnnotationScanner", "${scanConfig?.classesToScan?.size}")
         scanConfig?.classesToScan?.forEach { clazz ->
             clazz.memberProperties.forEach { prop ->
                 if (prop.isTypeOf<String>()) {

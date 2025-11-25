@@ -4,10 +4,10 @@ import android.app.Activity
 import android.app.Application
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import com.sik.sikandroid.fragment.FragmentTracker
 import com.sik.sikcore.explain.LogInfo
-import org.slf4j.LoggerFactory
 import java.lang.ref.WeakReference
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.findAnnotation
@@ -36,8 +36,6 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
 
     // 上一次记录的夜间模式状态
     private var lastNightMode: Int = -1
-
-    private val logger = LoggerFactory.getLogger(ActivityTracker::class.java)
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         // 安全注解处理：防录屏设置
@@ -139,7 +137,10 @@ object ActivityTracker : Application.ActivityLifecycleCallbacks {
     private fun logActivityInfo() {
         currentActivity?.get()?.let { activity ->
             activity::class.findAnnotation<LogInfo>()?.let { logInfo ->
-                logger.info("Activity [${activity::class.simpleName}] - ${logInfo.description}")
+                Log.i(
+                    "ActivityTracker",
+                    "Activity [${activity::class.simpleName}] - ${logInfo.description}"
+                )
             }
         }
     }

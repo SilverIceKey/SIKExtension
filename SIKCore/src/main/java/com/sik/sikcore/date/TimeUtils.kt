@@ -1,8 +1,8 @@
 package com.sik.sikcore.date
 
+import android.util.Log
 import com.sik.sikcore.R
 import com.sik.sikcore.SIKCore
-import org.slf4j.LoggerFactory
 import java.text.DateFormat
 import java.text.ParsePosition
 import java.text.SimpleDateFormat
@@ -14,8 +14,6 @@ import java.util.Locale
  * 时间相关工具类
  */
 object TimeUtils {
-
-    private val logger = LoggerFactory.getLogger(TimeUtils::class.java)
 
     /**
      * 默认日期格式
@@ -260,7 +258,7 @@ object TimeUtils {
                 0
             }
         } catch (e: Exception) {
-            logger.error("时间转换错误", e)
+            Log.e("TimeUtils", "时间转换错误", e)
             0
         }
     }
@@ -287,7 +285,7 @@ object TimeUtils {
                 ""
             }
         } catch (e: Exception) {
-            logger.error("日期格式转换错误", e)
+            Log.e("TimeUtils", "日期格式转换错误", e)
             ""
         }
     }
@@ -321,7 +319,7 @@ object TimeUtils {
                 0
             }
         } catch (e: Exception) {
-            logger.error("时间计算错误", e)
+            Log.e("TimeUtils", "时间计算错误", e)
             0
         }
     }

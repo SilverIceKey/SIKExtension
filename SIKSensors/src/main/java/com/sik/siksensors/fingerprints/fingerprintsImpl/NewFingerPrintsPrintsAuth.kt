@@ -7,18 +7,18 @@ import android.hardware.biometrics.BiometricManager
 import android.hardware.biometrics.BiometricPrompt
 import android.os.Build
 import android.os.CancellationSignal
+import android.util.Log
 import androidx.annotation.RequiresApi
-import com.sik.sikcore.SIKCore
 import com.sik.sikandroid.activity.ActivityTracker
-import com.sik.sikcore.extension.toJson
 import com.sik.sikandroid.permission.PermissionUtils
+import com.sik.sikcore.SIKCore
+import com.sik.sikcore.extension.toJson
 import com.sik.sikcore.thread.ThreadUtils
 import com.sik.siksensors.SensorErrorEnum
 import com.sik.siksensors.fingerprints.FingerPrintsConfig
 import com.sik.siksensors.fingerprints.FingerPrintsException
 import com.sik.siksensors.fingerprints.IFingerPrintsAuth
 import java.util.concurrent.Executor
-import java.util.logging.Logger
 
 
 /**
@@ -27,8 +27,6 @@ import java.util.logging.Logger
 @RequiresApi(Build.VERSION_CODES.Q)
 class NewFingerPrintsPrintsAuth<T : FingerPrintsConfig>(private val fingerConfig: T) :
     IFingerPrintsAuth {
-    private val logger = Logger.getLogger(NewFingerPrintsPrintsAuth::class.java.toString())
-
     /**
      * 指纹管理器-新
      */
@@ -72,7 +70,10 @@ class NewFingerPrintsPrintsAuth<T : FingerPrintsConfig>(private val fingerConfig
                                     errString: CharSequence?
                                 ) {
                                     super.onAuthenticationError(errorCode, errString)
-                                    logger.info("onAuthenticationError:${errorCode},${errString}")
+                                    Log.i(
+                                        "NewFingerPrintsPrintsAuth",
+                                        "onAuthenticationError:${errorCode},${errString}"
+                                    )
                                 }
 
                                 override fun onAuthenticationHelp(
@@ -80,19 +81,28 @@ class NewFingerPrintsPrintsAuth<T : FingerPrintsConfig>(private val fingerConfig
                                     helpString: CharSequence?
                                 ) {
                                     super.onAuthenticationHelp(helpCode, helpString)
-                                    logger.info("onAuthenticationHelp:${helpCode},${helpString}")
+                                    Log.i(
+                                        "NewFingerPrintsPrintsAuth",
+                                        "onAuthenticationHelp:${helpCode},${helpString}"
+                                    )
                                 }
 
                                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult?) {
                                     super.onAuthenticationSucceeded(result)
-                                    logger.info("onAuthenticationSucceeded:${result.toJson()}")
+                                    Log.i(
+                                        "NewFingerPrintsPrintsAuth",
+                                        "onAuthenticationSucceeded:${result.toJson()}"
+                                    )
                                     auth(SensorErrorEnum.AUTHENTICATION_SUCCESS)
                                 }
 
                                 @SuppressLint("MissingPermission")
                                 override fun onAuthenticationFailed() {
                                     super.onAuthenticationFailed()
-                                    logger.info("onAuthenticationFailed:验证失败")
+                                    Log.i(
+                                        "NewFingerPrintsPrintsAuth",
+                                        "onAuthenticationFailed:验证失败"
+                                    )
                                     auth(SensorErrorEnum.AUTHENTICATION_FAILED)
                                 }
                             })

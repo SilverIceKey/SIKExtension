@@ -1,11 +1,13 @@
 package com.sik.siknet.tcp.netty.core.plugin.simple
 
+import android.util.Log
 import com.sik.siknet.tcp.netty.core.common.BaseNettyManager
 import com.sik.siknet.tcp.netty.core.plugin.NettyPlugin
-import io.netty.channel.*
+import io.netty.channel.ChannelDuplexHandler
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelPromise
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.timeout.IdleStateEvent
-import org.slf4j.LoggerFactory
 
 /**
  * 简化版插件：把 install 里的繁琐活儿封装掉，只暴露直觉化的钩子。
@@ -14,8 +16,6 @@ import org.slf4j.LoggerFactory
 abstract class SimplePlugin(
     private val name: String = "simple"
 ) : NettyPlugin {
-
-    private val log = LoggerFactory.getLogger(javaClass)
 
     // ========== 生命周期（可选） ==========
     override fun onStarted(manager: BaseNettyManager) = Unit
@@ -100,6 +100,6 @@ abstract class SimplePlugin(
     }
 
     private fun safeLog(hook: String, t: Throwable) {
-        log.warn("[{}] {} hook error: {}", name, hook, t.toString())
+        Log.w("SimplePlugin", "[$name] $hook hook error: ${t.toString()}")
     }
 }

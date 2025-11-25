@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import com.google.gson.reflect.TypeToken
 import com.sik.sikcore.SIKCore
 import com.sik.sikcore.extension.globalGson
@@ -39,8 +40,8 @@ import kotlin.reflect.full.memberProperties
 
 inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()): T {
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.info(this)
-        HttpUtils.logger.info(params.toJson())
+        Log.i("HttpExtension",this)
+        Log.i("HttpExtension",params.toJson())
     }
     // 构造带参数的URL
     val urlWithParams = StringBuilder().apply {
@@ -81,8 +82,8 @@ inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()):
 
 inline fun <reified T> String.httpPostForm(formParameters: Any?): T {
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.info(this)
-        HttpUtils.logger.info(formParameters.toJson())
+        Log.i("HttpExtension",this)
+        Log.i("HttpExtension",formParameters.toJson())
     }
     val formBodyBuilder = FormBody.Builder()
     formParameters?.let {
@@ -139,8 +140,8 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
             globalGson.toJson(data)
         }
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.info(this)
-        HttpUtils.logger.info(json)
+        Log.i("HttpExtension",this)
+        Log.i("HttpExtension",json)
     }
     val mediaType = "application/json; charset=utf-8".toMediaType()
     val requestBody: RequestBody = (json ?: "").toRequestBody(mediaType)
@@ -177,8 +178,8 @@ inline fun <reified T> String.httpUploadFile(
     fileParameterName: String, file: File, params: Map<String, String>
 ): T {
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.info(this)
-        HttpUtils.logger.info(params.toJson())
+        Log.i("HttpExtension",this)
+        Log.i("HttpExtension",params.toJson())
     }
     val fileBody = file.asRequestBody("application/octet-stream".toMediaType())
     val requestBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
@@ -229,8 +230,8 @@ fun String.httpDownloadFile(
 ): Boolean {
     val json = data as? String ?: globalGson.toJson(data)
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.info(this)
-        HttpUtils.logger.info(json)
+        Log.i("HttpExtension",this)
+        Log.i("HttpExtension",json)
     }
     val mediaType = "application/json; charset=utf-8".toMediaType()
     val requestBody: RequestBody = (json ?: "").toRequestBody(mediaType)
@@ -298,8 +299,8 @@ suspend inline fun <reified T> String.httpGetAsync(
     params: Map<String, String> = emptyMap()
 ): T = suspendCancellableCoroutine { cont ->
     if (HttpUtils.isLoggerInRequest) {
-        HttpUtils.logger.info(this)
-        HttpUtils.logger.info(params.toJson())
+        Log.i("HttpExtension",this)
+        Log.i("HttpExtension",params.toJson())
     }
     val urlWithParams = StringBuilder().apply {
         append(this@httpGetAsync)
@@ -352,8 +353,8 @@ suspend inline fun <reified T> String.httpPostJsonAsync(data: Any? = null): T =
             if (data == null) "{}" else globalGson.toJson(data)
         }
         if (HttpUtils.isLoggerInRequest) {
-            HttpUtils.logger.info(this)
-            HttpUtils.logger.info(json)
+            Log.i("HttpExtension",this)
+            Log.i("HttpExtension",json)
         }
         val mediaType = "application/json; charset=utf-8".toMediaType()
         val requestBody = (json ?: "").toRequestBody(mediaType)

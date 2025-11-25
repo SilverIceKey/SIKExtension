@@ -1,10 +1,9 @@
 package com.sik.siknet.tcp.netty.core.handler
 
+import android.util.Log
 import io.netty.channel.ChannelDuplexHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 
 /**
@@ -20,7 +19,10 @@ class LoggingHandler : ChannelDuplexHandler() {
      */
     @Throws(Exception::class)
     override fun channelActive(ctx: ChannelHandlerContext) {
-        logger.info("连接已建立: {} id={}", ctx.channel().remoteAddress(), ctx.channel().id().asShortText())
+        Log.i(
+            "LoggingHandler",
+            "连接已建立: ${ctx.channel().remoteAddress()} id=${ctx.channel().id().asShortText()}"
+        )
         super.channelActive(ctx)
     }
 
@@ -32,7 +34,10 @@ class LoggingHandler : ChannelDuplexHandler() {
      */
     @Throws(Exception::class)
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        logger.info("连接已关闭: {} id={}", ctx.channel().remoteAddress(), ctx.channel().id().asShortText())
+        Log.i(
+            "LoggingHandler",
+            "连接已关闭: ${ctx.channel().remoteAddress()} id=${ctx.channel().id().asShortText()}"
+        )
         super.channelInactive(ctx)
     }
 
@@ -45,7 +50,7 @@ class LoggingHandler : ChannelDuplexHandler() {
      */
     @Throws(Exception::class)
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        logger.error("捕获到异常: {}", cause.message, cause)
+        Log.i("LoggingHandler", "捕获到异常: ${cause.message}")
         ctx.close() // 关闭连接防止资源泄漏
     }
 
@@ -59,7 +64,7 @@ class LoggingHandler : ChannelDuplexHandler() {
      */
     @Throws(Exception::class)
     override fun write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise) {
-        logger.debug("发送消息: {}", msg)
+        Log.i("LoggingHandler", "发送消息: $msg")
         super.write(ctx, msg, promise)
     }
 
@@ -72,13 +77,8 @@ class LoggingHandler : ChannelDuplexHandler() {
      */
     @Throws(Exception::class)
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-        logger.debug("接收到消息: {}", msg)
+        Log.i("LoggingHandler", "接收到消息: $msg")
         super.channelRead(ctx, msg)
-    }
-
-    companion object {
-        // 使用 SLF4J 获取日志记录器
-        private val logger: Logger = LoggerFactory.getLogger(LoggingHandler::class.java)
     }
 }
 

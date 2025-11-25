@@ -1,5 +1,6 @@
 package com.sik.siknet.http.interceptor
 
+import android.util.Log
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.sik.sikcore.extension.globalGson
@@ -9,7 +10,6 @@ import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
-import org.slf4j.LoggerFactory
 
 /**
  * Default parameter interceptor
@@ -20,8 +20,6 @@ class DefaultParameterInterceptor : Interceptor {
     companion object {
         var params: HashMap<String, String?> = hashMapOf()
     }
-
-    private val logger = LoggerFactory.getLogger(DefaultParameterInterceptor::class.java)
 
     override fun intercept(chain: Interceptor.Chain): Response {
         var originalRequest = chain.request()
@@ -73,7 +71,7 @@ class DefaultParameterInterceptor : Interceptor {
             val mergedBody = mergeJsonParameters(requestBodyString)
             request.newBuilder().post(RequestBody.create(CLIENT_MEDIA_TYPE, mergedBody)).build()
         } catch (e: Exception) {
-            logger.info("当前类型为非对象，无法放置参数")
+            Log.i("DefaultParameterInterceptor","当前类型为非对象，无法放置参数")
             request
         }
     }
@@ -125,7 +123,7 @@ class DefaultParameterInterceptor : Interceptor {
                 }
                 jsonArray.toString()
             } catch (e: Exception) {
-                logger.info("解析JSON异常，无法合并参数")
+                Log.i("DefaultParameterInterceptor","解析JSON异常，无法合并参数")
                 bodyString // 无法解析时返回原始 body 字符串
             }
         }

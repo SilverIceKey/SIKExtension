@@ -1,6 +1,6 @@
 package com.sik.sikcore.data
 
-import com.google.gson.Gson
+import android.util.Log
 import com.google.gson.reflect.TypeToken
 import com.sik.sikcore.extension.globalGson
 import java.lang.reflect.Type
@@ -15,6 +15,29 @@ class GlobalDataTempStore private constructor() {
         @JvmStatic
         fun getInstance(): GlobalDataTempStore {
             return INSTANCE
+        }
+
+    }
+
+    // 是否已加载 native 库标志位
+    private var nativeLibLoaded = false
+
+    init {
+        safeLoadNativeLib()
+    }
+
+    /**
+     * 安全加载 Native 库（支持延迟加载，防止启动阻塞）
+     */
+    private fun safeLoadNativeLib() {
+        if (!nativeLibLoaded) {
+            try {
+                System.loadLibrary("SIKCore")
+                nativeLibLoaded = true
+                Log.i("GlobalDataTempStore", "Native 库加载成功")
+            } catch (t: Throwable) {
+                Log.e("GlobalDataTempStore", "Native 库加载失败:${t.toString()}")
+            }
         }
     }
 

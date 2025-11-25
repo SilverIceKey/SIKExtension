@@ -3,6 +3,7 @@ package com.sik.skextensionsample.views.activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -13,8 +14,6 @@ import com.sik.skextensionsample.R
 import com.sik.skextensionsample.data.FeatureEntry
 import com.sik.skextensionsample.databinding.ActivityMainBinding
 import com.sik.skextensionsample.views.adapter.FeatureAdapter
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 @LogInfo(description = "进入主界面")
 @SecureActivity
@@ -55,15 +54,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        logger.info("配置转换")
+        Log.i("MainActivity","配置转换")
     }
 
     @NightModeChangeListener
     fun nightModeChangeListener(nightMode: Int) {
         if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
-            logger.info("深色模式已启动")
+            Log.i("MainActivity","深色模式已启动")
         } else if (nightMode == Configuration.UI_MODE_NIGHT_NO) {
-            logger.debug("深色模式已关闭")
+            Log.i("MainActivity","深色模式已关闭")
         }
     }
 }

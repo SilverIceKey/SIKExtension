@@ -1,5 +1,6 @@
 package com.sik.siknet.tcp.netty.core.manager
 
+import android.util.Log
 import com.sik.siknet.tcp.netty.core.common.BaseNettyManager
 import com.sik.siknet.tcp.netty.core.common.NettyConfig
 import com.sik.siknet.tcp.netty.core.handler.LoggingHandler
@@ -50,10 +51,10 @@ class NettyServerManager(config: NettyConfig) : BaseNettyManager(config) {
                 })
             val future = bootstrap.bind(config.host, config.port).sync()
             channel = future.channel()
-            logger.info("服务端启动在 {}:{}", config.host, config.port)
+            Log.i("NettyServerManager", "服务端启动在 ${config.host}:${config.port}")
             future.channel().closeFuture().sync()
         } catch (e: InterruptedException) {
-            logger.info("服务端启动失败：{}", e.message)
+            Log.i("NettyServerManager", "服务端启动失败：${e.message}", e)
             Thread.currentThread().interrupt()
         } finally {
             stop()

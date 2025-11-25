@@ -1,8 +1,8 @@
 package com.sik.sikcore
 
 import android.app.Application
+import android.util.Log
 import com.tencent.mmkv.MMKV
-import org.slf4j.LoggerFactory
 
 /**
  * SIKCore 核心库初始化器（优化版）
@@ -16,14 +16,8 @@ object SIKCore {
     @Volatile
     private var application: Application? = null
 
-    // 日志器（基于 slf4j，可替换为你项目中的统一日志工具）
-    private val logger = LoggerFactory.getLogger(SIKCore::class.java)
-
     // 初始化监听器列表（支持外部注册）
     private val initListeners = mutableListOf<InitListener>()
-
-    // 是否已加载 native 库标志位
-    private var nativeLibLoaded = false
 
     /**
      * 初始化入口（推荐在 Application.onCreate 中调用）
@@ -35,31 +29,15 @@ object SIKCore {
 
         // 启动子线程执行耗时初始化逻辑
         Thread {
-            safeLoadNativeLib()
             safeInitMMKV()
             initListeners.forEach {
                 try {
                     it.init(application)
                 } catch (e: Exception) {
-                    logger.warn("InitListener failed: ${it.javaClass.simpleName}", e)
+                    Log.w("SIKCore", "InitListener failed: ${it.javaClass.simpleName}", e)
                 }
             }
         }.start()
-    }
-
-    /**
-     * 安全加载 Native 库（支持延迟加载，防止启动阻塞）
-     */
-    private fun safeLoadNativeLib() {
-        if (!nativeLibLoaded) {
-            try {
-                System.loadLibrary("SIKCore")
-                nativeLibLoaded = true
-                logger.info("SIKCore native lib loaded successfully.")
-            } catch (t: Throwable) {
-                logger.error("Failed to load native library SIKCore", t)
-            }
-        }
     }
 
     /**
@@ -68,9 +46,9 @@ object SIKCore {
     private fun safeInitMMKV() {
         try {
             MMKV.initialize(application)
-            logger.info("MMKV initialized.")
+            Log.i("SIKCore", "MMKV initialized.")
         } catch (e: Exception) {
-            logger.error("MMKV initialization failed", e)
+            Log.e("SIKCore", "MMKV initialization failed", e)
         }
     }
 
