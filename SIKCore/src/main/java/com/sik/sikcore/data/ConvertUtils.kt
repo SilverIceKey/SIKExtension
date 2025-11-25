@@ -48,7 +48,7 @@ object ConvertUtils {
      */
     @JvmStatic
     fun bytesToBase64String(byteArray: ByteArray): String {
-        return Base64.encodeToString(byteArray, Base64.DEFAULT)
+        return Base64.encodeToString(byteArray, Base64.NO_WRAP)
     }
 
     /**
@@ -59,6 +59,6 @@ object ConvertUtils {
      */
     @JvmStatic
     fun base64StringToBytes(base64Str:String):ByteArray{
-        return Base64.decode(base64Str,Base64.DEFAULT)
+        return Base64.decode(base64Str,Base64.NO_WRAP)
     }
 }
