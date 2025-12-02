@@ -16,6 +16,7 @@ import android.os.Build
 import com.sik.sikcore.SIKCore
 import com.sik.sikcore.file.FileUtils
 import java.io.IOException
+import java.net.NetworkInterface
 import java.util.Locale
 
 /**
@@ -249,6 +250,52 @@ object NetUtil {
         "WPA-PSK" in capabilities -> WifiCapability.WIFI_CIPHER_WPA
         "EAP" in capabilities -> WifiCapability.WIFI_CIPHER_EAP
         else -> WifiCapability.WIFI_CIPHER_NO_PASS
+    }
+
+    /**
+     * 获取本机IPv4地址（WiFi/以太网/热点/数据流量均可）
+     */
+    fun getLocalIpAddress(): String? {
+        try {
+            val interfaces = NetworkInterface.getNetworkInterfaces()
+            for (intf in interfaces) {
+                // 跳过关闭或回环的网卡
+                if (!intf.isUp || intf.isLoopback) continue
+
+                val addrs = intf.inetAddresses
+                for (addr in addrs) {
+                    // 跳过 IPv6 & 回环
+                    if (addr.isLoopbackAddress) continue
+                    val host = addr.hostAddress ?: continue
+                    // 过滤 IPv6（包含冒号）
+                    if (!host.contains(":")) {
+                        return host
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
+    /**
+     * 获取Wifi下的IPv4地址
+     */
+    @SuppressLint("MissingPermission")
+    fun getWifiIpAddress(): String? {
+        val info = wifiManager.connectionInfo ?: return null
+        val ip = info.ipAddress
+        if (ip == 0) return null
+
+        return String.format(
+            Locale.US,
+            "%d.%d.%d.%d",
+            (ip and 0xff),
+            (ip shr 8 and 0xff),
+            (ip shr 16 and 0xff),
+            (ip shr 24 and 0xff)
+        )
     }
 
     enum class WifiCapability {
