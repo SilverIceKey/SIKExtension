@@ -38,7 +38,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
-inline fun <reified T> String.httpGet(params: Map<String, String> = emptyMap()): T {
+inline fun <reified T> String.httpGet(params: Map<String, Any?> = emptyMap()): T {
     if (HttpUtils.isLoggerInRequest) {
         Log.i("HttpExtension",this)
         Log.i("HttpExtension",params.toJson())
