@@ -8,6 +8,7 @@ import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.EncryptMode
 import com.sik.sikencrypt.EncryptPadding
 import com.sik.sikencrypt.EncryptProgressImpl
+import com.sik.sikencrypt.EncryptUtils
 import com.sik.sikencrypt.IEncrypt
 import com.sik.sikencrypt.IEncryptConfig
 import com.sik.sikencrypt.IEncryptProgressListener
