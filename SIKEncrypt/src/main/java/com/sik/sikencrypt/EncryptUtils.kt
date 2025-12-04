@@ -13,15 +13,30 @@ import java.security.Security
  *
  */
 object EncryptUtils {
+
+    /**
+     * 暴露一个可复用的 BC Provider 实例
+     *
+     * 注意：
+     * - 不再移除系统自带的 BC
+     * - 即使系统中已存在名为 "BC" 的 Provider，这里也始终有一个可用的 BouncyCastleProvider 实例
+     */
+    lateinit var bc: BouncyCastleProvider
+        private set
+
     init {
-        /**
-         * 移除旧的BC
-         */
-        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME)
-        /**
-         * 添加新的BC
-         */
-        Security.addProvider(BouncyCastleProvider())
+        // 先看看系统里是否已经有名为 "BC" 的 Provider
+        val installed = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME)
+
+        bc = // 系统里已经有 BouncyCastleProvider，就直接用它
+            installed as? BouncyCastleProvider
+                ?: // 否则使用我们依赖的 bcprov 生成一个实例
+                        BouncyCastleProvider().also { provider ->
+                            // 仅当系统里没有 "BC" 时才尝试注册，避免破坏系统 Provider 配置
+                            if (Security.getProvider(provider.name) == null) {
+                                Security.addProvider(provider)
+                            }
+                        }
     }
 
     /**

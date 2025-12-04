@@ -97,7 +97,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -142,7 +142,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -185,7 +185,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -269,7 +269,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -318,7 +318,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -366,7 +366,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -412,7 +412,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -442,7 +442,7 @@ class DESEncrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)

@@ -8,6 +8,7 @@ import com.sik.sikencrypt.EncryptExceptionEnums
 import com.sik.sikencrypt.EncryptMode
 import com.sik.sikencrypt.EncryptPadding
 import com.sik.sikencrypt.EncryptProgressImpl
+import com.sik.sikencrypt.EncryptUtils
 import com.sik.sikencrypt.IEncrypt
 import com.sik.sikencrypt.IEncryptConfig
 import com.sik.sikencrypt.IEncryptProgressListener
@@ -98,7 +99,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -143,7 +144,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -186,7 +187,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -270,7 +271,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -319,7 +320,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -366,7 +367,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -412,7 +413,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
@@ -442,7 +443,7 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
         val cipher = try {
             Cipher.getInstance(
                 "${iEncryptConfig.algorithm().name}/${iEncryptConfig.mode().mode}/${iEncryptConfig.padding().padding}",
-                BouncyCastleProvider.PROVIDER_NAME
+                EncryptUtils.bc
             )
         } catch (e: NoSuchAlgorithmException) {
             throw EncryptException(EncryptExceptionEnums.MODE_NOT_SUPPORT)
