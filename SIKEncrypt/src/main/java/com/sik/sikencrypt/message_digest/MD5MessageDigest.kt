@@ -43,6 +43,10 @@ class MD5MessageDigest : IMessageDigest {
         return ConvertUtils.bytesToBase64String(digest(ByteArrayInputStream(dataBytes)))
     }
 
+    override fun digest(dataBytes: ByteArray): ByteArray {
+        return digest(ByteArrayInputStream(dataBytes))
+    }
+
     override fun digestFile(srcFile: String, outType: MessageDigestFileOutType): String {
         val tempSrcFile = srcFile.file()
         if (!tempSrcFile.exists()) {

@@ -11,21 +11,41 @@ import okhttp3.Response
  */
 class DefaultHeaderInterceptor : Interceptor {
     companion object {
+        // 原来的
         val defaultHeaders: HashMap<String, String?> = hashMapOf()
+
+        // 新增：按 host 存的默认 header
+        private val hostHeaders: MutableMap<String, MutableMap<String, String?>> = mutableMapOf()
+
+        fun headersForHost(host: String): MutableMap<String, String?> =
+            hostHeaders.getOrPut(host) { mutableMapOf() }
     }
 
     override fun intercept(chain: Chain): Response {
         val originalRequest = chain.request()
         val builder = originalRequest.newBuilder()
 
-        // 仅添加原请求中不存在的默认 header
-        defaultHeaders.filter { it.value != null }.forEach { (key, value) ->
-            if (originalRequest.header(key) == null) {
-                builder.addHeader(key, value!!)
+        val merged = LinkedHashMap<String, String?>()
+
+        // 1. 全局默认
+        defaultHeaders.forEach { (k, v) ->
+            if (v != null) merged[k] = v
+        }
+
+        // 2. 当前 host 默认，覆盖全局
+        val host = originalRequest.url.host
+        hostHeaders[host]?.forEach { (k, v) ->
+            if (v != null) merged[k] = v
+        }
+
+        // 最终：只在原请求没有这个 header 时才加
+        merged.forEach { (key, value) ->
+            if (value != null && originalRequest.header(key) == null) {
+                builder.addHeader(key, value)
             }
         }
 
-        // 仅当原请求中不存在 "Connection" header 时添加
+        // Connection 维持现有逻辑
         if (originalRequest.header("Connection") == null) {
             builder.addHeader("Connection", "close")
         }
@@ -33,3 +53,4 @@ class DefaultHeaderInterceptor : Interceptor {
         return chain.proceed(builder.build())
     }
 }
+
