@@ -30,6 +30,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
 import java.net.URLDecoder
+import java.net.URLEncoder
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -38,188 +39,196 @@ import kotlin.coroutines.resumeWithException
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
+// =====================================================
+// 统一：错误处理 + 解析
+// =====================================================
+
+inline fun <reified T> emptyFallback(): T {
+    return try {
+        globalGson.fromJson("{}", object : TypeToken<T>() {}.type)
+    } catch (_: Exception) {
+        globalGson.fromJson("[]", object : TypeToken<T>() {}.type)
+    }
+}
+
+fun buildHttpErrorMessage(code: Int, raw: String): String {
+    return if (raw.isBlank()) "HTTP $code" else "HTTP $code, body=$raw"
+}
+
+/**
+ * 解析并处理
+ */
+inline fun <reified T> parseResponseOrHandle(
+    request: Request,
+    response: Response
+): T {
+    val raw = response.body?.string().orEmpty()
+
+    // 非2xx：不解析为 T，走全局兜底
+    if (!response.isSuccessful) {
+        val netEx = NetException(request, buildHttpErrorMessage(response.code, raw), null)
+        val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
+        if (handled) return emptyFallback()
+        throw netEx
+    }
+
+    // 2xx 但空 body：兜底给空对象/空数组（保持你原语义）
+    if (raw.isBlank()) return emptyFallback()
+
+    // Content-Type 非 json 且 body 也不像 json：不强行解析（避免 HTML/text 崩）
+    val ct = response.header("Content-Type").orEmpty()
+    val looksLikeJson =
+        ct.contains("json", ignoreCase = true) ||
+                raw.trimStart().startsWith("{") ||
+                raw.trimStart().startsWith("[")
+
+    if (!looksLikeJson) {
+        val netEx = NetException(
+            request,
+            "Non-JSON response. Content-Type=$ct, body=$raw",
+            null
+        )
+        val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
+        if (handled) return emptyFallback()
+        throw netEx
+    }
+
+    return globalGson.fromJson(raw, object : TypeToken<T>() {}.type)
+}
+
+fun encodeQuery(params: Map<String, Any?>): String {
+    return params.entries.joinToString("&") { (k, v) ->
+        val ek = URLEncoder.encode(k, "UTF-8")
+        val ev = URLEncoder.encode(v?.toString().orEmpty(), "UTF-8")
+        "$ek=$ev"
+    }
+}
+
+fun encodeQueryString(params: Map<String, String>): String {
+    return params.entries.joinToString("&") { (k, v) ->
+        val ek = URLEncoder.encode(k, "UTF-8")
+        val ev = URLEncoder.encode(v, "UTF-8")
+        "$ek=$ev"
+    }
+}
+
+// =====================================================
+// 同步请求
+// =====================================================
+
 inline fun <reified T> String.httpGet(params: Map<String, Any?> = emptyMap()): T {
     if (HttpUtils.isLoggerInRequest) {
-        Log.i("HttpExtension",this)
-        Log.i("HttpExtension",params.toJson())
+        Log.i("HttpExtension", this)
+        Log.i("HttpExtension", params.toJson())
     }
-    // 构造带参数的URL
-    val urlWithParams = StringBuilder().apply {
-        append(this@httpGet)
-        if (params.isNotEmpty()) {
-            append('?')
-            params.entries.joinTo(this, "&") { "${it.key}=${it.value}" }
+
+    val urlWithParams = if (params.isEmpty()) {
+        this
+    } else {
+        val qs = encodeQuery(params)
+        buildString {
+            append(this@httpGet)
+            append(if (this@httpGet.contains("?")) "&" else "?")
+            append(qs)
         }
     }
-    val request = Request.Builder().url(urlWithParams.toString()).get().build()
+
+    val request = Request.Builder().url(urlWithParams).get().build()
+
     return try {
-        val response = HttpUtils.createOkHttpClient().newCall(request).execute()
-        val body = response.body?.string() ?: ""
-        response.close()
-        globalGson.fromJson(
-            body, object : TypeToken<T>() {}.type
-        )
-    } catch (e: Exception) {
-        // 创建自定义异常 NetException
-        val netException = NetException(request, e.message, e)
-        // 全局异常处理器，返回是否处理成功的布尔值
-        val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
-        if (globalNetExceptionHandler) {
-            try {
-                globalGson.fromJson<T>(
-                    "{}", object : TypeToken<T>() {}.type
-                )
-            } catch (convertException: Exception) {
-                globalGson.fromJson<T>(
-                    "[]", object : TypeToken<T>() {}.type
-                )
-            }
-        } else {
-            throw netException
+        HttpUtils.createOkHttpClient().newCall(request).execute().use { resp ->
+            parseResponseOrHandle(request, resp)
         }
+    } catch (e: Exception) {
+        val netEx = if (e is NetException) e else NetException(request, e.message, e)
+        val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
+        if (handled) emptyFallback() else throw netEx
     }
 }
 
 inline fun <reified T> String.httpPostForm(formParameters: Any?): T {
     if (HttpUtils.isLoggerInRequest) {
-        Log.i("HttpExtension",this)
-        Log.i("HttpExtension",formParameters.toJson())
+        Log.i("HttpExtension", this)
+        Log.i("HttpExtension", formParameters.toJson())
     }
+
     val formBodyBuilder = FormBody.Builder()
     formParameters?.let {
-        when {
-            it is Map<*, *> -> {
-                for ((key, value) in it) {
-                    formBodyBuilder.add(key.toString(), value.toString())
-                }
-            }
-
-            else -> {
-                val params = it.toMap()
-                for ((key, value) in params) {
-                    formBodyBuilder.add(key, value)
-                }
-            }
+        when (it) {
+            is Map<*, *> -> it.forEach { (k, v) -> formBodyBuilder.add(k.toString(), v.toString()) }
+            else -> it.toMap().forEach { (k, v) -> formBodyBuilder.add(k, v) }
         }
-
     }
+
     val request = Request.Builder().url(this).post(formBodyBuilder.build()).build()
+
     return try {
-        val response = HttpUtils.createOkHttpClient().newCall(request).execute()
-        val body = response.body?.string() ?: ""
-        response.close()
-        globalGson.fromJson(
-            body, object : TypeToken<T>() {}.type
-        )
-    } catch (e: Exception) {
-        // 创建自定义异常 NetException
-        val netException = NetException(request, e.message, e)
-        // 全局异常处理器，返回是否处理成功的布尔值
-        val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
-        if (globalNetExceptionHandler) {
-            try {
-                globalGson.fromJson<T>(
-                    "{}", object : TypeToken<T>() {}.type
-                )
-            } catch (convertException: Exception) {
-                globalGson.fromJson<T>(
-                    "[]", object : TypeToken<T>() {}.type
-                )
-            }
-        } else {
-            throw netException
+        HttpUtils.createOkHttpClient().newCall(request).execute().use { resp ->
+            parseResponseOrHandle(request, resp)
         }
+    } catch (e: Exception) {
+        val netEx = if (e is NetException) e else NetException(request, e.message, e)
+        val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
+        if (handled) emptyFallback() else throw netEx
     }
 }
 
 inline fun <reified T> String.httpPostJson(data: Any? = null): T {
-    val json = data as? String
-        ?: if (data == null) {
-            "{}"
-        } else {
-            globalGson.toJson(data)
-        }
+    val json = data as? String ?: if (data == null) "{}" else globalGson.toJson(data)
+
     if (HttpUtils.isLoggerInRequest) {
-        Log.i("HttpExtension",this)
-        Log.i("HttpExtension",json)
+        Log.i("HttpExtension", this)
+        Log.i("HttpExtension", json)
     }
+
     val mediaType = "application/json; charset=utf-8".toMediaType()
-    val requestBody: RequestBody = (json ?: "").toRequestBody(mediaType)
-    val request = Request.Builder().url(this).method("POST", requestBody).build()
+    val requestBody: RequestBody = json.toRequestBody(mediaType)
+    val request = Request.Builder().url(this).post(requestBody).build()
+
     return try {
-        val response = HttpUtils.createOkHttpClient().newCall(request).execute()
-        val body = response.body?.string() ?: ""
-        response.close()
-        globalGson.fromJson(
-            body, object : TypeToken<T>() {}.type
-        )
-    } catch (e: Exception) {
-        // 创建自定义异常 NetException
-        val netException = NetException(request, e.message, e)
-        // 全局异常处理器，返回是否处理成功的布尔值
-        val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
-        if (globalNetExceptionHandler) {
-            try {
-                globalGson.fromJson<T>(
-                    "{}", object : TypeToken<T>() {}.type
-                )
-            } catch (convertException: Exception) {
-                globalGson.fromJson<T>(
-                    "[]", object : TypeToken<T>() {}.type
-                )
-            }
-        } else {
-            throw netException
+        HttpUtils.createOkHttpClient().newCall(request).execute().use { resp ->
+            parseResponseOrHandle(request, resp)
         }
+    } catch (e: Exception) {
+        val netEx = if (e is NetException) e else NetException(request, e.message, e)
+        val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
+        if (handled) emptyFallback() else throw netEx
     }
 }
 
 inline fun <reified T> String.httpUploadFile(
-    fileParameterName: String, file: File, params: Map<String, String>
+    fileParameterName: String,
+    file: File,
+    params: Map<String, String>
 ): T {
     if (HttpUtils.isLoggerInRequest) {
-        Log.i("HttpExtension",this)
-        Log.i("HttpExtension",params.toJson())
+        Log.i("HttpExtension", this)
+        Log.i("HttpExtension", params.toJson())
     }
+
     val fileBody = file.asRequestBody("application/octet-stream".toMediaType())
-    val requestBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
+    val requestBody = MultipartBody.Builder()
+        .setType(MultipartBody.FORM)
         .addFormDataPart(fileParameterName, file.name, fileBody)
+        .apply { params.forEach { (k, v) -> addFormDataPart(k, v) } }
+        .build()
 
-    // 添加其他表单参数
-    for ((key, value) in params) {
-        requestBodyBuilder.addFormDataPart(key, value)
-    }
-
-    val requestBody = requestBodyBuilder.build()
     val request = Request.Builder().url(this).post(requestBody).build()
 
     return try {
-        val response = HttpUtils.createOkHttpClient().newCall(request).execute()
-        val body = response.body?.string() ?: ""
-        response.close()
-        globalGson.fromJson<T>(
-            body, object : TypeToken<T>() {}.type
-        )
-    } catch (e: Exception) {
-        // 创建自定义异常 NetException
-        val netException = NetException(request, e.message, e)
-        // 全局异常处理器，返回是否处理成功的布尔值
-        val globalNetExceptionHandler = HttpUtils.globalNetExceptionHandler(request, netException)
-        if (globalNetExceptionHandler) {
-            try {
-                globalGson.fromJson<T>(
-                    "{}", object : TypeToken<T>() {}.type
-                )
-            } catch (convertException: Exception) {
-                globalGson.fromJson<T>(
-                    "[]", object : TypeToken<T>() {}.type
-                )
-            }
-        } else {
-            throw netException
+        HttpUtils.createOkHttpClient().newCall(request).execute().use { resp ->
+            parseResponseOrHandle(request, resp)
         }
+    } catch (e: Exception) {
+        val netEx = if (e is NetException) e else NetException(request, e.message, e)
+        val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
+        if (handled) emptyFallback() else throw netEx
     }
 }
+
+// =====================================================
+// 同步下载（保持你原逻辑，只加失败时走 handler）
+// =====================================================
 
 fun String.httpDownloadFile(
     methodStr: String = "GET",
@@ -230,23 +239,23 @@ fun String.httpDownloadFile(
 ): Boolean {
     val json = data as? String ?: globalGson.toJson(data)
     if (HttpUtils.isLoggerInRequest) {
-        Log.i("HttpExtension",this)
-        Log.i("HttpExtension",json)
+        Log.i("HttpExtension", this)
+        Log.i("HttpExtension", json)
     }
+
     val mediaType = "application/json; charset=utf-8".toMediaType()
-    val requestBody: RequestBody = (json ?: "").toRequestBody(mediaType)
+    val requestBody: RequestBody = json.toRequestBody(mediaType)
+
     val request = Request.Builder().apply {
         url(this@httpDownloadFile)
-        headers.forEach { (t, u) ->
-            addHeader(t, u)
-        }
-        if (methodStr == "GET") {
+        headers.forEach { (k, v) -> addHeader(k, v) }
+
+        if (methodStr.equals("GET", ignoreCase = true)) {
             if (data is Map<*, *>) {
-                // 构造带参数的URL
                 val urlWithParams = StringBuilder().apply {
                     append(this@httpDownloadFile)
                     if (data.isNotEmpty()) {
-                        append('?')
+                        append(if (this@httpDownloadFile.contains("?")) "&" else "?")
                         data.entries.joinTo(this, "&") { "${it.key}=${it.value}" }
                     }
                 }
@@ -257,26 +266,34 @@ fun String.httpDownloadFile(
             method(methodStr, requestBody)
         }
     }.build()
+
     return try {
         val response = HttpUtils.createOkHttpClientBuilder(5, TimeUnit.MINUTES).apply {
             addNetworkInterceptor(ProgressInterceptor(progressListener, destinationFile))
-        }.build().newCall(request).execute() // 执行同步网络请求
-        if (!response.isSuccessful || (response.header("Content-Type")
-                ?: "").contains("text/plain")
-        ) {
-            response.close()
-            return false // 下载失败
+        }.build().newCall(request).execute()
+
+        response.use { resp ->
+            val ct = resp.header("Content-Type").orEmpty()
+            if (!resp.isSuccessful || ct.contains("text/plain")) {
+                val raw = runCatching { resp.body?.string().orEmpty() }.getOrDefault("")
+                HttpUtils.globalNetExceptionHandler(
+                    request,
+                    NetException(request, buildHttpErrorMessage(resp.code, raw), null)
+                )
+                return false
+            }
+            true
         }
-        response.close()
-        true // 下载成功
     } catch (e: IOException) {
-        // 创建自定义异常 NetException
-        val netException = NetException(request, e.message, e)
-        // 全局异常处理器，返回是否处理成功的布尔值
-        HttpUtils.globalNetExceptionHandler(request, netException)
-        false // 发生异常，下载失败
+        val netEx = NetException(request, e.message, e)
+        HttpUtils.globalNetExceptionHandler(request, netEx)
+        false
     }
 }
+
+// =====================================================
+// 反射 toMap
+// =====================================================
 
 fun <T : Any> T.toMap(): Map<String, String> {
     return this::class.memberProperties.associate { p ->
@@ -287,118 +304,92 @@ fun <T : Any> T.toMap(): Map<String, String> {
     }
 }
 
-// ---------------------------
-// 异步调用版本，基于协程
-// ---------------------------
+// =====================================================
+// 异步（协程）
+// =====================================================
 
-
-/**
- * 异步 GET 请求
- */
 suspend inline fun <reified T> String.httpGetAsync(
     params: Map<String, String> = emptyMap()
 ): T = suspendCancellableCoroutine { cont ->
     if (HttpUtils.isLoggerInRequest) {
-        Log.i("HttpExtension",this)
-        Log.i("HttpExtension",params.toJson())
+        Log.i("HttpExtension", this)
+        Log.i("HttpExtension", params.toJson())
     }
-    val urlWithParams = StringBuilder().apply {
-        append(this@httpGetAsync)
-        if (params.isNotEmpty()) {
-            append('?')
-            params.entries.joinTo(this, "&") { "${it.key}=${it.value}" }
+
+    val urlWithParams = if (params.isEmpty()) {
+        this
+    } else {
+        val qs = encodeQueryString(params)
+        buildString {
+            append(this@httpGetAsync)
+            append(if (this@httpGetAsync.contains("?")) "&" else "?")
+            append(qs)
         }
     }
-    val request = Request.Builder().url(urlWithParams.toString()).get().build()
+
+    val request = Request.Builder().url(urlWithParams).get().build()
     val call = HttpUtils.createOkHttpClient().newCall(request)
+
     cont.invokeOnCancellation { call.cancel() }
+
     call.enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
-            val netException = NetException(request, e.message, e)
-            val handled = HttpUtils.globalNetExceptionHandler(request, netException)
-            if (handled) {
-                try {
-                    cont.resume(
-                        globalGson.fromJson("{}", object : TypeToken<T>() {}.type)
-                    )
-                } catch (_: Exception) {
-                    cont.resume(
-                        globalGson.fromJson("[]", object : TypeToken<T>() {}.type)
-                    )
-                }
-            } else {
-                cont.resumeWithException(netException)
-            }
+            val netEx = NetException(request, e.message, e)
+            val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
+            if (handled) cont.resume(emptyFallback()) else cont.resumeWithException(netEx)
         }
 
         override fun onResponse(call: Call, response: Response) {
-            response.use {
-                val body = it.body?.string() ?: ""
-                cont.resume(
-                    globalGson.fromJson(body, object : TypeToken<T>() {}.type)
-                )
+            response.use { resp ->
+                try {
+                    cont.resume(parseResponseOrHandle(request, resp))
+                } catch (e: Throwable) {
+                    cont.resumeWithException(e)
+                }
             }
         }
     })
 }
 
-/**
- * 异步 POST JSON 请求
- */
 suspend inline fun <reified T> String.httpPostJsonAsync(data: Any? = null): T =
     suspendCancellableCoroutine { cont ->
-        val json = if (data is String) {
-            data
-        } else {
-            if (data == null) "{}" else globalGson.toJson(data)
-        }
+        val json = data as? String ?: if (data == null) "{}" else globalGson.toJson(data)
+
         if (HttpUtils.isLoggerInRequest) {
-            Log.i("HttpExtension",this)
-            Log.i("HttpExtension",json)
+            Log.i("HttpExtension", this)
+            Log.i("HttpExtension", json)
         }
+
         val mediaType = "application/json; charset=utf-8".toMediaType()
-        val requestBody = (json ?: "").toRequestBody(mediaType)
-        val request = Request.Builder().url(this).method("POST", requestBody).build()
+        val requestBody = json.toRequestBody(mediaType)
+        val request = Request.Builder().url(this).post(requestBody).build()
+
         val call = HttpUtils.createOkHttpClient().newCall(request)
         cont.invokeOnCancellation { call.cancel() }
+
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                val netException = NetException(request, e.message, e)
-                val handled = HttpUtils.globalNetExceptionHandler(request, netException)
-                if (handled) {
-                    try {
-                        cont.resume(
-                            globalGson.fromJson("{}", object : TypeToken<T>() {}.type)
-                        )
-                    } catch (_: Exception) {
-                        cont.resume(
-                            globalGson.fromJson("[]", object : TypeToken<T>() {}.type)
-                        )
-                    }
-                } else {
-                    cont.resumeWithException(netException)
-                }
+                val netEx = NetException(request, e.message, e)
+                val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
+                if (handled) cont.resume(emptyFallback()) else cont.resumeWithException(netEx)
             }
 
             override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    val body = it.body?.string() ?: ""
-                    cont.resume(
-                        globalGson.fromJson(body, object : TypeToken<T>() {}.type)
-                    )
+                response.use { resp ->
+                    try {
+                        cont.resume(parseResponseOrHandle(request, resp))
+                    } catch (e: Throwable) {
+                        cont.resumeWithException(e)
+                    }
                 }
             }
         })
     }
 
-/**
- * suspend 版下载：
- * - 支持断点续传（已存在内容将使用 Range 追加）
- * - destinationFile 可为 null：则自动保存到 /sdcard/Download（Q+ 走 MediaStore）
- * - 成功返回实际 File（方便 adb pull）；失败返回 null
- *
- * @param context 仅当 destinationFile 为 null 时需要，用于写入公共 Download
- */
+// =====================================================
+// suspend 下载（你原版本基本OK，补：失败走 handler）
+// =====================================================
+
 suspend fun String.httpDownloadFile(
     methodStr: String = "GET",
     headers: Map<String, String> = emptyMap(),
@@ -409,11 +400,10 @@ suspend fun String.httpDownloadFile(
 ): File? = withContext(kotlinx.coroutines.Dispatchers.IO) {
     val isGet = methodStr.equals("GET", ignoreCase = true)
 
-    // 1) URL + Body（GET 参数做 URL 编码拼接）
     val finalUrl = if (isGet && data is Map<*, *>) {
         val params = data.entries.joinToString("&") { e ->
-            val k = java.net.URLEncoder.encode(e.key?.toString() ?: "", "UTF-8")
-            val v = java.net.URLEncoder.encode(e.value?.toString() ?: "", "UTF-8")
+            val k = URLEncoder.encode(e.key?.toString() ?: "", "UTF-8")
+            val v = URLEncoder.encode(e.value?.toString() ?: "", "UTF-8")
             "$k=$v"
         }
         StringBuilder().apply {
@@ -429,25 +419,21 @@ suspend fun String.httpDownloadFile(
     headers.forEach { (k, v) -> reqBuilder.addHeader(k, v) }
     val requestBody: RequestBody? = if (!isGet) {
         val json = (data as? String) ?: (if (data == null) "{}" else globalGson.toJson(data))
-        (json ?: "").toRequestBody("application/json; charset=utf-8".toMediaType())
+        json.toRequestBody("application/json; charset=utf-8".toMediaType())
     } else null
 
-    // 2) 目标：指定文件 or 公有 Download
     val target: DiskTarget = when {
         destinationFile != null -> DiskTarget.FilePath(destinationFile)
         else -> DiskTarget.Downloads(context)
     }
 
-    // 3) 初步名（供续传与缺省命名）
     val guessedName = guessFileNameFromUrl(finalUrl.toString())
 
-    // 4) 查询已存在（用于 Range）
     val existInfo = when (target) {
         is DiskTarget.FilePath -> {
             val f = target.file
             if (f.exists()) ResumeInfo(f.length(), f.name, null) else ResumeInfo(0L, f.name, null)
         }
-
         is DiskTarget.Downloads -> {
             val existing = findExistingInDownloads(target.ctx, guessedName)
             if (existing != null) ResumeInfo(existing.size, existing.displayName, existing.uri)
@@ -462,41 +448,41 @@ suspend fun String.httpDownloadFile(
         .apply { if (existInfo.length > 0) header("Range", "bytes=${existInfo.length}-") }
         .build()
 
-    // 5) 发请求
     val resp = try {
         HttpUtils.createOkHttpClientBuilder(5, TimeUnit.MINUTES).build().newCall(req).execute()
     } catch (e: IOException) {
-        HttpUtils.globalNetExceptionHandler(
-            req,
-            NetException(req, e.message, e)
-        ); return@withContext null
+        HttpUtils.globalNetExceptionHandler(req, NetException(req, e.message, e))
+        return@withContext null
     }
 
     resp.use { response ->
         val code = response.code
-        if (!response.isSuccessful && code !in arrayOf(200, 206)) return@withContext null
-        val body = response.body ?: return@withContext null
+        if (!(code == 200 || code == 206)) {
+            val raw = runCatching { response.body?.string().orEmpty() }.getOrDefault("")
+            HttpUtils.globalNetExceptionHandler(
+                req,
+                NetException(req, buildHttpErrorMessage(code, raw), null)
+            )
+            return@withContext null
+        }
 
-        // 是否真正进入断点续传（服务端返回 206 才算）
+        val body = response.body ?: return@withContext null
         val isResume = (existInfo.length > 0 && code == 206)
 
-        // 6) 确定最终文件名 & MIME
         val mime = response.header("Content-Type")?.substringBefore(';')?.trim().orEmpty()
-        val nameFromHeader = parseFilenameFromContentDisposition(response.header("Content-Disposition"))
+        val nameFromHeader =
+            parseFilenameFromContentDisposition(response.header("Content-Disposition"))
         val finalName = nameFromHeader ?: guessedName ?: fallbackName(finalUrl.toString(), mime)
 
-        // 7) 计算总量（用于更准确的进度）
         val contentLength = body.contentLength().takeIf { it > 0 } ?: -1L
         val totalExpected = when {
             isResume -> {
                 parseTotalFromContentRange(response.header("Content-Range"))
                     ?: (if (contentLength > 0) existInfo.length + contentLength else -1L)
             }
-            code == 200 -> contentLength
-            else -> -1L
+            else -> contentLength
         }
 
-        // 8) 打开输出（覆盖/追加）
         val out: OutputSink = when (target) {
             is DiskTarget.FilePath -> {
                 target.file.parentFile?.mkdirs()
@@ -517,9 +503,9 @@ suspend fun String.httpDownloadFile(
             }
         }
 
-        // 9) 写入 + 进度
-        var written = if (isResume) existInfo.length else 0L   // ← 修正点：200 时从 0 开始
+        var written = if (isResume) existInfo.length else 0L
         val buf = ByteArray(DEFAULT_BUFFER_SIZE)
+
         try {
             body.byteStream().use { input ->
                 out.stream.use { output ->
@@ -529,8 +515,8 @@ suspend fun String.httpDownloadFile(
                         output.write(buf, 0, n)
                         written += n
 
-                        // clamp，避免超过 100%
-                        val reported = if (totalExpected > 0) minOf(written, totalExpected) else written
+                        val reported =
+                            if (totalExpected > 0) minOf(written, totalExpected) else written
                         progressListener.update(reported, totalExpected, false)
                     }
                     output.flush()
@@ -541,11 +527,9 @@ suspend fun String.httpDownloadFile(
                 finalizePendingDownload(out.ctx, out.uri)
             }
 
-            // 完成强制到 100%
             val finalReported = if (totalExpected > 0) totalExpected else written
             progressListener.update(finalReported, totalExpected, true)
 
-            // 10) 返回文件路径...
             return@withContext when (out) {
                 is OutputSink.FileStream -> out.file
                 is OutputSink.MediaStoreStream -> File(
@@ -563,7 +547,7 @@ suspend fun String.httpDownloadFile(
     }
 }
 
-/* ====== 辅助类型/方法（HttpExtension 内部私有） ====== */
+/* ====== 辅助类型/方法（保持你原实现） ====== */
 
 private sealed interface DiskTarget {
     data class FilePath(val file: File) : DiskTarget
@@ -572,11 +556,15 @@ private sealed interface DiskTarget {
 
 private data class ResumeInfo(val length: Long, val displayName: String?, val uri: Uri?)
 private data class ExistingDownload(val uri: Uri, val displayName: String, val size: Long)
+
 private sealed interface OutputSink {
     val stream: OutputStream
 
-    data class FileStream(override val stream: OutputStream, val file: File, val append: Boolean) :
-        OutputSink
+    data class FileStream(
+        override val stream: OutputStream,
+        val file: File,
+        val append: Boolean
+    ) : OutputSink
 
     data class MediaStoreStream(
         override val stream: OutputStream,
@@ -619,8 +607,12 @@ private fun fallbackName(url: String, mime: String): String {
 
 private fun parseFilenameFromContentDisposition(cd: String?): String? {
     if (cd.isNullOrBlank()) return null
-    val star =
-        Pattern.compile("filename\\*=(?:UTF-8'')?([^;]+)", Pattern.CASE_INSENSITIVE).matcher(cd)
+
+    val star = Pattern.compile(
+        "filename\\*=(?:UTF-8'')?([^;]+)",
+        Pattern.CASE_INSENSITIVE
+    ).matcher(cd)
+
     if (star.find()) {
         val v = star.group(1)?.trim()?.trim('"', '\'')
         return try {
@@ -629,7 +621,12 @@ private fun parseFilenameFromContentDisposition(cd: String?): String? {
             v
         }
     }
-    val plain = Pattern.compile("filename=\"?([^\";]+)\"?", Pattern.CASE_INSENSITIVE).matcher(cd)
+
+    val plain = Pattern.compile(
+        "filename=\"?([^\";]+)\"?",
+        Pattern.CASE_INSENSITIVE
+    ).matcher(cd)
+
     if (plain.find()) return plain.group(1)?.trim()
     return null
 }
@@ -643,6 +640,7 @@ private fun parseTotalFromContentRange(cr: String?): Long? {
 
 private fun findExistingInDownloads(ctx: Context, displayName: String?): ExistingDownload? {
     if (displayName.isNullOrBlank()) return null
+
     return if (Build.VERSION.SDK_INT >= 29) {
         val proj = arrayOf(
             MediaStore.Downloads._ID,
@@ -650,9 +648,13 @@ private fun findExistingInDownloads(ctx: Context, displayName: String?): Existin
             MediaStore.Downloads.SIZE
         )
         val base = MediaStore.Downloads.EXTERNAL_CONTENT_URI
+
         ctx.contentResolver.query(
-            base, proj, "${MediaStore.Downloads.DISPLAY_NAME}=?",
-            arrayOf(displayName), null
+            base,
+            proj,
+            "${MediaStore.Downloads.DISPLAY_NAME}=?",
+            arrayOf(displayName),
+            null
         )?.use { c ->
             if (c.moveToFirst()) {
                 val id = c.getLong(0)
@@ -691,8 +693,7 @@ private fun openDownloadsOutput(
                 if (mime.isNotBlank()) put(MediaStore.Downloads.MIME_TYPE, mime)
                 put(MediaStore.Downloads.IS_PENDING, 1)
             }
-            val uri =
-                resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return null
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return null
             val stream = resolver.openOutputStream(uri, "w") ?: return null
             OutputSink.MediaStoreStream(stream, ctx, uri, newlyCreated = true)
         }

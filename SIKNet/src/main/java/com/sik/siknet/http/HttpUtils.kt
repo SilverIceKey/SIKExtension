@@ -1,5 +1,6 @@
 package com.sik.siknet.http
 
+import android.util.Log
 import com.sik.siknet.http.dns.DefaultDns
 import com.sik.siknet.http.interceptor.AutoSaveCookieJar
 import com.sik.siknet.http.interceptor.DefaultHeaderInterceptor
@@ -24,10 +25,11 @@ object HttpUtils {
     /**
      * 请求头类型
      */
-    val CLIENT_MEDIA_TYPE: MediaType? = "application/json; charset=utf-8".toMediaTypeOrNull()
+    val CLIENT_MEDIA_TYPE: MediaType? =
+        "application/json; charset=utf-8".toMediaTypeOrNull()
 
     /**
-     * 拦截器
+     * 应用层拦截器
      */
     val interceptor: MutableList<Interceptor> = mutableListOf()
 
@@ -37,49 +39,86 @@ object HttpUtils {
     val networkInterceptor: MutableList<Interceptor> = mutableListOf()
 
     /**
-     * 全局网络异常处理
-     */
-    var globalNetExceptionHandler: (Request, NetException) -> Boolean = { _, _ -> false }
-
-    /**
-     * 是否在请求时写日志
+     * 是否在请求时打印日志
      */
     var isLoggerInRequest: Boolean = true
 
     /**
-     * 证书源数组
+     * 证书源
      */
     val certSources: MutableList<CertSource> = mutableListOf()
 
     /**
-     * 默认的证书加载方法
+     * 证书加载策略（可被替换）
      */
-    var loadCertificates: (List<CertSource>) -> SSLSocketFactory = { certSources ->
-        createSSLSocketFactory(certSources)
+    var loadCertificates: (List<CertSource>) -> SSLSocketFactory = {
+        createSSLSocketFactory(it)
+    }
+
+    // =====================================================
+    //  非 2xx / 网络异常兜底机制（重点）
+    // =====================================================
+
+    /**
+     * 默认兜底行为：
+     * - 仅记录日志
+     * - 不做 UI
+     * - 不抛异常
+     *
+     * 上层可直接替换：
+     * HttpUtils.defaultErrorFallback = { toast / dialog / 埋点 }
+     */
+    var defaultErrorFallback: (Request, NetException) -> Unit = { req, ex ->
+        Log.e(
+            "HttpUtils",
+            "HTTP fallback\n" +
+                    "url=${req.url}\n" +
+                    "method=${req.method}\n" +
+                    "msg=${ex.message}",
+            ex
+        )
     }
 
     /**
-     * Create ok http client
-     * 创建okhttpClient
-     * @param timeoutTime
-     * @param timeoutUnit
-     * @return
+     * 全局异常处理器
+     *
+     * @return true  -> 已处理（解析层可以吞异常）
+     * @return false -> 未处理（解析层应抛 NetException）
      */
+    var globalNetExceptionHandler: (Request, NetException) -> Boolean = { req, ex ->
+        defaultErrorFallback(req, ex)
+        true // 默认：兜底后吞掉
+    }
+
+    /**
+     * 工具方法：用于解析层在发现非 2xx 时调用
+     */
+    fun handleHttpError(
+        request: Request,
+        code: Int,
+        rawBody: String? = null
+    ): Boolean {
+        val msg = buildString {
+            append("HTTP $code")
+            if (!rawBody.isNullOrBlank()) append(" body=$rawBody")
+        }
+        return globalNetExceptionHandler(
+            request,
+            NetException(request, msg, null)
+        )
+    }
+
+    // =====================================================
+    //  OkHttp Client 构建
+    // =====================================================
+
     fun createOkHttpClient(
         timeoutTime: Long = 60,
         timeoutUnit: TimeUnit = TimeUnit.SECONDS
     ): OkHttpClient {
-        return createOkHttpClientBuilder(timeoutTime, timeoutUnit)
-            .build()
+        return createOkHttpClientBuilder(timeoutTime, timeoutUnit).build()
     }
 
-    /**
-     * Create ok http client builder
-     * 创建okhttp client建造器
-     * @param timeoutTime
-     * @param timeoutUnit
-     * @return
-     */
     fun createOkHttpClientBuilder(
         timeoutTime: Long = 60,
         timeoutUnit: TimeUnit = TimeUnit.SECONDS
@@ -89,16 +128,8 @@ object HttpUtils {
             .addInterceptor(DefaultHeaderInterceptor())
             .addInterceptor(DefaultParameterInterceptor())
             .apply {
-                if (interceptor.isNotEmpty()) {
-                    interceptor.forEach {
-                        addInterceptor(it)
-                    }
-                }
-                if (networkInterceptor.isNotEmpty()) {
-                    networkInterceptor.forEach {
-                        addNetworkInterceptor(it)
-                    }
-                }
+                interceptor.forEach { addInterceptor(it) }
+                networkInterceptor.forEach { addNetworkInterceptor(it) }
             }
             .dns(DefaultDns())
             .connectTimeout(timeoutTime, timeoutUnit)
@@ -106,7 +137,6 @@ object HttpUtils {
             .writeTimeout(timeoutTime, timeoutUnit)
             .followRedirects(true)
 
-        // 如果有证书源，加载证书
         if (certSources.isNotEmpty()) {
             val sslSocketFactory = loadCertificates(certSources)
             val trustManager = createTrustManager(certSources)
@@ -116,51 +146,49 @@ object HttpUtils {
         return builder
     }
 
-    /**
-     * 创建 SSL Socket Factory
-     */
+    // =====================================================
+    //  SSL
+    // =====================================================
+
     private fun createSSLSocketFactory(certSources: List<CertSource>): SSLSocketFactory {
         val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
         keyStore.load(null, null)
 
         val certificateFactory = CertificateFactory.getInstance("X.509")
-        certSources.forEach { certSource ->
-            val inputStream = certSource.getCertSourceInputStream()
-            inputStream.use {
+        certSources.forEach { source ->
+            source.getCertSourceInputStream().use {
                 val cert = certificateFactory.generateCertificate(it) as X509Certificate
-                keyStore.setCertificateEntry(certSource.getAlias(), cert)
+                keyStore.setCertificateEntry(source.getAlias(), cert)
             }
         }
 
-        val trustManagerFactory =
-            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-        trustManagerFactory.init(keyStore)
+        val tmf = TrustManagerFactory.getInstance(
+            TrustManagerFactory.getDefaultAlgorithm()
+        )
+        tmf.init(keyStore)
 
         val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(null, trustManagerFactory.trustManagers, null)
+        sslContext.init(null, tmf.trustManagers, null)
         return sslContext.socketFactory
     }
 
-    /**
-     * 创建 Trust Manager
-     */
     private fun createTrustManager(certSources: List<CertSource>): X509TrustManager {
         val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
         keyStore.load(null, null)
 
         val certificateFactory = CertificateFactory.getInstance("X.509")
-        certSources.forEach { certSource ->
-            val inputStream = certSource.getCertSourceInputStream()
-            inputStream.use {
+        certSources.forEach { source ->
+            source.getCertSourceInputStream().use {
                 val cert = certificateFactory.generateCertificate(it) as X509Certificate
-                keyStore.setCertificateEntry(certSource.getAlias(), cert)
+                keyStore.setCertificateEntry(source.getAlias(), cert)
             }
         }
 
-        val trustManagerFactory =
-            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-        trustManagerFactory.init(keyStore)
+        val tmf = TrustManagerFactory.getInstance(
+            TrustManagerFactory.getDefaultAlgorithm()
+        )
+        tmf.init(keyStore)
 
-        return trustManagerFactory.trustManagers[0] as X509TrustManager
+        return tmf.trustManagers[0] as X509TrustManager
     }
 }
