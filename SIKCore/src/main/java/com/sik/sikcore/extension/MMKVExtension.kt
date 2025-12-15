@@ -56,3 +56,10 @@ inline fun <reified T> String.saveMMKVData(value: T) {
 inline fun <reified T> String.getMMKVData(defaultValue: T): T {
     return MMKV.defaultMMKV().getMMKVData(this, defaultValue)
 }
+
+/**
+ * 移除数据
+ */
+fun String.removeMMKVData(){
+    MMKV.defaultMMKV().removeValueForKey(this)
+}
