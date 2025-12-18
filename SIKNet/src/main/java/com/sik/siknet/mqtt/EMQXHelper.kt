@@ -63,6 +63,9 @@ class EMQXHelper {
 
     @Volatile
     private var released: Boolean = false
+
+    // 缓存待发送的消息
+    private val pendingMessages = mutableListOf<PendingMessage>()
     // ====================================
 
     companion object {
@@ -163,6 +166,8 @@ class EMQXHelper {
                                     Log.i("EMQXHelper", "连接成功 topic:${config.topic},qos:${config.qos()}")
                                     client.subscribe(config.topic, config.qos())
                                     isMqttConnect = true
+                                    // 连接成功后发送缓存的消息
+                                    sendPendingMessages()
                                 } catch (e: Exception) {
                                     Log.e("EMQXHelper", "订阅异常: ${e.message}")
                                     isMqttConnect = false
@@ -246,14 +251,12 @@ class EMQXHelper {
      * @param topic 发送主题，默认使用 emqxConfig.topic
      * @param qos   QOS，默认使用 emqxConfig.qos()
      */
-    fun send(data: Any, topic: String = emqxConfig.topic, qos: Int = emqxConfig.qos()) {
-        // 1. 确保配置与 client 已初始化
-        if (!this::emqxConfig.isInitialized) {
-            Log.e("EMQXHelper", "send 失败：EMQXConfig 未初始化")
-            return
-        }
+    fun send(data: Any, topic: String = "", qos: Int = emqxConfig.qos()) {
+        // 1. 确保client 已初始化
         if (!this::mqttClient.isInitialized) {
             Log.e("EMQXHelper", "send 失败：mqttClient 未初始化")
+            // 添加到待发送队列
+            addToPendingMessages(data, topic, qos)
             reconnect()
             return
         }
@@ -282,6 +285,8 @@ class EMQXHelper {
                 if (!mqttClient.isConnected) {
                     Log.w("EMQXHelper", "send 失败：当前未连接 mqtt，触发重连")
                     isMqttConnect = false
+                    // 添加到待发送队列
+                    addToPendingMessages(data, topic, qos)
                     reconnect()
                     return@runIo
                 }
@@ -293,6 +298,8 @@ class EMQXHelper {
             } catch (e: Exception) {
                 Log.e("EMQXHelper", "send 发送异常：${e.message}")
                 isMqttConnect = false
+                // 添加到待发送队列
+                addToPendingMessages(data, topic, qos)
                 reconnect()
             }
         }
@@ -328,6 +335,8 @@ class EMQXHelper {
                     try {
                         c.subscribe(emqxConfig.topic, emqxConfig.qos())
                         isMqttConnect = true
+                        // 发送缓存的消息
+                        sendPendingMessages()
                     } catch (e: Exception) {
                         Log.e("EMQXHelper", "重连时订阅异常: ${e.message}")
                         isMqttConnect = false
@@ -347,6 +356,8 @@ class EMQXHelper {
                     Log.i("EMQXHelper", "mqtt重连成功，补订阅 topic=${emqxConfig.topic}")
                     try {
                         c.subscribe(emqxConfig.topic, emqxConfig.qos())
+                        // 发送缓存的消息
+                        sendPendingMessages()
                     } catch (e: Exception) {
                         Log.e("EMQXHelper", "重连成功但订阅失败: ${e.message}")
                     }
@@ -396,7 +407,50 @@ class EMQXHelper {
         }
     }
 
+    /**
+     * 添加消息到待发送队列
+     */
+    private fun addToPendingMessages(data: Any, topic: String, qos: Int) {
+        synchronized(pendingMessages) {
+            pendingMessages.add(PendingMessage(data, topic, qos))
+        }
+    }
+
+    /**
+     * 发送缓存的消息
+     */
+    private fun sendPendingMessages() {
+        synchronized(pendingMessages) {
+            if (pendingMessages.isEmpty()) return
+
+            Log.i("EMQXHelper", "开始发送缓存的 ${pendingMessages.size} 条消息")
+
+            val messagesToSend = pendingMessages.toList()
+            pendingMessages.clear()
+
+            for ((index, message) in messagesToSend.withIndex()) {
+                try {
+                    // 给一些时间确保连接稳定
+                    if (index > 0) {
+                        Thread.sleep(100)
+                    }
+
+                    send(message.data, message.topic, message.qos)
+                } catch (e: Exception) {
+                    Log.e("EMQXHelper", "发送缓存消息失败: ${e.message}")
+                    // 如果发送失败，重新加入队列
+                    pendingMessages.add(message)
+                }
+            }
+        }
+    }
+
     // =================================================
+
+    /**
+     * 待发送消息数据类
+     */
+    private data class PendingMessage(val data: Any, val topic: String, val qos: Int)
 
     /**
      * EMQX回调类
