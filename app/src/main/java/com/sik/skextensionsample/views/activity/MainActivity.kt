@@ -32,6 +32,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), NightModeAware {
             FeatureEntry("动画示例", "展示动画相关接口") {
 
             },
+            FeatureEntry(
+                "下载示例", "展示下载相关接口", listOf(
+                    FeatureEntry("下载图片", "下载图片") {
+                        startActivity(Intent(this, DownloadActivity::class.java))
+                    }
+                )),
 
             FeatureEntry(
                 "加解密实例", "展示加解密相关接口", listOf(
