@@ -706,6 +706,99 @@ private fun openDownloadsOutput(
     }
 }
 
+// 通用二进制结果
+data class HttpBytesResult(
+    val bytes: ByteArray,
+    val contentType: String?
+)
+
+/**
+ * 万能下载：返回字节数组 + Content-Type
+ *
+ * - 支持 GET / POST / PUT / DELETE 等
+ * - GET + data is Map<*, *> 时，自动拼 query
+ * - 其他情况把 data 按 JSON 丢 body（跟你 httpDownloadFile 一致）
+ * - 错误统一走 globalNetExceptionHandler
+ */
+fun String.httpDownloadBytes(
+    methodStr: String = "GET",
+    headers: Map<String, String> = emptyMap(),
+    data: Any? = null
+): HttpBytesResult? {
+    val isGet = methodStr.equals("GET", ignoreCase = true)
+
+    // 组 URL + body（逻辑严格参考你 suspend httpDownloadFile）
+    val finalUrl: String
+    val requestBody: RequestBody?
+
+    if (isGet && data is Map<*, *>) {
+        val params = data.entries.joinToString("&") { e ->
+            val k = URLEncoder.encode(e.key?.toString() ?: "", "UTF-8")
+            val v = URLEncoder.encode(e.value?.toString() ?: "", "UTF-8")
+            "$k=$v"
+        }
+        finalUrl = buildString {
+            append(this@httpDownloadBytes)
+            if (params.isNotEmpty()) {
+                append(if (this@httpDownloadBytes.contains("?")) "&" else "?")
+                append(params)
+            }
+        }
+        requestBody = null
+    } else {
+        finalUrl = this
+        val json = data as? String ?: (if (data == null) "{}" else globalGson.toJson(data))
+        val mediaType = "application/json; charset=utf-8".toMediaType()
+        requestBody = json.toRequestBody(mediaType)
+
+        if (HttpUtils.isLoggerInRequest) {
+            Log.i("HttpExtension", finalUrl)
+            Log.i("HttpExtension", json)
+        }
+    }
+
+    if (HttpUtils.isLoggerInRequest && (isGet && data is Map<*, *>)) {
+        // GET+Map 的情况单独打一下 log
+        Log.i("HttpExtension", finalUrl)
+        Log.i("HttpExtension", globalGson.toJson(data))
+    }
+
+    val reqBuilder = Request.Builder().url(finalUrl)
+    headers.forEach { (k, v) -> reqBuilder.addHeader(k, v) }
+
+    val request = if (requestBody == null) {
+        reqBuilder.get().build()
+    } else {
+        reqBuilder.method(methodStr.uppercase(), requestBody).build()
+    }
+
+    return try {
+        HttpUtils.createOkHttpClient().newCall(request).execute().use { resp ->
+            val bodyBytes = resp.body?.bytes()
+
+            if (!resp.isSuccessful || bodyBytes == null) {
+                val raw = runCatching { resp.body?.string().orEmpty() }.getOrDefault("")
+                val netEx = NetException(
+                    request,
+                    buildHttpErrorMessage(resp.code, raw),
+                    null
+                )
+                val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
+                if (handled) null else throw netEx
+            } else {
+                HttpBytesResult(
+                    bytes = bodyBytes,
+                    contentType = resp.header("Content-Type")
+                )
+            }
+        }
+    } catch (e: Exception) {
+        val netEx = e as? NetException ?: NetException(request, e.message, e)
+        val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
+        if (handled) null else throw netEx
+    }
+}
+
 private fun finalizePendingDownload(ctx: Context, uri: Uri) {
     if (Build.VERSION.SDK_INT >= 29) {
         val v = ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }
