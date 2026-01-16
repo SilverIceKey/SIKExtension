@@ -30,8 +30,8 @@ object NetUtil {
     /**
      * 获取MAC地址（有网口的前提下）
      */
-    fun getMacAddress(): String? = try {
-        FileUtils.loadFileAsString("/sys/class/net/eth0/address")
+    fun getMacAddress(macFile: String = "/sys/class/net/eth0/address"): String? = try {
+        FileUtils.loadFileAsString(macFile)
             .uppercase(Locale.ROOT).substring(0, 17)
     } catch (e: IOException) {
         e.printStackTrace()
