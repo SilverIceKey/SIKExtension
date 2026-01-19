@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.view.animation.DecelerateInterpolator
 import android.widget.ProgressBar
+import java.util.WeakHashMap
 
 /**
  * Do after rendered
@@ -69,24 +70,20 @@ fun ProgressBar.setProgressSmoothly(newProgress: Int, duration: Long = 500) {
     }
 }
 
-val debouncedClickTime: HashMap<Any, Long> = hashMapOf()
+val debouncedClickTime: WeakHashMap<Any, Long> = WeakHashMap()
 
 // 扩展函数：为 View 设置防抖的点击事件监听器
 fun View.setDebouncedClickListener(
-    debounceMillis: Long = 500L, // 防抖的时间间隔，默认为500毫秒
-    listener: View.OnClickListener
+    debounceMillis: Long = 500L,
+    listener: (View) -> Unit
 ) {
-    // 设置点击事件监听器
-    this.setOnClickListener {
-        val lastClickTime = debouncedClickTime[this.id] ?: 0L
+    setOnClickListener { v ->
+        val lastClickTime = debouncedClickTime[v] ?: 0L
         val currentTime = SystemClock.elapsedRealtime()
 
-        // 判断当前时间和上次点击时间的差值是否大于防抖间隔
         if (currentTime - lastClickTime >= debounceMillis) {
-            // 更新上次点击时间
-            debouncedClickTime[this.id] = currentTime
-            // 调用传入的监听器
-            listener.onClick(it)
+            debouncedClickTime[v] = currentTime
+            listener(v)
         }
     }
 }
