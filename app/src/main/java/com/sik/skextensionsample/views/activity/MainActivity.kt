@@ -11,6 +11,7 @@ import com.sik.sikcore.explain.LogInfo
 import com.sik.skextensionsample.R
 import com.sik.skextensionsample.data.FeatureEntry
 import com.sik.skextensionsample.databinding.ActivityMainBinding
+import com.sik.skextensionsample.utils.PermissionHelper
 import com.sik.skextensionsample.views.adapter.FeatureAdapter
 
 @LogInfo(description = "进入主界面")
@@ -41,10 +42,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), NightModeAware {
 
             FeatureEntry(
                 "加解密实例", "展示加解密相关接口", listOf(
-                FeatureEntry("AES", "AES加解密") {
-                    startActivity(Intent(this, EncryptorActivity::class.java))
-                }
-            ))
+                    FeatureEntry("AES", "AES加解密") {
+                        startActivity(Intent(this, EncryptorActivity::class.java))
+                    }
+                ))
             // 可继续添加
         )
 
@@ -54,18 +55,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), NightModeAware {
             adapter = this@MainActivity.adapter
         }
         adapter.setData(featureList)
+        PermissionHelper.checkAndRequestPermissions({
+            Log.i("MainActivity", "授权成功")
+        }) {
+            Log.i("MainActivity", "授权失败")
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        Log.i("MainActivity","配置转换")
+        Log.i("MainActivity", "配置转换")
     }
 
     override fun onNightModeChanged(mode: Int) {
         if (mode == Configuration.UI_MODE_NIGHT_YES) {
-            Log.i("MainActivity","深色模式已启动")
+            Log.i("MainActivity", "深色模式已启动")
         } else if (mode == Configuration.UI_MODE_NIGHT_NO) {
-            Log.i("MainActivity","深色模式已关闭")
+            Log.i("MainActivity", "深色模式已关闭")
         }
     }
 }

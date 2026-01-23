@@ -48,7 +48,7 @@ class NewFingerPrintsPrintsAuth<T : FingerPrintsConfig>(private val fingerConfig
         checkFingerConfig()
         when (biometricManager?.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
             BiometricManager.BIOMETRIC_SUCCESS -> {
-                PermissionUtils.checkAndRequestPermissions(arrayOf(Manifest.permission.USE_BIOMETRIC)) {
+                PermissionUtils.requestPermissions(permissions = arrayOf(Manifest.permission.USE_BIOMETRIC)) {
                     if (it) {
                         biometricPrompt =
                             BiometricPrompt.Builder(ActivityTracker.getCurrentActivity())

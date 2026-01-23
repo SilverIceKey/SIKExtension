@@ -46,7 +46,7 @@ class OldFingerPrintsPrintsAuth : IFingerPrintsAuth {
      * 检查权限
      */
     private fun checkPermission(auth: (SensorErrorEnum) -> Unit) {
-        PermissionUtils.checkAndRequestPermissions(arrayOf(Manifest.permission.USE_FINGERPRINT)) {
+        PermissionUtils.requestPermissions(permissions = arrayOf(Manifest.permission.USE_FINGERPRINT)) {
             if (it) {
                 if (fingerprintManager?.hasEnrolledFingerprints() == false) {
                     auth(SensorErrorEnum.NO_ENROLLED_FINGERPRINTS)

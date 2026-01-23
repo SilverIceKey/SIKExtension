@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Permission.Transparent" parent="android:Theme.Translucent.NoTitleBar">
+        <!-- 关键：不用 AppCompat -->
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+
+        <!-- 防止闪白 / 闪黑 -->
+        <item name="android:windowDisablePreview">true</item>
+
+        <!-- 可选：去掉状态栏影响 -->
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+
+</resources>
