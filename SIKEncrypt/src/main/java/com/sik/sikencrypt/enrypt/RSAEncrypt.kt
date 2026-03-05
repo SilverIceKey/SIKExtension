@@ -260,6 +260,7 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
         val keySizeInBytes = config.privateKeySize() / 8
         return when (config.padding()) {
             EncryptPadding.NoPadding -> keySizeInBytes
+            EncryptPadding.PKCS1Padding -> keySizeInBytes - 11
             EncryptPadding.PKCS5Padding -> keySizeInBytes - 11
             EncryptPadding.OAEPWithSHA256AndMGF1Padding -> keySizeInBytes - 42
             EncryptPadding.PKCS7Padding -> keySizeInBytes - 11

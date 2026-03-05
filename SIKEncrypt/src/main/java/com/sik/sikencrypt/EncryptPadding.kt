@@ -6,6 +6,7 @@ package com.sik.sikencrypt
  */
 enum class EncryptPadding(val padding: String) {
     NoPadding("NoPadding"),
+    PKCS1Padding("PKCS1Padding"),
     PKCS5Padding("PKCS5Padding"),
     PKCS7Padding("PKCS7Padding"),
     OAEPWithSHA256AndMGF1Padding("OAEPWithSHA-256AndMGF1Padding"),
