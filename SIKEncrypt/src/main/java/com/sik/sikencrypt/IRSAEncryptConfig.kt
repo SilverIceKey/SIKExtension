@@ -1,5 +1,7 @@
 package com.sik.sikencrypt
 
+import android.util.Base64
+
 /**
  * RSA加密配置
  *
