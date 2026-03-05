@@ -22,7 +22,7 @@ abstract class IRSAEncryptConfig : IEncryptConfig {
     /**
      * 密钥长度 有三种长度分别是:1024/2048/4096, 默认2048
      */
-    fun privateKeySize(): Int = 2048
+    open fun privateKeySize(): Int = 2048
 
     override fun key(): ByteArray {
         return ByteArray(0)
@@ -46,4 +46,18 @@ abstract class IRSAEncryptConfig : IEncryptConfig {
 
     override val composeIV: Boolean
         get() = super.composeIV
+
+    /**
+     * 转换Pem为byte数组
+     */
+    protected fun convertPemToBytes(pem: String): ByteArray{
+        val base64 = pem
+            .replace("-----BEGIN PRIVATE KEY-----", "")
+            .replace("-----END PRIVATE KEY-----", "")
+            .replace("-----BEGIN PUBLIC KEY-----", "")
+            .replace("-----END PUBLIC KEY-----", "")
+            .replace("\\s".toRegex(), "")
+
+        return Base64.decode(base64, Base64.DEFAULT)
+    }
 }
