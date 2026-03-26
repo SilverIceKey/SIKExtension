@@ -6,10 +6,13 @@ import com.sik.siknet.http.interceptor.AutoSaveCookieJar
 import com.sik.siknet.http.interceptor.DefaultHeaderInterceptor
 import com.sik.siknet.http.interceptor.DefaultParameterInterceptor
 import com.sik.siknet.http.ssl.CertSource
+import okhttp3.ConnectionPool
+import okhttp3.Dispatcher
 import okhttp3.Interceptor
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
 import java.security.KeyStore
 import java.security.cert.CertificateFactory
@@ -55,6 +58,27 @@ object HttpUtils {
         createSSLSocketFactory(it)
     }
 
+    /**
+     * 全局共享连接池
+     */
+    private val sharedConnectionPool: ConnectionPool by lazy {
+        ConnectionPool(
+            8,
+            5,
+            TimeUnit.MINUTES
+        )
+    }
+
+    /**
+     * 全局共享调度器
+     */
+    private val sharedDispatcher: Dispatcher by lazy {
+        Dispatcher().apply {
+            maxRequests = 64
+            maxRequestsPerHost = 16
+        }
+    }
+
     // =====================================================
     //  非 2xx / 网络异常兜底机制（重点）
     // =====================================================
@@ -87,7 +111,7 @@ object HttpUtils {
      */
     var globalNetExceptionHandler: (Request, NetException) -> Boolean = { req, ex ->
         defaultErrorFallback(req, ex)
-        true // 默认：兜底后吞掉
+        true
     }
 
     /**
@@ -109,19 +133,71 @@ object HttpUtils {
     }
 
     // =====================================================
-    //  OkHttp Client 构建
+    //  Client 构建
     // =====================================================
 
+    /**
+     * 全局 API Client
+     * 普通接口统一走这里
+     */
+    val apiClient: OkHttpClient by lazy {
+        createBaseBuilder(
+            timeoutTime = 60,
+            timeoutUnit = TimeUnit.SECONDS
+        ).build()
+    }
+
+    /**
+     * 全局下载 Client
+     * 下载/大文件统一走这里
+     */
+    val downloadClient: OkHttpClient by lazy {
+        createBaseBuilder(
+            timeoutTime = 5,
+            timeoutUnit = TimeUnit.MINUTES
+        ).build()
+    }
+
+    /**
+     * 为兼容旧调用保留
+     * 以后普通请求都走 apiClient
+     */
     fun createOkHttpClient(
         timeoutTime: Long = 60,
         timeoutUnit: TimeUnit = TimeUnit.SECONDS
     ): OkHttpClient {
-        return createOkHttpClientBuilder(timeoutTime, timeoutUnit).build()
+        return if (timeoutTime == 60L && timeoutUnit == TimeUnit.SECONDS) {
+            apiClient
+        } else if (timeoutTime == 5L && timeoutUnit == TimeUnit.MINUTES) {
+            downloadClient
+        } else {
+            createBaseBuilder(timeoutTime, timeoutUnit).build()
+        }
     }
 
+    /**
+     * 为兼容旧调用保留
+     * 注意：推荐优先从 apiClient/downloadClient 派生 newBuilder()
+     */
     fun createOkHttpClientBuilder(
         timeoutTime: Long = 60,
         timeoutUnit: TimeUnit = TimeUnit.SECONDS
+    ): OkHttpClient.Builder {
+        return if (timeoutTime == 60L && timeoutUnit == TimeUnit.SECONDS) {
+            apiClient.newBuilder()
+        } else if (timeoutTime == 5L && timeoutUnit == TimeUnit.MINUTES) {
+            downloadClient.newBuilder()
+        } else {
+            createBaseBuilder(timeoutTime, timeoutUnit)
+        }
+    }
+
+    /**
+     * 真正的基础 Builder
+     */
+    private fun createBaseBuilder(
+        timeoutTime: Long,
+        timeoutUnit: TimeUnit
     ): OkHttpClient.Builder {
         val builder = OkHttpClient.Builder()
             .cookieJar(AutoSaveCookieJar())
@@ -132,10 +208,14 @@ object HttpUtils {
                 networkInterceptor.forEach { addNetworkInterceptor(it) }
             }
             .dns(DefaultDns())
+            .dispatcher(sharedDispatcher)
+            .connectionPool(sharedConnectionPool)
             .connectTimeout(timeoutTime, timeoutUnit)
             .readTimeout(timeoutTime, timeoutUnit)
             .writeTimeout(timeoutTime, timeoutUnit)
             .followRedirects(true)
+            .retryOnConnectionFailure(true)
+            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         if (certSources.isNotEmpty()) {
             val sslSocketFactory = loadCertificates(certSources)

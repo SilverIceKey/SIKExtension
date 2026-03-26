@@ -18,13 +18,13 @@ import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -64,7 +64,6 @@ inline fun <reified T> parseResponseOrHandle(
 ): T {
     val raw = response.body?.string().orEmpty()
 
-    // 非2xx：不解析为 T，走全局兜底
     if (!response.isSuccessful) {
         val netEx = NetException(request, buildHttpErrorMessage(response.code, raw), null)
         val handled = HttpUtils.globalNetExceptionHandler(request, netEx)
@@ -72,10 +71,8 @@ inline fun <reified T> parseResponseOrHandle(
         throw netEx
     }
 
-    // 2xx 但空 body：兜底给空对象/空数组（保持你原语义）
     if (raw.isBlank()) return emptyFallback()
 
-    // Content-Type 非 json 且 body 也不像 json：不强行解析（避免 HTML/text 崩）
     val ct = response.header("Content-Type").orEmpty()
     val looksLikeJson =
         ct.contains("json", ignoreCase = true) ||
@@ -136,7 +133,7 @@ inline fun <reified T> String.httpGet(params: Map<String, Any?> = emptyMap()): T
     val request = Request.Builder().url(urlWithParams).get().build()
 
     return try {
-        HttpUtils.createOkHttpClient().newCall(request).execute().use { resp ->
+        HttpUtils.apiClient.newCall(request).execute().use { resp ->
             parseResponseOrHandle(request, resp)
         }
     } catch (e: Exception) {
@@ -163,7 +160,7 @@ inline fun <reified T> String.httpPostForm(formParameters: Any?): T {
     val request = Request.Builder().url(this).post(formBodyBuilder.build()).build()
 
     return try {
-        HttpUtils.createOkHttpClient().newCall(request).execute().use { resp ->
+        HttpUtils.apiClient.newCall(request).execute().use { resp ->
             parseResponseOrHandle(request, resp)
         }
     } catch (e: Exception) {
@@ -186,7 +183,7 @@ inline fun <reified T> String.httpPostJson(data: Any? = null): T {
     val request = Request.Builder().url(this).post(requestBody).build()
 
     return try {
-        HttpUtils.createOkHttpClient().newCall(request).execute().use { resp ->
+        HttpUtils.apiClient.newCall(request).execute().use { resp ->
             parseResponseOrHandle(request, resp)
         }
     } catch (e: Exception) {
@@ -216,7 +213,7 @@ inline fun <reified T> String.httpUploadFile(
     val request = Request.Builder().url(this).post(requestBody).build()
 
     return try {
-        HttpUtils.createOkHttpClient().newCall(request).execute().use { resp ->
+        HttpUtils.apiClient.newCall(request).execute().use { resp ->
             parseResponseOrHandle(request, resp)
         }
     } catch (e: Exception) {
@@ -227,7 +224,7 @@ inline fun <reified T> String.httpUploadFile(
 }
 
 // =====================================================
-// 同步下载（保持你原逻辑，只加失败时走 handler）
+// 同步下载
 // =====================================================
 
 fun String.httpDownloadFile(
@@ -268,9 +265,11 @@ fun String.httpDownloadFile(
     }.build()
 
     return try {
-        val response = HttpUtils.createOkHttpClientBuilder(5, TimeUnit.MINUTES).apply {
-            addNetworkInterceptor(ProgressInterceptor(progressListener, destinationFile))
-        }.build().newCall(request).execute()
+        val client = HttpUtils.downloadClient.newBuilder()
+            .addNetworkInterceptor(ProgressInterceptor(progressListener, destinationFile))
+            .build()
+
+        val response = client.newCall(request).execute()
 
         response.use { resp ->
             val ct = resp.header("Content-Type").orEmpty()
@@ -328,7 +327,7 @@ suspend inline fun <reified T> String.httpGetAsync(
     }
 
     val request = Request.Builder().url(urlWithParams).get().build()
-    val call = HttpUtils.createOkHttpClient().newCall(request)
+    val call = HttpUtils.apiClient.newCall(request)
 
     cont.invokeOnCancellation { call.cancel() }
 
@@ -364,7 +363,7 @@ suspend inline fun <reified T> String.httpPostJsonAsync(data: Any? = null): T =
         val requestBody = json.toRequestBody(mediaType)
         val request = Request.Builder().url(this).post(requestBody).build()
 
-        val call = HttpUtils.createOkHttpClient().newCall(request)
+        val call = HttpUtils.apiClient.newCall(request)
         cont.invokeOnCancellation { call.cancel() }
 
         call.enqueue(object : Callback {
@@ -387,7 +386,7 @@ suspend inline fun <reified T> String.httpPostJsonAsync(data: Any? = null): T =
     }
 
 // =====================================================
-// suspend 下载（你原版本基本OK，补：失败走 handler）
+// suspend 下载
 // =====================================================
 
 suspend fun String.httpDownloadFile(
@@ -448,8 +447,10 @@ suspend fun String.httpDownloadFile(
         .apply { if (existInfo.length > 0) header("Range", "bytes=${existInfo.length}-") }
         .build()
 
+    val client = HttpUtils.downloadClient.newBuilder().build()
+
     val resp = try {
-        HttpUtils.createOkHttpClientBuilder(5, TimeUnit.MINUTES).build().newCall(req).execute()
+        client.newCall(req).execute()
     } catch (e: IOException) {
         HttpUtils.globalNetExceptionHandler(req, NetException(req, e.message, e))
         return@withContext null
@@ -487,7 +488,7 @@ suspend fun String.httpDownloadFile(
             is DiskTarget.FilePath -> {
                 target.file.parentFile?.mkdirs()
                 OutputSink.FileStream(
-                    FileOutputStream(target.file, /* append = */ isResume),
+                    FileOutputStream(target.file, isResume),
                     file = target.file,
                     append = isResume
                 )
@@ -547,7 +548,7 @@ suspend fun String.httpDownloadFile(
     }
 }
 
-/* ====== 辅助类型/方法（保持你原实现） ====== */
+/* ====== 辅助类型/方法 ====== */
 
 private sealed interface DiskTarget {
     data class FilePath(val file: File) : DiskTarget
@@ -706,20 +707,11 @@ private fun openDownloadsOutput(
     }
 }
 
-// 通用二进制结果
 data class HttpBytesResult(
     val bytes: ByteArray,
     val contentType: String?
 )
 
-/**
- * 万能下载：返回字节数组 + Content-Type
- *
- * - 支持 GET / POST / PUT / DELETE 等
- * - GET + data is Map<*, *> 时，自动拼 query
- * - 其他情况把 data 按 JSON 丢 body（跟你 httpDownloadFile 一致）
- * - 错误统一走 globalNetExceptionHandler
- */
 fun String.httpDownloadBytes(
     methodStr: String = "GET",
     headers: Map<String, String> = emptyMap(),
@@ -727,7 +719,6 @@ fun String.httpDownloadBytes(
 ): HttpBytesResult? {
     val isGet = methodStr.equals("GET", ignoreCase = true)
 
-    // 组 URL + body（逻辑严格参考你 suspend httpDownloadFile）
     val finalUrl: String
     val requestBody: RequestBody?
 
@@ -758,7 +749,6 @@ fun String.httpDownloadBytes(
     }
 
     if (HttpUtils.isLoggerInRequest && (isGet && data is Map<*, *>)) {
-        // GET+Map 的情况单独打一下 log
         Log.i("HttpExtension", finalUrl)
         Log.i("HttpExtension", globalGson.toJson(data))
     }
@@ -773,7 +763,7 @@ fun String.httpDownloadBytes(
     }
 
     return try {
-        HttpUtils.createOkHttpClient().newCall(request).execute().use { resp ->
+        HttpUtils.apiClient.newCall(request).execute().use { resp ->
             val bodyBytes = resp.body?.bytes()
 
             if (!resp.isSuccessful || bodyBytes == null) {
