@@ -99,10 +99,12 @@ class SocketUtils(private val config: SocketConfig) {
      */
     private fun startListeningForMessages() {
         ThreadUtils.runOnIO {
+            var inputStream: java.io.InputStream? = null
+            var byteArrayOutputStream: ByteArrayOutputStream? = null
             try {
-                val inputStream = socket?.getInputStream()
+                inputStream = socket?.getInputStream()
                 val buffer = ByteArray(1024)  // 定义一个缓冲区大小
-                val byteArrayOutputStream = ByteArrayOutputStream()  // 用于累积接收到的字节数据
+                byteArrayOutputStream = ByteArrayOutputStream()  // 用于累积接收到的字节数据
 
                 while (socket != null && socket!!.isConnected) {
                     try {
@@ -134,6 +136,9 @@ class SocketUtils(private val config: SocketConfig) {
             } catch (e: IOException) {
                 Log.d("SocketUtils","接收消息时发生错误: ${e.message}")
                 attemptReconnect()
+            } finally {
+                try { inputStream?.close() } catch (_: Exception) {}
+                try { byteArrayOutputStream?.close() } catch (_: Exception) {}
             }
         }
     }
@@ -144,7 +149,14 @@ class SocketUtils(private val config: SocketConfig) {
      */
     fun disconnect() {
         ThreadUtils.runOnIO {
+            try {
+                socket?.getInputStream()?.close()
+            } catch (_: Exception) {}
+            try {
+                socket?.getOutputStream()?.close()
+            } catch (_: Exception) {}
             socket?.close()
+            messageListener = null
             Log.d("SocketUtils","已断开连接 ${config.ipAddress}:${config.port}")
         }
     }

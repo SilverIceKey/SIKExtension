@@ -469,4 +469,8 @@ class SM4Encrypt(private val iEncryptConfig: IEncryptConfig) : IEncrypt {
     override fun addProgressListener(iEncryptProgressListener: IEncryptProgressListener) {
         this.encryptProgressListener = iEncryptProgressListener
     }
+
+    override fun removeProgressListener() {
+        this.encryptProgressListener = null
+    }
 }

@@ -144,6 +144,14 @@ object DownloadServiceUtils {
     }
 
     /**
+     * 取消所有下载监控任务并释放内部 CoroutineScope。
+     * 建议在应用退出或不再需要下载监控时调用，避免协程长期驻留。
+     */
+    fun cancelAllMonitors() {
+        downloadScope.cancel()
+    }
+
+    /**
      * 监控下载任务进度
      *
      * 该方法会在后台线程中定时查询下载状态，并在主线程中回调通知。

@@ -43,7 +43,8 @@ class ProgressInterceptor(
                 fileSink.flush()
                 progressListener.update(totalBytesRead, contentLength, true)
             } finally {
-                fileSink.close()
+                try { fileSink.close() } catch (_: Exception) {}
+                try { source.close() } catch (_: Exception) {}
             }
             return originalResponse.newBuilder()
                 .body(EmptyResponseBody(originalResponse.body?.contentType(), 0L))

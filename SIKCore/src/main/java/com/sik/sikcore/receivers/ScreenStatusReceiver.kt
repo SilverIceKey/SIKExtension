@@ -53,14 +53,14 @@ class ScreenStatusReceiver : BroadcastReceiver() {
             filter.addAction(Intent.ACTION_SCREEN_ON)
             filter.addAction(Intent.ACTION_SCREEN_OFF)
             filter.addAction(Intent.ACTION_USER_PRESENT)
-            context?.registerReceiver(screenStatusReceiver, filter)
+            context?.applicationContext?.registerReceiver(screenStatusReceiver, filter)
         }
 
         /**
          * 取消注册屏幕开关接收器
          */
         fun unRegisterReceiver(context: Context?){
-            context?.unregisterReceiver(screenStatusReceiver)
+            context?.applicationContext?.unregisterReceiver(screenStatusReceiver)
         }
     }
 }

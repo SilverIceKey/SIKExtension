@@ -2,6 +2,7 @@ package com.sik.sikcore.workmanager
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.lifecycle.Observer
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
@@ -149,11 +150,25 @@ object WorkManagerUtils {
      *
      * @param uniqueWorkName 工作的唯一名称
      * @param observer 用于观察 WorkInfo 的 Observer
+     * @return 返回 LiveData 的 Observer 实例，调用方应在生命周期结束时调用 [removeWorkStatusObserver] 反注册
      */
-    fun observeWorkStatus(uniqueWorkName: String, observer: (List<WorkInfo>) -> Unit) {
+    fun observeWorkStatus(uniqueWorkName: String, observer: (List<WorkInfo>) -> Unit): Observer<List<WorkInfo>> {
+        val liveDataObserver = Observer<List<WorkInfo>> { workInfos ->
+            observer(workInfos)
+        }
         getWorkManager().getWorkInfosForUniqueWorkLiveData(uniqueWorkName)
-            .observeForever { workInfos ->
-                observer(workInfos)
-            }
+            .observeForever(liveDataObserver)
+        return liveDataObserver
+    }
+
+    /**
+     * 移除工作状态的观察者。
+     *
+     * @param uniqueWorkName 工作的唯一名称
+     * @param observer 通过 [observeWorkStatus] 返回的 Observer 实例
+     */
+    fun removeWorkStatusObserver(uniqueWorkName: String, observer: Observer<List<WorkInfo>>) {
+        getWorkManager().getWorkInfosForUniqueWorkLiveData(uniqueWorkName)
+            .removeObserver(observer)
     }
 }

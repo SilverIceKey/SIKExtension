@@ -19,6 +19,14 @@ class DefaultHeaderInterceptor : Interceptor {
 
         fun headersForHost(host: String): MutableMap<String, String?> =
             hostHeaders.getOrPut(host) { mutableMapOf() }
+
+        /**
+         * 清空所有全局和按 host 存储的默认 header，防止长期运行后内存膨胀。
+         */
+        fun clearHeaders() {
+            defaultHeaders.clear()
+            hostHeaders.clear()
+        }
     }
 
     override fun intercept(chain: Chain): Response {

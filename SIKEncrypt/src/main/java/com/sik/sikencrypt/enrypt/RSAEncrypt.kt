@@ -24,9 +24,6 @@ import javax.crypto.Cipher
 
 class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
 
-    private val cipher: Cipher =
-        Cipher.getInstance("${config.algorithm()}/${config.mode()}/${config.padding()}")
-
     // 注意：这里存的是“DER编码后的key bytes”(X509 for public, PKCS8 for private)，不是 modulus bytes
     private var publicKey: ByteArray = byteArrayOf()
     private var privateKey: ByteArray = byteArrayOf()
@@ -35,6 +32,20 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
      * 加解密进度监听器
      */
     private var encryptProgressListener: IEncryptProgressListener? = null
+
+    private fun createCipher(): Cipher {
+        return Cipher.getInstance("${config.algorithm()}/${config.mode()}/${config.padding()}")
+    }
+
+    /**
+     * 清除已加载的密钥字节数组，降低敏感数据在内存中的驻留时间。
+     */
+    fun clearKeys() {
+        java.util.Arrays.fill(publicKey, 0)
+        java.util.Arrays.fill(privateKey, 0)
+        publicKey = byteArrayOf()
+        privateKey = byteArrayOf()
+    }
 
     override fun generateKeyPair(): IRSAEncrypt {
         // ✅ 修复：原实现用 config.publicKey().size 去判断 1024/2048/4096，单位完全不对
@@ -244,11 +255,13 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
     }
 
     private fun encrypt(dataBytes: ByteArray): ByteArray {
+        val cipher = createCipher()
         cipher.init(Cipher.ENCRYPT_MODE, getPublicKey())
         return cipher.doFinal(dataBytes)
     }
 
     private fun decrypt(dataBytes: ByteArray): ByteArray {
+        val cipher = createCipher()
         cipher.init(Cipher.DECRYPT_MODE, getPrivateKey())
         return cipher.doFinal(dataBytes)
     }
@@ -276,5 +289,9 @@ class RSAEncrypt(private val config: IRSAEncryptConfig) : IRSAEncrypt {
 
     override fun addProgressListener(iEncryptProgressListener: IEncryptProgressListener) {
         this.encryptProgressListener = iEncryptProgressListener
+    }
+
+    override fun removeProgressListener() {
+        this.encryptProgressListener = null
     }
 }

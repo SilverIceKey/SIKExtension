@@ -29,6 +29,12 @@ class AutoSaveCookieJar : CookieJar {
             urls.add(url.host)
             url.host.saveMMKVData(cookie.toString())
         }
+        // 限制存储域名数量，防止长期运行后内存无限增长
+        while (urls.size > 200) {
+            val oldest = urls.first()
+            urls.remove(oldest)
+            oldest.saveMMKVData("")
+        }
     }
 
     override fun loadForRequest(url: HttpUrl): MutableList<Cookie> {

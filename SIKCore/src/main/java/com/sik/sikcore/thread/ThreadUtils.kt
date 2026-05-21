@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -256,6 +257,7 @@ private class ThreadUtilsCoroutines(private val options: Options = Options()) : 
 
     override fun cancelGlobal() {
         globalJob.cancel()
+        globalScope.cancel()
         box.close()
     }
 
@@ -367,8 +369,9 @@ private class ThreadUtilsThreads(private val options: Options = Options()) : Thr
 
     override fun cancelGlobal() {
         cancelAll()
-        // 如确需彻底释放：
-        // scheduler.shutdownNow(); ioPool.shutdownNow()
+        scheduler.shutdownNow()
+        ioPool.shutdownNow()
+        tasks.clear()
     }
 
     private fun calcPoolSize(max: Int): Int {

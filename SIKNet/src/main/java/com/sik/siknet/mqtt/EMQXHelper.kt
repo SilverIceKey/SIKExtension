@@ -11,6 +11,7 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.eclipse.paho.client.mqttv3.MqttCallback
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
+import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.nio.charset.Charset
 import java.util.concurrent.Executors
@@ -72,6 +73,18 @@ class EMQXHelper {
         val instance: EMQXHelper by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             EMQXHelper()
         }
+    }
+
+    fun registerEventBus() {
+        try {
+            EventBus.getDefault().register(this)
+        } catch (_: Exception) {}
+    }
+
+    fun unregisterEventBus() {
+        try {
+            EventBus.getDefault().unregister(this)
+        } catch (_: Exception) {}
     }
 
     init {
@@ -234,6 +247,9 @@ class EMQXHelper {
     fun release() {
         released = true
         isMqttConnect = false
+        emqxCallback = null
+        pendingMessages.clear()
+        unregisterEventBus()
 
         runIo {
             safeCloseClient()

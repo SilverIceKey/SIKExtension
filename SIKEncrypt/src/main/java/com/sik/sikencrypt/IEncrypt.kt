@@ -109,4 +109,9 @@ interface IEncrypt {
      * 添加进度监听器
      */
     fun addProgressListener(iEncryptProgressListener: IEncryptProgressListener)
+
+    /**
+     * 移除进度监听器，避免外部 Activity/Fragment 被加密实例长期引用导致内存泄漏。
+     */
+    fun removeProgressListener()
 }

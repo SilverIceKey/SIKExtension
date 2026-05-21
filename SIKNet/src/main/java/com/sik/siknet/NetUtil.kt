@@ -194,6 +194,8 @@ object NetUtil {
     /**
      * Android 10及以上通过P2P连接Wifi
      */
+    private var activeNetworkCallback: ConnectivityManager.NetworkCallback? = null
+
     @JvmOverloads
     private fun connectByP2P(
         ssid: String,
@@ -214,12 +216,27 @@ object NetUtil {
 
             val connectivityManager = SIKCore.getApplication()
                 .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            connectivityManager.requestNetwork(
-                request,
-                object : ConnectivityManager.NetworkCallback() {
-                    override fun onAvailable(network: Network) = connectSuccess("连接成功")
-                    override fun onUnavailable() = connectFailed("连接失败")
-                })
+            unregisterNetworkCallback() // 先注销旧的，避免重复注册导致泄漏
+            val callback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) = connectSuccess("连接成功")
+                override fun onUnavailable() = connectFailed("连接失败")
+            }
+            activeNetworkCallback = callback
+            connectivityManager.requestNetwork(request, callback)
+        }
+    }
+
+    /**
+     * 注销 P2P 网络请求回调，防止 ConnectivityManager 长期持有引用导致内存泄漏。
+     */
+    fun unregisterNetworkCallback() {
+        activeNetworkCallback?.let {
+            try {
+                val connectivityManager = SIKCore.getApplication()
+                    .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                connectivityManager.unregisterNetworkCallback(it)
+            } catch (_: Exception) {}
+            activeNetworkCallback = null
         }
     }
 

@@ -115,6 +115,27 @@ object HttpUtils {
     }
 
     /**
+     * 清空全局错误回调与异常处理器，防止单例长期持有 Activity/Fragment 引用导致内存泄漏。
+     * 建议在页面销毁或应用退出时调用。
+     */
+    fun clearGlobalHandlers() {
+        defaultErrorFallback = { req, ex ->
+            Log.e(
+                "HttpUtils",
+                "HTTP fallback\n" +
+                        "url=${req.url}\n" +
+                        "method=${req.method}\n" +
+                        "msg=${ex.message}",
+                ex
+            )
+        }
+        globalNetExceptionHandler = { req, ex ->
+            defaultErrorFallback(req, ex)
+            true
+        }
+    }
+
+    /**
      * 工具方法：用于解析层在发现非 2xx 时调用
      */
     fun handleHttpError(

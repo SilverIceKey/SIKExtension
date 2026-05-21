@@ -52,13 +52,15 @@ class SHA256MessageDigest : IMessageDigest {
         if (!tempSrcFile.exists()) {
             throw EncryptException(EncryptExceptionEnums.FILE_NOT_FOUND)
         } else {
-            return when (outType) {
-                MessageDigestFileOutType.HEX -> {
-                    ConvertUtils.bytesToHex(digest(tempSrcFile.inputStream()))
-                }
+            return tempSrcFile.inputStream().use { fis ->
+                when (outType) {
+                    MessageDigestFileOutType.HEX -> {
+                        ConvertUtils.bytesToHex(digest(fis))
+                    }
 
-                MessageDigestFileOutType.BASE64 -> {
-                    ConvertUtils.bytesToBase64String(digest(tempSrcFile.inputStream()))
+                    MessageDigestFileOutType.BASE64 -> {
+                        ConvertUtils.bytesToBase64String(digest(fis))
+                    }
                 }
             }
         }

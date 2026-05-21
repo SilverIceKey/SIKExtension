@@ -38,7 +38,7 @@ class GlobalCrashCatch : Thread.UncaughtExceptionHandler {
      * 全局异常处理初始化
      */
     fun init(context: Context): GlobalCrashCatch {
-        this.context = context
+        this.context = context.applicationContext
         defaultHandler = Thread.getDefaultUncaughtExceptionHandler()!!
         Thread.setDefaultUncaughtExceptionHandler(this)
         return this

@@ -29,6 +29,14 @@ class DefaultParameterInterceptor : Interceptor {
          */
         fun paramsForHost(host: String): MutableMap<String, String?> =
             hostParams.getOrPut(host) { mutableMapOf() }
+
+        /**
+         * 清空所有全局和按 host 存储的默认参数，防止长期运行后内存膨胀。
+         */
+        fun clearParams() {
+            params.clear()
+            hostParams.clear()
+        }
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {

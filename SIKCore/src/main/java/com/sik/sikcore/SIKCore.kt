@@ -61,6 +61,20 @@ object SIKCore {
     }
 
     /**
+     * 移除指定的初始化监听器，防止单例长期持有外部引用导致内存泄漏。
+     */
+    fun unregisterInitListener(listener: InitListener) {
+        initListeners.remove(listener)
+    }
+
+    /**
+     * 清空所有初始化监听器。
+     */
+    fun clearInitListeners() {
+        initListeners.clear()
+    }
+
+    /**
      * 获取 Application 实例（确保初始化后调用）
      * @throws IllegalStateException 未初始化时抛出
      */
