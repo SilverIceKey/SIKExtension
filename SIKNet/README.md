@@ -20,6 +20,11 @@
 
     所有的调用均不自动切换线程
 
+## HTTP 扩展参数说明：
+
+- `toMap()` 会通过反射读取对象属性，返回 `Map<String, Any?>`，保留属性原始类型和值，包括 `null`。
+- `httpPostForm()` 接收对象参数时会先调用 `toMap()`，再在构造 `application/x-www-form-urlencoded` 表单体时按表单协议转为字符串提交。
+
 
 ## 关于NETTY的使用 
 ### 示例代码

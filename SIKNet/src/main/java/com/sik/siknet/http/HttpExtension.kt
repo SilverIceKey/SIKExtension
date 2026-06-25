@@ -153,7 +153,7 @@ inline fun <reified T> String.httpPostForm(formParameters: Any?): T {
     formParameters?.let {
         when (it) {
             is Map<*, *> -> it.forEach { (k, v) -> formBodyBuilder.add(k.toString(), v.toString()) }
-            else -> it.toMap().forEach { (k, v) -> formBodyBuilder.add(k, v) }
+            else -> it.toMap().forEach { (k, v) -> formBodyBuilder.add(k, v?.toString().orEmpty()) }
         }
     }
 
@@ -294,12 +294,12 @@ fun String.httpDownloadFile(
 // 反射 toMap
 // =====================================================
 
-fun <T : Any> T.toMap(): Map<String, String> {
+fun <T : Any> T.toMap(): Map<String, Any?> {
     return this::class.memberProperties.associate { p ->
         @Suppress("UNCHECKED_CAST")
         val k = p as KProperty1<T, *>
         val v = k.get(this)
-        p.name to (v?.toString() ?: "")
+        p.name to v
     }
 }
 
