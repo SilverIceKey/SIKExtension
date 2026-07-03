@@ -16,6 +16,7 @@ import org.greenrobot.eventbus.Subscribe
 import java.nio.charset.Charset
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 /**
@@ -67,6 +68,9 @@ class EMQXHelper {
 
     // 缓存待发送的消息
     private val pendingMessages = mutableListOf<PendingMessage>()
+
+    // 定时刷新订阅任务
+    private var refreshSubscribeTask: ScheduledFuture<*>? = null
     // ====================================
 
     companion object {
@@ -142,6 +146,9 @@ class EMQXHelper {
             throw IllegalStateException("EMQXConfig is not initialized")
         }
 
+        // 停止旧的定时刷新任务，避免多个任务同时运行
+        stopAutoRefreshSubscribe()
+
         runIo {
             if (released) return@runIo
 
@@ -179,6 +186,8 @@ class EMQXHelper {
                                     Log.i("EMQXHelper", "连接成功 topic:${config.topic},qos:${config.qos()}")
                                     client.subscribe(config.topic, config.qos())
                                     isMqttConnect = true
+                                    // 连接成功后启动定时刷新订阅
+                                    startAutoRefreshSubscribe()
                                     // 连接成功后发送缓存的消息
                                     sendPendingMessages()
                                 } catch (e: Exception) {
@@ -250,6 +259,8 @@ class EMQXHelper {
         emqxCallback = null
         pendingMessages.clear()
         unregisterEventBus()
+        // 停止定时刷新订阅
+        stopAutoRefreshSubscribe()
 
         runIo {
             safeCloseClient()
@@ -351,6 +362,8 @@ class EMQXHelper {
                     try {
                         c.subscribe(emqxConfig.topic, emqxConfig.qos())
                         isMqttConnect = true
+                        // 启动定时刷新订阅
+                        startAutoRefreshSubscribe()
                         // 发送缓存的消息
                         sendPendingMessages()
                     } catch (e: Exception) {
@@ -372,6 +385,8 @@ class EMQXHelper {
                     Log.i("EMQXHelper", "mqtt重连成功，补订阅 topic=${emqxConfig.topic}")
                     try {
                         c.subscribe(emqxConfig.topic, emqxConfig.qos())
+                        // 启动定时刷新订阅
+                        startAutoRefreshSubscribe()
                         // 发送缓存的消息
                         sendPendingMessages()
                     } catch (e: Exception) {
@@ -404,6 +419,47 @@ class EMQXHelper {
             }, delayMs, TimeUnit.MILLISECONDS)
         } catch (_: Exception) {
             isReconnecting = false
+        }
+    }
+
+    /**
+     * 启动定时刷新订阅任务
+     */
+    private fun startAutoRefreshSubscribe() {
+        if (!this::emqxConfig.isInitialized || !emqxConfig.autoRefreshSubscribe) {
+            return
+        }
+        stopAutoRefreshSubscribe()
+        val interval = emqxConfig.refreshSubscribeInterval
+        if (interval <= 0) {
+            Log.w("EMQXHelper", "刷新订阅间隔必须大于0，当前：$interval")
+            return
+        }
+        try {
+            Log.i("EMQXHelper", "启动定时刷新订阅，间隔：${interval}ms")
+            refreshSubscribeTask = mqttIo.scheduleAtFixedRate({
+                try {
+                    if (this::mqttClient.isInitialized && mqttClient.isConnected) {
+                        Log.i("EMQXHelper", "定时刷新订阅：topic=${emqxConfig.topic}, qos=${emqxConfig.qos()}")
+                        mqttClient.subscribe(emqxConfig.topic, emqxConfig.qos())
+                    }
+                } catch (e: Exception) {
+                    Log.e("EMQXHelper", "定时刷新订阅异常：${e.message}")
+                }
+            }, interval, interval, TimeUnit.MILLISECONDS)
+        } catch (e: Exception) {
+            Log.e("EMQXHelper", "启动定时刷新订阅异常：${e.message}")
+        }
+    }
+
+    /**
+     * 停止定时刷新订阅任务
+     */
+    private fun stopAutoRefreshSubscribe() {
+        try {
+            refreshSubscribeTask?.cancel(false)
+            refreshSubscribeTask = null
+        } catch (_: Exception) {
         }
     }
 

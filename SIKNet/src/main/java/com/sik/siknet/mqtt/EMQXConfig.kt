@@ -28,6 +28,16 @@ abstract class EMQXConfig(val brokenUrl: String, val topic: String) {
     open fun qos(): Int = 2
 
     /**
+     * 是否定时刷新订阅
+     */
+    open var autoRefreshSubscribe: Boolean = false
+
+    /**
+     * 刷新订阅间隔（毫秒），默认 60 秒
+     */
+    open var refreshSubscribeInterval: Long = 60_000L
+
+    /**
      * 获取持久化内存配置
      */
     abstract fun getMemoryPersistence(): MemoryPersistence

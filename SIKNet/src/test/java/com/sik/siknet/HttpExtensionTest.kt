@@ -14,6 +14,7 @@ import okhttp3.Request
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -24,6 +25,14 @@ class HttpExtensionTest {
         val age: Int,
         val active: Boolean,
         val note: String?
+    )
+
+    data class NumericParams(
+        val intVal: Int,
+        val doubleVal: Double,
+        val floatVal: Float,
+        val longVal: Long,
+        val stringVal: String
     )
 
     private var previousLoggerInRequest = true
@@ -77,6 +86,34 @@ class HttpExtensionTest {
         assertEquals(18, map["age"])
         assertEquals(true, map["active"])
         assertNull(map["note"])
+    }
+
+    @Test
+    fun testToMapKeepsNumericTypes() {
+        val params = NumericParams(
+            intVal = 42,
+            doubleVal = 3.14,
+            floatVal = 2.718f,
+            longVal = 9876543210L,
+            stringVal = "hello"
+        )
+
+        val map = params.toMap()
+
+        assertEquals(42, map["intVal"])
+        assertTrue(map["intVal"] is Int)
+
+        assertEquals(3.14, map["doubleVal"] as Double, 0.0)
+        assertTrue(map["doubleVal"] is Double)
+
+        assertEquals(2.718f, map["floatVal"])
+        assertTrue(map["floatVal"] is Float)
+
+        assertEquals(9876543210L, map["longVal"])
+        assertTrue(map["longVal"] is Long)
+
+        assertEquals("hello", map["stringVal"])
+        assertTrue(map["stringVal"] is String)
     }
 
     @Test
