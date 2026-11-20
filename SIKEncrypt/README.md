@@ -59,10 +59,14 @@ fun decryptFromByteArray(dataBytes: ByteArray):ByteArray
 `IProtectedEncryptProvider` 由业务侧实现，真正的 KeyVault 和 Cipher 可以放在 Native 层。
 文件、流和 GCM 等有状态模式通过 `IProtectedCipherSession` 连续 `update`，不能按块重新创建 Cipher。
 
-SDK 内置 `NativeCipherProvider`，使用 OpenSSL prefab 的静态 `libcrypto.a` 编译到
-唯一名称的 `libsikencrypt_crypto.so` 中，不打包 `libcrypto.so` 或 `libssl.so`。
+SDK 内置 `NativeCipherProvider`。发布 AAR 使用预编译的 `libsikencrypt_crypto.so`，
+该库由 `src/main/cpp` 中的源码和 OpenSSL 静态 `libcrypto.a` 构建，不打包
+`libcrypto.so` 或 `libssl.so`。
 静态库符号通过链接参数隐藏，只导出 `NativeCipher` 的 JNI 入口，避免与 MMKV、
 其他网络库或厂商 SDK 的 OpenSSL/BoringSSL 发生全局符号冲突。
+
+需要重新生成 Native 文件时，使用本机 NDK/CMake 按 `src/main/cpp/CMakeLists.txt`
+构建，并替换 `src/main/jniLibs/<abi>/libsikencrypt_crypto.so`。
 
 `keyId` 映射和业务 Key 不应写入本仓库。当前 `registerKeyForTest` 只用于兼容性测试；
 业务接入时应由 App 自己的 Native KeyVault 注册密钥。
