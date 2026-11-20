@@ -85,5 +85,17 @@ object EncryptUtils {
         return RSAEncrypt(iRSAEncryptConfig)
     }
 
+    /**
+     * 创建受保护加密工具。
+     *
+     * 该路径不会从 Java 请求密钥字节，密钥由业务侧 Provider 在 Native 层处理。
+     */
+    @JvmStatic
+    fun getProtectedAlgorithm(
+        iEncryptConfig: IProtectedEncryptConfig,
+        provider: IProtectedEncryptProvider
+    ): IEncrypt {
+        return ProtectedEncrypt(iEncryptConfig, provider)
+    }
 
 }

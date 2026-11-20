@@ -7,7 +7,7 @@ apply from: rootProject.file("gradle/maven-publish.gradle")
 
 android {
     namespace 'com.sik.sikencrypt'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         minSdk 24
@@ -15,6 +15,20 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared"
+            }
+        }
+    }
+
+    ndkVersion '27.0.12077973'
+
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
     }
 
     buildTypes {
@@ -35,11 +49,17 @@ android {
             includeAndroidResources = false
         }
     }
+
+    buildFeatures {
+        prefab = true
+    }
+
 }
 
 dependencies {
     implementation project(path: ':SIKCore')
     implementation("org.bouncycastle:bcprov-lts8on:2.73.6")
+    implementation("com.fpliu.ndk.pkg.prefab.android.21:openssl:1.1.1n@aar")
 
     // —— 加上你的测试框架 ——
     testImplementation("junit:junit:4.13.2")
@@ -48,4 +68,6 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.11.1")
     // 如果你需要 Mockito/MockK
     testImplementation("io.mockk:mockk:1.13.5")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test:runner:1.5.2")
 }

@@ -24,6 +24,11 @@ fun digestToBase64(dataBytes: ByteArray): String
 ```kotlin
 //根据配置返回加解密工具
 fun <T : IEncryptConfig> getAlgorithm(iEncryptConfig: T): IEncrypt
+//根据受保护配置和业务侧 Provider 返回加解密工具
+fun getProtectedAlgorithm(
+    iEncryptConfig: IProtectedEncryptConfig,
+    provider: IProtectedEncryptProvider
+): IEncrypt
 //获取rsa加密工具
 fun <T : IRSAEncryptConfig> getAlgorithm(iRSAEncryptConfig: T): IRSAEncrypt
 //----------------针对rsa加密工具---------------------
@@ -47,6 +52,20 @@ fun decryptFromBase64(dataStr: String): String
 //从byte数组解密 一般用于文件解密
 fun decryptFromByteArray(dataBytes: ByteArray):ByteArray
 ```
+
+### 受保护加密
+
+`IProtectedEncryptConfig` 只传 `keyId`、算法、模式和 IV，不向 SDK 暴露密钥。
+`IProtectedEncryptProvider` 由业务侧实现，真正的 KeyVault 和 Cipher 可以放在 Native 层。
+文件、流和 GCM 等有状态模式通过 `IProtectedCipherSession` 连续 `update`，不能按块重新创建 Cipher。
+
+SDK 内置 `NativeCipherProvider`，使用 OpenSSL prefab 的静态 `libcrypto.a` 编译到
+唯一名称的 `libsikencrypt_crypto.so` 中，不打包 `libcrypto.so` 或 `libssl.so`。
+静态库符号通过链接参数隐藏，只导出 `NativeCipher` 的 JNI 入口，避免与 MMKV、
+其他网络库或厂商 SDK 的 OpenSSL/BoringSSL 发生全局符号冲突。
+
+`keyId` 映射和业务 Key 不应写入本仓库。当前 `registerKeyForTest` 只用于兼容性测试；
+业务接入时应由 App 自己的 Native KeyVault 注册密钥。
 
 ### 更新日志
 - 2025-06：整理文档格式并补充说明。
