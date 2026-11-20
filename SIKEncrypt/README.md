@@ -84,5 +84,7 @@ int sikencrypt_register_key(
 业务接入时应由 App 自己的 Native KeyVault 注册密钥。
 
 ### 更新日志
+- 2026-11：1.2.11 修复 Native session 关闭竞态，未知或已关闭句柄改为抛出异常，
+  并补充并发关闭与连续生命周期内存测试。
 - 2025-06：整理文档格式并补充说明。
 

@@ -8,6 +8,7 @@ package com.sik.sikencrypt
  *
  * @param encryptExceptionEnums
  */
-class EncryptException(encryptExceptionEnums: EncryptExceptionEnums) :
-    Exception(encryptExceptionEnums.message) {
-}
+class EncryptException(
+    encryptExceptionEnums: EncryptExceptionEnums,
+    cause: Throwable? = null
+) : Exception(encryptExceptionEnums.message, cause)

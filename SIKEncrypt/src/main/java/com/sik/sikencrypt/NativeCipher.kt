@@ -13,10 +13,18 @@ object NativeCipher {
     }
 
     @JvmStatic
-    external fun registerKeyForTest(
+    private external fun registerKeyForTestNative(
         keyId: String,
         key: ByteArray
     )
+
+    @JvmStatic
+    internal fun registerKeyForTest(
+        keyId: String,
+        key: ByteArray
+    ) {
+        registerKeyForTestNative(keyId, key)
+    }
 
     @JvmStatic
     external fun openSession(

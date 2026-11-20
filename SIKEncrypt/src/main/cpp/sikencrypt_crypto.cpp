@@ -1,6 +1,7 @@
 #include <jni.h>
 
 #include <openssl/bio.h>
+#include <openssl/crypto.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
@@ -26,10 +27,12 @@ struct Session {
     bool rsa = false;
     bool encrypt = false;
     bool finalized = false;
+    bool closed = false;
     std::string mode;
     std::string padding;
     std::string algorithm;
     Bytes rsaInput;
+    std::mutex mutex;
 };
 
 std::mutex g_keysMutex;
@@ -137,11 +140,33 @@ EVP_PKEY* LoadPkey(const Bytes& key, bool encrypt) {
     if (key.empty()) {
         return nullptr;
     }
-    const unsigned char* ptr = key.data();
     if (encrypt) {
+        const unsigned char* ptr = key.data();
         return d2i_PUBKEY(nullptr, &ptr, static_cast<long>(key.size()));
     }
-    return d2i_AutoPrivateKey(nullptr, &ptr, static_cast<long>(key.size()));
+
+    const unsigned char* ptr = key.data();
+    EVP_PKEY* privateKey = d2i_AutoPrivateKey(
+        nullptr,
+        &ptr,
+        static_cast<long>(key.size())
+    );
+    if (privateKey != nullptr) {
+        return privateKey;
+    }
+
+    ptr = key.data();
+    PKCS8_PRIV_KEY_INFO* pkcs8 = d2i_PKCS8_PRIV_KEY_INFO(
+        nullptr,
+        &ptr,
+        static_cast<long>(key.size())
+    );
+    if (pkcs8 == nullptr) {
+        return nullptr;
+    }
+    privateKey = EVP_PKCS82PKEY(pkcs8);
+    PKCS8_PRIV_KEY_INFO_free(pkcs8);
+    return privateKey;
 }
 
 bool ConfigureRsa(
@@ -237,35 +262,47 @@ bool InitSession(
     return true;
 }
 
-Bytes CipherUpdate(Session* session, const Bytes& input) {
+bool CipherUpdate(Session* session, const Bytes& input, Bytes* output) {
+    output->clear();
+    if (session->closed || session->finalized) {
+        return false;
+    }
     if (session->rsa) {
         session->rsaInput.insert(session->rsaInput.end(), input.begin(), input.end());
-        return {};
+        return true;
     }
     if (session->mode == "GCM" && !session->encrypt) {
         session->rsaInput.insert(session->rsaInput.end(), input.begin(), input.end());
-        return {};
+        return true;
     }
-    Bytes output(input.size() + static_cast<size_t>(EVP_CIPHER_CTX_block_size(session->cipher)) + 16);
+    Bytes buffer(
+        input.size() +
+        static_cast<size_t>(EVP_CIPHER_CTX_block_size(session->cipher)) +
+        16
+    );
     int outLength = 0;
     if (EVP_CipherUpdate(
             session->cipher,
-            output.data(),
+            buffer.data(),
             &outLength,
             input.empty() ? nullptr : input.data(),
             static_cast<int>(input.size())
         ) <= 0) {
-        return {};
+        return false;
     }
-    output.resize(static_cast<size_t>(outLength));
-    return output;
+    buffer.resize(static_cast<size_t>(outLength));
+    *output = std::move(buffer);
+    return true;
 }
 
-Bytes CipherFinal(Session* session) {
-    if (session->finalized) {
-        return {};
+bool CipherFinal(Session* session, Bytes* result) {
+    result->clear();
+    if (session->closed) {
+        return false;
     }
-    session->finalized = true;
+    if (session->finalized) {
+        return true;
+    }
 
     if (session->rsa) {
         size_t outLength = 0;
@@ -285,10 +322,10 @@ Bytes CipherFinal(Session* session) {
                 session->rsaInput.size()
             ) > 0;
         if (!ok) {
-            return {};
+            return false;
         }
         Bytes output(outLength);
-        const int result = session->encrypt
+        const int cipherResult = session->encrypt
             ? EVP_PKEY_encrypt(
                 session->pkey,
                 output.data(),
@@ -303,11 +340,13 @@ Bytes CipherFinal(Session* session) {
                 session->rsaInput.data(),
                 session->rsaInput.size()
             );
-        if (result <= 0) {
-            return {};
+        if (cipherResult <= 0) {
+            return false;
         }
         output.resize(outLength);
-        return output;
+        *result = std::move(output);
+        session->finalized = true;
+        return true;
     }
 
     Bytes output(static_cast<size_t>(EVP_CIPHER_CTX_block_size(session->cipher)) + 16);
@@ -315,7 +354,7 @@ Bytes CipherFinal(Session* session) {
     bool ok;
     if (session->mode == "GCM" && !session->encrypt) {
         if (session->rsaInput.size() < 16) {
-            return {};
+            return false;
         }
         const size_t tagLength = 16;
         const size_t bodyLength = session->rsaInput.size() - tagLength;
@@ -327,7 +366,7 @@ Bytes CipherFinal(Session* session) {
                 session->rsaInput.data(),
                 static_cast<int>(bodyLength)
             ) <= 0) {
-            return {};
+            return false;
         }
         if (EVP_CIPHER_CTX_ctrl(
                 session->cipher,
@@ -335,7 +374,7 @@ Bytes CipherFinal(Session* session) {
                 static_cast<int>(tagLength),
                 session->rsaInput.data() + bodyLength
             ) <= 0) {
-            return {};
+            return false;
         }
         int finalLength = 0;
         ok = EVP_DecryptFinal_ex(
@@ -366,13 +405,18 @@ Bytes CipherFinal(Session* session) {
         ok = EVP_CipherFinal_ex(session->cipher, output.data(), &outLength) > 0;
     }
     if (!ok) {
-        return {};
+        return false;
     }
     output.resize(static_cast<size_t>(outLength));
-    return output;
+    *result = std::move(output);
+    session->finalized = true;
+    return true;
 }
 
 void FreeSession(Session* session) {
+    if (session->closed) {
+        return;
+    }
     if (session->cipher != nullptr) {
         EVP_CIPHER_CTX_free(session->cipher);
         session->cipher = nullptr;
@@ -385,13 +429,24 @@ void FreeSession(Session* session) {
         EVP_PKEY_free(session->pkeyKey);
         session->pkeyKey = nullptr;
     }
-    std::fill(session->rsaInput.begin(), session->rsaInput.end(), 0);
+    if (!session->rsaInput.empty()) {
+        OPENSSL_cleanse(session->rsaInput.data(), session->rsaInput.size());
+        session->rsaInput.clear();
+    }
+    session->closed = true;
+}
+
+void ThrowIllegalStateException(JNIEnv* env, const char* message) {
+    jclass exceptionClass = env->FindClass("java/lang/IllegalStateException");
+    if (exceptionClass != nullptr) {
+        env->ThrowNew(exceptionClass, message);
+    }
 }
 
 }  // namespace
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_sik_sikencrypt_NativeCipher_registerKeyForTest(
+Java_com_sik_sikencrypt_NativeCipher_registerKeyForTestNative(
     JNIEnv* env,
     jclass,
     jstring keyId,
@@ -404,7 +459,9 @@ Java_com_sik_sikencrypt_NativeCipher_registerKeyForTest(
     Bytes bytes = ToBytes(env, key);
     std::lock_guard<std::mutex> lock(g_keysMutex);
     auto& stored = g_keys[id];
-    std::fill(stored.begin(), stored.end(), 0);
+    if (!stored.empty()) {
+        OPENSSL_cleanse(stored.data(), stored.size());
+    }
     stored = std::move(bytes);
 }
 
@@ -442,7 +499,9 @@ Java_com_sik_sikencrypt_NativeCipher_openSession(
         ivFromKey == JNI_TRUE,
         encrypt == JNI_TRUE
     );
-    std::fill(key.begin(), key.end(), 0);
+    if (!key.empty()) {
+        OPENSSL_cleanse(key.data(), key.size());
+    }
     if (!ok) {
         FreeSession(session.get());
         return 0;
@@ -465,7 +524,9 @@ sikencrypt_register_key(
     }
     std::lock_guard<std::mutex> lock(g_keysMutex);
     auto& stored = g_keys[std::string(keyId)];
-    std::fill(stored.begin(), stored.end(), 0);
+    if (!stored.empty()) {
+        OPENSSL_cleanse(stored.data(), stored.size());
+    }
     stored.assign(key, key + keySize);
     return 1;
 }
@@ -482,12 +543,25 @@ Java_com_sik_sikencrypt_NativeCipher_update(
         std::lock_guard<std::mutex> lock(g_sessionsMutex);
         const auto found = g_sessions.find(handle);
         if (found == g_sessions.end()) {
-            return ToJByteArray(env, {});
+            ThrowIllegalStateException(env, "Native cipher session not found");
+            return nullptr;
         }
         session = found->second;
     }
     const Bytes input = ToBytes(env, data);
-    return ToJByteArray(env, CipherUpdate(session.get(), input));
+    Bytes output;
+    {
+        std::lock_guard<std::mutex> lock(session->mutex);
+        if (session->closed) {
+            ThrowIllegalStateException(env, "Native cipher session already closed");
+            return nullptr;
+        }
+        if (!CipherUpdate(session.get(), input, &output)) {
+            ThrowIllegalStateException(env, "Native cipher update failed");
+            return nullptr;
+        }
+    }
+    return ToJByteArray(env, output);
 }
 
 extern "C" JNIEXPORT jbyteArray JNICALL
@@ -501,11 +575,24 @@ Java_com_sik_sikencrypt_NativeCipher_doFinal(
         std::lock_guard<std::mutex> lock(g_sessionsMutex);
         const auto found = g_sessions.find(handle);
         if (found == g_sessions.end()) {
-            return ToJByteArray(env, {});
+            ThrowIllegalStateException(env, "Native cipher session not found");
+            return nullptr;
         }
         session = found->second;
     }
-    return ToJByteArray(env, CipherFinal(session.get()));
+    Bytes output;
+    {
+        std::lock_guard<std::mutex> lock(session->mutex);
+        if (session->closed) {
+            ThrowIllegalStateException(env, "Native cipher session already closed");
+            return nullptr;
+        }
+        if (!CipherFinal(session.get(), &output)) {
+            ThrowIllegalStateException(env, "Native cipher final failed");
+            return nullptr;
+        }
+    }
+    return ToJByteArray(env, output);
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -524,5 +611,6 @@ Java_com_sik_sikencrypt_NativeCipher_close(
         session = found->second;
         g_sessions.erase(found);
     }
+    std::lock_guard<std::mutex> lock(session->mutex);
     FreeSession(session.get());
 }
