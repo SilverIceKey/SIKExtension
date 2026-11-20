@@ -58,6 +58,8 @@ fun decryptFromByteArray(dataBytes: ByteArray):ByteArray
 `IProtectedEncryptConfig` 只传 `keyId`、算法、模式和 IV，不向 SDK 暴露密钥。
 `IProtectedEncryptProvider` 由业务侧实现，真正的 KeyVault 和 Cipher 可以放在 Native 层。
 文件、流和 GCM 等有状态模式通过 `IProtectedCipherSession` 连续 `update`，不能按块重新创建 Cipher。
+历史协议中 IV 与 Key 相同时，设置 `ivFromKey = true`，由 C++ 从已注册 Key 派生 IV，
+避免把实际 Key 当作 IV 从 Java 传入。
 
 SDK 内置 `NativeCipherProvider`。发布 AAR 使用预编译的 `libsikencrypt_crypto.so`，
 该库由 `src/main/cpp` 中的源码和 OpenSSL 静态 `libcrypto.a` 构建，不打包
@@ -67,6 +69,16 @@ SDK 内置 `NativeCipherProvider`。发布 AAR 使用预编译的 `libsikencrypt
 
 需要重新生成 Native 文件时，使用本机 NDK/CMake 按 `src/main/cpp/CMakeLists.txt`
 构建，并替换 `src/main/jniLibs/<abi>/libsikencrypt_crypto.so`。
+
+业务侧 Native KeyVault 可直接加载 `libsikencrypt_crypto.so` 并调用：
+
+```c
+int sikencrypt_register_key(
+    const char* keyId,
+    const unsigned char* key,
+    size_t keySize
+);
+```
 
 `keyId` 映射和业务 Key 不应写入本仓库。当前 `registerKeyForTest` 只用于兼容性测试；
 业务接入时应由 App 自己的 Native KeyVault 注册密钥。

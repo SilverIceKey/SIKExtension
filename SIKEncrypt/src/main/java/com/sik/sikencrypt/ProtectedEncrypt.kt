@@ -39,8 +39,11 @@ class ProtectedEncrypt(
                 config.algorithm() != EncryptAlgorithm.RSA
 
     init {
-        if (hasIVMode && config.iv() == null) {
+        if (hasIVMode && config.iv() == null && !config.ivFromKey) {
             throw EncryptException(EncryptExceptionEnums.NO_IV)
+        }
+        if (config.ivFromKey && config.composeIV && hasIVMode) {
+            throw EncryptException(EncryptExceptionEnums.CONFIG_ERROR)
         }
     }
 

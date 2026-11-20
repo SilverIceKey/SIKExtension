@@ -25,6 +25,7 @@ object NativeCipher {
         mode: String,
         padding: String,
         iv: ByteArray?,
+        ivFromKey: Boolean,
         encrypt: Boolean
     ): Long
 

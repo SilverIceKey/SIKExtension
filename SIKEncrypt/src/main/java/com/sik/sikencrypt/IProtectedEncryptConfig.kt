@@ -23,6 +23,14 @@ interface IProtectedEncryptConfig {
     fun iv(): ByteArray?
 
     /**
+     * true 时由 Native 使用当前 Key 的对应块长度作为 IV。
+     *
+     * 用于历史协议中 IV == Key 的场景，避免把 IV（实际就是 Key）传给 Java。
+     */
+    val ivFromKey: Boolean
+        get() = false
+
+    /**
      * 是否把 IV 放到密文头部。
      */
     val composeIV: Boolean

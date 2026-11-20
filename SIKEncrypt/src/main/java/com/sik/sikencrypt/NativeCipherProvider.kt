@@ -32,6 +32,7 @@ class NativeCipherProvider : IProtectedEncryptProvider {
             mode = config.mode().mode,
             padding = config.padding().padding,
             iv = iv,
+            ivFromKey = config.ivFromKey,
             encrypt = encrypt
         )
         if (handle == 0L) {

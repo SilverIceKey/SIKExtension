@@ -176,7 +176,8 @@ bool InitSession(
     const std::string& algorithm,
     const std::string& mode,
     const std::string& padding,
-    const Bytes& iv,
+    Bytes iv,
+    bool ivFromKey,
     bool encrypt
 ) {
     session->algorithm = algorithm;
@@ -197,6 +198,14 @@ bool InitSession(
     const EVP_CIPHER* cipher = SymmetricCipher(algorithm, mode, key.size());
     if (cipher == nullptr) {
         return false;
+    }
+
+    if (ivFromKey && iv.empty() && mode != "ECB") {
+        const int ivLength = EVP_CIPHER_iv_length(cipher);
+        if (ivLength <= 0 || key.size() < static_cast<size_t>(ivLength)) {
+            return false;
+        }
+        iv.assign(key.begin(), key.begin() + ivLength);
     }
 
     session->cipher = EVP_CIPHER_CTX_new();
@@ -408,6 +417,7 @@ Java_com_sik_sikencrypt_NativeCipher_openSession(
     jstring mode,
     jstring padding,
     jbyteArray iv,
+    jboolean ivFromKey,
     jboolean encrypt
 ) {
     const std::string id = ToString(env, keyId);
@@ -429,6 +439,7 @@ Java_com_sik_sikencrypt_NativeCipher_openSession(
         ToString(env, mode),
         ToString(env, padding),
         ToBytes(env, iv),
+        ivFromKey == JNI_TRUE,
         encrypt == JNI_TRUE
     );
     std::fill(key.begin(), key.end(), 0);
@@ -441,6 +452,22 @@ Java_com_sik_sikencrypt_NativeCipher_openSession(
     const jlong handle = g_nextHandle++;
     g_sessions[handle] = std::move(session);
     return handle;
+}
+
+extern "C" __attribute__((visibility("default"))) int
+sikencrypt_register_key(
+    const char* keyId,
+    const unsigned char* key,
+    size_t keySize
+) {
+    if (keyId == nullptr || *keyId == '\0' || key == nullptr || keySize == 0) {
+        return 0;
+    }
+    std::lock_guard<std::mutex> lock(g_keysMutex);
+    auto& stored = g_keys[std::string(keyId)];
+    std::fill(stored.begin(), stored.end(), 0);
+    stored.assign(key, key + keySize);
+    return 1;
 }
 
 extern "C" JNIEXPORT jbyteArray JNICALL
